@@ -1,0 +1,442 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MANAGER
+  CHECKIN
+  FINANCE
+}
+enum MemberStatus {
+  ACTIVE
+  SUSPENDED
+}
+enum OrgStatus {
+  ACTIVE
+  SUSPENDED
+}
+enum FeeMode {
+  ABSORB
+  PASS_TO_BUYER
+}
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  ENDED
+}
+enum EventVisibility {
+  PUBLIC
+  UNLISTED
+}
+enum EventMode {
+  IN_PERSON
+  ONLINE
+  HYBRID
+}
+enum ImageKind {
+  POSTER
+  COVER
+  GALLERY
+}
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+enum TicketStatus {
+  VALID
+  USED
+  CANCELLED
+  REFUNDED
+}
+enum Channel {
+  EMAIL
+  WHATSAPP
+}
+enum MessageTrigger {
+  ORDER_CONFIRMED
+  TICKET_ISSUED
+  PAYMENT_FAILED
+  REMINDER_24H
+  REMINDER_2H
+  EVENT_UPDATED
+  EVENT_CANCELLED
+}
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+enum WebhookStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  firebaseUid String @unique
+  email String @unique
+  name String?
+  phone String?
+  avatarKey String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  memberships OrganizationMember[]
+  invitesAccepted Invite[] @relation("InviteAcceptor")
+  eventAssignments EventStaff[]
+  orders Order[]
+  checkedInTickets Ticket[] @relation("TicketChecker")
+  auditLogs AuditLog[]
+}
+
+model Organization {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  slug String @unique
+  logoKey String?
+  supportEmail String?
+  supportPhone String?
+  brandColor String @default("#4f46e5")
+  platformFeeBps Int @default(0)
+  platformFeeFixedPaise Int @default(0)
+  feeMode FeeMode @default(ABSORB)
+  status OrgStatus @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  members OrganizationMember[]
+  invites Invite[]
+  events Event[]
+  messageTemplates MessageTemplate[]
+  notificationLogs NotificationLog[]
+  auditLogs AuditLog[]
+}
+
+model OrganizationMember {
+  orgId String @db.Uuid
+  userId String @db.Uuid
+  role OrgRole
+  status MemberStatus @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([orgId, userId])
+  @@index([userId])
+}
+
+model Invite {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String @db.Uuid
+  email String
+  role OrgRole
+  tokenHash String @unique
+  expiresAt DateTime @db.Timestamptz(6)
+  acceptedAt DateTime? @db.Timestamptz(6)
+  acceptedById String? @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  acceptedBy User? @relation("InviteAcceptor", fields: [acceptedById], references: [id])
+  @@index([orgId, email])
+  @@index([acceptedById])
+}
+
+model Event {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String @db.Uuid
+  slug String @unique
+  title String
+  summary String?
+  description String?
+  category String?
+  status EventStatus @default(DRAFT)
+  visibility EventVisibility @default(PUBLIC)
+  mode EventMode @default(IN_PERSON)
+  startsAt DateTime @db.Timestamptz(6)
+  endsAt DateTime @db.Timestamptz(6)
+  timezone String @default("Asia/Kolkata")
+  venueName String?
+  address String?
+  city String?
+  lat Decimal? @db.Decimal(10, 7)
+  lng Decimal? @db.Decimal(10, 7)
+  onlineUrl String?
+  capacity Int?
+  refundPolicy String?
+  publishedAt DateTime? @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id])
+  images EventImage[]
+  people EventPerson[]
+  staff EventStaff[]
+  ticketTypes TicketType[]
+  orders Order[]
+  tickets Ticket[]
+  messageTemplates MessageTemplate[]
+  notificationLogs NotificationLog[]
+  @@index([orgId, status, deletedAt])
+  @@index([status, visibility, startsAt])
+}
+
+model EventImage {
+  id String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  kind ImageKind
+  storageKey String
+  variants Json?
+  width Int?
+  height Int?
+  blurhash String?
+  alt String @default("")
+  mime String
+  sizeBytes Int
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([eventId, kind, sortOrder])
+}
+
+model EventPerson {
+  id String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  name String
+  title String?
+  bio String?
+  photoKey String?
+  links Json?
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([eventId, sortOrder])
+}
+
+model EventStaff {
+  eventId String @db.Uuid
+  userId String @db.Uuid
+  role OrgRole
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([eventId, userId])
+  @@index([userId])
+}
+
+model TicketType {
+  id String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  name String
+  description String?
+  pricePaise Int
+  quantityTotal Int
+  quantitySold Int @default(0)
+  quantityHeld Int @default(0)
+  saleStartsAt DateTime? @db.Timestamptz(6)
+  saleEndsAt DateTime? @db.Timestamptz(6)
+  minPerOrder Int @default(1)
+  maxPerOrder Int @default(10)
+  isHidden Boolean @default(false)
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  tickets Ticket[]
+  @@index([eventId, sortOrder])
+}
+
+model Order {
+  id String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  buyerId String @db.Uuid
+  status OrderStatus @default(PENDING)
+  subtotalPaise Int
+  discountPaise Int @default(0)
+  feePaise Int @default(0)
+  taxPaise Int @default(0)
+  totalPaise Int
+  expiresAt DateTime @db.Timestamptz(6)
+  cashfreeOrderId String? @unique
+  paymentSessionId String?
+  buyerName String
+  buyerEmail String
+  buyerPhone String?
+  idempotencyKey String @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id])
+  buyer User @relation(fields: [buyerId], references: [id])
+  items OrderItem[]
+  tickets Ticket[]
+  payments Payment[]
+  notificationLogs NotificationLog[]
+  @@index([eventId, createdAt])
+  @@index([buyerId, createdAt])
+  @@index([status, expiresAt])
+}
+
+model OrderItem {
+  orderId String @db.Uuid
+  ticketTypeId String @db.Uuid
+  quantity Int
+  unitPricePaise Int
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
+  @@id([orderId, ticketTypeId])
+  @@index([ticketTypeId])
+}
+
+model Ticket {
+  id String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid
+  eventId String @db.Uuid
+  ticketTypeId String @db.Uuid
+  code String @unique
+  holderName String
+  holderEmail String
+  holderPhone String?
+  status TicketStatus @default(VALID)
+  checkedInAt DateTime? @db.Timestamptz(6)
+  checkedInById String? @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  order Order @relation(fields: [orderId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
+  checkedInBy User? @relation("TicketChecker", fields: [checkedInById], references: [id])
+  notificationLogs NotificationLog[]
+  @@index([eventId, status])
+  @@index([orderId])
+  @@index([checkedInById])
+}
+
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid
+  cfPaymentId String @unique
+  method String?
+  status String
+  amountPaise Int
+  rawPayload Json
+  paidAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  order Order @relation(fields: [orderId], references: [id])
+  refunds Refund[]
+  @@index([orderId])
+}
+
+model Refund {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @db.Uuid
+  amountPaise Int
+  status String
+  cfRefundId String? @unique
+  reason String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  payment Payment @relation(fields: [paymentId], references: [id])
+  @@index([paymentId])
+}
+
+model WebhookEvent {
+  id String @id @default(uuid()) @db.Uuid
+  provider String
+  idempotencyKey String
+  payload Json
+  status WebhookStatus @default(RECEIVED)
+  processedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  @@unique([provider, idempotencyKey])
+}
+
+model MessageTemplate {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String @db.Uuid
+  eventId String? @db.Uuid
+  channel Channel
+  trigger MessageTrigger
+  subject String?
+  body String
+  language String @default("en")
+  providerTemplateName String?
+  providerStatus String?
+  slots Json?
+  isEnabled Boolean @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  notificationLogs NotificationLog[]
+  @@index([orgId, eventId, trigger, channel])
+  @@index([eventId])
+}
+
+model NotificationLog {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String @db.Uuid
+  eventId String @db.Uuid
+  orderId String @db.Uuid
+  ticketId String? @db.Uuid
+  channel Channel
+  trigger MessageTrigger
+  toAddress String
+  templateId String? @db.Uuid
+  status NotificationStatus @default(QUEUED)
+  providerMessageId String?
+  error String?
+  attempts Int @default(0)
+  scheduledAt DateTime? @db.Timestamptz(6)
+  sentAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+  template MessageTemplate? @relation(fields: [templateId], references: [id])
+  @@index([orgId, createdAt])
+  @@index([eventId, createdAt])
+  @@index([orderId])
+  @@index([ticketId])
+  @@index([templateId])
+}
+
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String @db.Uuid
+  actorId String? @db.Uuid
+  action String
+  entityType String
+  entityId String
+  meta Json?
+  ip String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  org Organization @relation(fields: [orgId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id])
+  @@index([orgId, createdAt])
+  @@index([actorId])
+}
