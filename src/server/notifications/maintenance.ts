@@ -8,6 +8,7 @@ import {
 } from "./service";
 import { prepareTicketPdfs } from "@/server/tickets/pdf";
 import { queueTicketDelivery } from "@/server/tickets/delivery";
+import { processOperationsEmail } from "@/server/operations/email";
 
 export async function fulfilOrder(orderId: string) {
   await prepareTicketPdfs(orderId);
@@ -28,7 +29,7 @@ export async function maintainNotifications() {
   for (const order of orders) await queueTicketDelivery(order.id);
   const events = await db.webhookEvent.findMany({
     where: {
-      provider: { in: ["internal-events", "internal-orders"] },
+      provider: { in: ["internal-events", "internal-orders", "operations-email"] },
       status: { in: ["RECEIVED", "FAILED"] },
     },
     orderBy: { createdAt: "asc" },
@@ -45,6 +46,8 @@ export async function maintainNotifications() {
           .parse(event.payload);
         if (await db.event.findUnique({ where: { id: data.eventId } }))
           await enqueueEventNotifications(data.eventId, data.trigger);
+      } else if (event.provider === "operations-email") {
+        await processOperationsEmail(event.payload, event.idempotencyKey);
       } else {
         const data = z
           .object({ orderId: z.uuid(), trigger: z.literal("PAYMENT_FAILED") })

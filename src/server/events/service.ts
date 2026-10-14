@@ -76,6 +76,7 @@ export async function listEvents(userId: string, orgId: string) {
     "ADMIN",
     "MANAGER",
     "CHECKIN",
+    "FINANCE",
   ]);
   return db.event.findMany({
     where: {

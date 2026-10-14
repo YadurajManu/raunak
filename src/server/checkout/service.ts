@@ -459,9 +459,9 @@ export async function expireOrders(provider: PaymentProvider = cashfree) {
   return pending.length;
 }
 
-export async function retryRefunds(provider: PaymentProvider = cashfree) {
+export async function retryRefunds(provider: PaymentProvider = cashfree, orderId?: string) {
   const refunds = await db.refund.findMany({
-    where: { status: { in: ["PENDING", "FAILED"] } },
+    where: { status: { in: ["PENDING", "FAILED", "ONHOLD"] }, ...(orderId ? { payment: { orderId } } : {}) },
     include: { payment: { include: { order: true } } },
     take: 100,
   });
@@ -485,6 +485,9 @@ export async function retryRefunds(provider: PaymentProvider = cashfree) {
         }
       }
       await db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "Refund" WHERE id = ${refund.id}::uuid FOR UPDATE`;
+        const currentRefund = await tx.refund.findUniqueOrThrow({ where: { id: refund.id } });
+        if (currentRefund.status === "SUCCESS") return;
         await tx.refund.update({
           where: { id: refund.id },
           data: { cfRefundId: result.providerRefundId, status: result.status },
@@ -494,12 +497,15 @@ export async function retryRefunds(provider: PaymentProvider = cashfree) {
             where: { id: refund.payment.orderId, status: { not: "PAID" } },
             data: { status: "REFUNDED" },
           });
+        if (result.status === "SUCCESS") await tx.ticket.updateMany({ where: { orderId: refund.payment.orderId, status: "CANCELLED" }, data: { status: "REFUNDED" } });
+        if (result.status !== refund.status) await tx.webhookEvent.upsert({ where: { provider_idempotencyKey: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-${result.status}` } }, update: {}, create: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-${result.status}`, payload: { orderId: refund.payment.orderId, refundId: refund.id, kind: "REFUND_UPDATED" } } });
       });
     } catch {
-      await db.refund.update({
-        where: { id: refund.id },
+      const failed = await db.refund.updateMany({
+        where: { id: refund.id, status: { not: "SUCCESS" } },
         data: { status: "FAILED" },
       });
+      if (failed.count) await db.webhookEvent.upsert({ where: { provider_idempotencyKey: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-FAILED` } }, update: {}, create: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-FAILED`, payload: { orderId: refund.payment.orderId, refundId: refund.id, kind: "REFUND_UPDATED" } } });
     }
   }
 }

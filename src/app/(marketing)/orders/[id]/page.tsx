@@ -38,6 +38,7 @@ export default async function OrderPage({
         },
         items: { include: { ticketType: true } },
         tickets: true,
+      payments: { select: { refunds: { select: { id: true, amountPaise: true, status: true } } } },
         notificationLogs: {
           where: {
             channel: "EMAIL",
@@ -61,6 +62,7 @@ export default async function OrderPage({
   const paid = order.status === "PAID";
   const pending = order.status === "PENDING";
   const event = order.event;
+  const refunds = order.payments.flatMap(payment => payment.refunds);
   const url = `${process.env.APP_URL}/e/${event.slug}`;
   const cancelled = event.status === "CANCELLED" || !!event.deletedAt;
   const date = new Intl.DateTimeFormat("en-IN", {
@@ -120,6 +122,7 @@ export default async function OrderPage({
           refund.
         </p>
       )}
+      {refunds.map(refund => <p key={refund.id} className="booking-notice">Refund {formatInr(refund.amountPaise)} · {refund.status === "SUCCESS" ? "Confirmed by Cashfree. Your bank may take additional time to credit it." : refund.status === "FAILED" ? "Needs organizer review. Contact the organizer with your order reference." : "Processing with Cashfree. Check status again shortly."}</p>)}
       <div className="booking-grid">
         <section>
           <article className="booking-event">
@@ -249,7 +252,7 @@ export default async function OrderPage({
                     : "Your receipt and QR tickets are being prepared for email."}
               </p>
               <small>{order.buyerEmail}</small>
-              <ResendTickets orderId={order.id} />
+              {!cancelled && <ResendTickets orderId={order.id} />}
             </section>
           )}
           {!paid && !pending && (

@@ -21,6 +21,7 @@ export default async function EventLayout({
       "ADMIN",
       "MANAGER",
       "CHECKIN",
+      "FINANCE",
     ]);
   } catch {
     redirect("/dashboard");
@@ -33,7 +34,7 @@ export default async function EventLayout({
     where: { orgId_userId: { orgId: access.orgId, userId: user.id } },
   });
   const tabs =
-    member.role === "CHECKIN"
+    member.role === "FINANCE" ? [["Overview", ""], ["Attendees", "/attendees"]] : member.role === "CHECKIN"
       ? [
           ["Check-in", "/check-in"],
           ["Attendees", "/attendees"],

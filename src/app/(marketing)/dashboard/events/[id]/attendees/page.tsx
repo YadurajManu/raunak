@@ -1,99 +1,166 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { requireEventAccessForUser } from "@/server/rbac/access";
 import { db } from "@/server/db/client";
-
+import { attendeeFilters } from "@/lib/attendees";
+import { BookingActions } from "@/components/dashboard/booking-actions";
 export default async function AttendeesPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
   const user = await currentUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  let access;
   try {
-    await requireEventAccessForUser(user.id, id, [
+    access = await requireEventAccessForUser(user.id, id, [
       "OWNER",
       "ADMIN",
       "MANAGER",
       "CHECKIN",
+      "FINANCE",
     ]);
   } catch {
     redirect("/dashboard");
   }
-  const { q = "" } = await searchParams;
-  const tickets = await db.ticket.findMany({
-    where: {
-      eventId: id,
-      ...(q
-        ? {
-            OR: [
-              { holderName: { contains: q, mode: "insensitive" } },
-              { holderEmail: { contains: q, mode: "insensitive" } },
-              { code: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    include: { ticketType: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-    take: 100,
+  const member = await db.organizationMember.findUniqueOrThrow({
+    where: { orgId_userId: { orgId: access.orgId, userId: user.id } },
   });
+  const canResend = ["OWNER", "ADMIN", "MANAGER"].includes(member.role);
+  const canExport = member.role !== "CHECKIN";
+  const query = await searchParams;
+  const q = (query.q || "").slice(0, 100);
+  const status = ["VALID", "USED", "CANCELLED", "REFUNDED"].includes(
+    query.status || "",
+  )
+    ? query.status!
+    : "";
+  const page = Math.max(
+    1,
+    Math.min(100000, Number.parseInt(query.page || "1") || 1),
+  );
+  const where = attendeeFilters(id, q, status);
+  const [count, tickets, event] = await Promise.all([
+    db.ticket.count({ where }),
+    db.ticket.findMany({
+      where,
+      include: {
+        ticketType: { select: { name: true } },
+        order: { select: { status: true } },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 50,
+      skip: (page - 1) * 50,
+    }),
+    db.event.findUniqueOrThrow({ where: { id }, select: { timezone: true, status: true } }),
+  ]);
+  const filters = new URLSearchParams({ q, status });
+  const href = (next: number) =>
+    `?q=${encodeURIComponent(q)}&status=${status}&page=${next}`;
   return (
-    <main className="py-10">
-      <h1 className="text-3xl font-semibold">Attendees</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Search by name, email, or ticket code.
-      </p>
-      <form className="mt-6 flex gap-3">
-        <label htmlFor="attendee-search" className="sr-only">
+    <main className="ops-page">
+      <header className="ops-heading">
+        <div>
+          <p className="m-eyebrow">YOUR GUEST LIST</p>
+          <h1>
+            Attendees <small>{count}</small>
+          </h1>
+          <p>
+            Search every ticket. Delivery actions send to the booking buyer.
+          </p>
+        </div>
+        {canExport && (
+          <a
+            href={`/api/events/${id}/attendees/export?${filters}`}
+            className="r-quiet-button"
+          >
+            Export CSV ↓
+          </a>
+        )}
+      </header>
+      <form className="ops-filters">
+        <label className="sr-only" htmlFor="attendee-search">
           Search attendees
         </label>
         <input
           id="attendee-search"
           name="q"
           defaultValue={q}
-          className="rounded-xl border border-[var(--line)] bg-transparent px-4 py-2 dark:border-[var(--line)]"
+          placeholder="Name, email, phone or ticket code"
+          maxLength={100}
         />
-        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 text-white">
-          Search
-        </button>
+        <label className="sr-only" htmlFor="attendee-status">
+          Ticket status
+        </label>
+        <select id="attendee-status" name="status" defaultValue={status}>
+          <option value="">All tickets</option>
+          {["VALID", "USED", "CANCELLED", "REFUNDED"].map((value) => (
+            <option key={value}>{value}</option>
+          ))}
+        </select>
+        <button className="r-quiet-button">Search</button>
+        {(q || status) && (
+          <Link href={`/dashboard/events/${id}/attendees`}>Clear</Link>
+        )}
       </form>
       {tickets.length ? (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-[var(--line)] dark:border-[var(--line)]">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-[var(--paper-2)] dark:bg-[var(--paper)]">
-              <tr>
-                <th className="p-4">Name</th>
-                <th className="p-4">Email</th>
-                <th className="p-4">Ticket</th>
-                <th className="p-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tickets.map((ticket) => (
-                <tr
-                  key={ticket.id}
-                  className="border-t border-[var(--line)] dark:border-[var(--line)]"
-                >
-                  <td className="p-4">{ticket.holderName}</td>
-                  <td className="p-4">{ticket.holderEmail}</td>
-                  <td className="p-4">
-                    {ticket.ticketType.name} · {ticket.code}
-                  </td>
-                  <td className="p-4">{ticket.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="ops-attendees">
+          {tickets.map((ticket) => (
+            <li key={ticket.id}>
+              <div>
+                <h2>{ticket.holderName}</h2>
+                <p>{ticket.holderEmail}</p>
+                <small>{ticket.holderPhone}</small>
+              </div>
+              <div>
+                <strong>{ticket.ticketType.name}</strong>
+                <p className="m-mono">{ticket.code}</p>
+              </div>
+              <div>
+                <span className="tk-status">
+                  {ticket.status === "USED" ? "Checked in" : ticket.status}
+                </span>
+                {ticket.checkedInAt && (
+                  <p>
+                    {new Intl.DateTimeFormat("en-IN", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      timeZone: event.timezone,
+                    }).format(ticket.checkedInAt)}
+                  </p>
+                )}
+              </div>
+              {canResend && event.status !== "CANCELLED" && (
+                <BookingActions
+                  eventId={id}
+                  orderId={ticket.orderId}
+                  paid={ticket.order.status === "PAID"}
+                  amount={0}
+                  canRefund={false}
+                  canResend
+                  refund={false}
+                />
+              )}
+            </li>
+          ))}
+        </ul>
       ) : (
-        <p className="mt-8 rounded-2xl border border-dashed border-[var(--line)] p-8 text-center text-[var(--muted)] dark:border-[var(--line)]">
-          No attendees found.
-        </p>
+        <section className="ops-empty">
+          <h2>No attendees found</h2>
+          <p>Try another name, ticket code or status.</p>
+        </section>
       )}
+      <nav className="ops-pagination" aria-label="Attendee pages">
+        {page > 1 && <Link href={href(page - 1)}>← Previous</Link>}
+        <span>
+          Page {page} · {count} tickets
+        </span>
+        {page * 50 < count && <Link href={href(page + 1)}>Next →</Link>}
+      </nav>
     </main>
   );
 }

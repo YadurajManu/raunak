@@ -42,7 +42,7 @@ export default async function EventsPage({
           <h1>Events</h1>
           <p>{events.length} {events.length === 1 ? "event" : "events"} in {org.name}</p>
         </div>
-        {membership.role !== "CHECKIN" && (
+        {["OWNER", "ADMIN", "MANAGER"].includes(membership.role) && (
           <Link
             href={`/dashboard/events/new?org=${orgId}`}
             className="m-button m-button-small"
@@ -83,7 +83,7 @@ export default async function EventsPage({
         </button>
       </form>
       {filtered.length === 0 ? (
-        <section className="r-workspace-empty"><span aria-hidden="true">✳</span><div><h2>{events.length ? "No matching events" : "Your next event starts here"}</h2><p>{events.length ? "Try a different search or status." : "Create a draft, add your lineup and open the doors."}</p></div>{events.length ? <Link href={`/dashboard/events?org=${orgId}`} className="r-quiet-button">Clear filters</Link> : membership.role !== "CHECKIN" && <Link href={`/dashboard/events/new?org=${orgId}`} className="r-quiet-button">Create your first event ↗</Link>}</section>
+        <section className="r-workspace-empty"><span aria-hidden="true">✳</span><div><h2>{events.length ? "No matching events" : "Your next event starts here"}</h2><p>{events.length ? "Try a different search or status." : "Create a draft, add your lineup and open the doors."}</p></div>{events.length ? <Link href={`/dashboard/events?org=${orgId}`} className="r-quiet-button">Clear filters</Link> : ["OWNER", "ADMIN", "MANAGER"].includes(membership.role) && <Link href={`/dashboard/events/new?org=${orgId}`} className="r-quiet-button">Create your first event ↗</Link>}</section>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((event) => (
