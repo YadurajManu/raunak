@@ -1,5 +1,12 @@
 name: raunak
 services:
+  proxy:
+    image: caddy:2-alpine
+    container_name: raunak-proxy
+    restart: unless-stopped
+    mem_limit: 64m
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile:ro]
+    networks: [fleet]
   web:
     image: raunak:latest
     container_name: raunak-web

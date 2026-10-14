@@ -10,7 +10,7 @@ Redis, and Garage S3 storage. Each has its own Raunak container/volume. Database
 Redis, and storage ports are not published on the host.
 
 Cloudflare Tunnel terminates HTTPS and forwards this hostname to the existing
-Fleet Caddy container. Caddy sends `/raunak-media/*` to Garage and other paths to
+Raunak Caddy container. Caddy sends `/raunak-media/*` to Garage and other paths to
 the Next.js service. S3 signatures keep the public hostname and original path.
 Original uploads are private; `/api/media/*` signs only processed artwork URLs.
 

@@ -1,0 +1,8 @@
+:80 {
+ handle /raunak-media/* {
+  reverse_proxy raunak-storage:3900
+ }
+ handle {
+  reverse_proxy raunak-web:3000
+ }
+}
