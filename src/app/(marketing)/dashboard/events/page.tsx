@@ -5,6 +5,7 @@ import { currentUser } from "@/server/auth/session";
 import { listEvents } from "@/server/events/service";
 import { db } from "@/server/db/client";
 import { formatInr } from "@/lib/money";
+import { whatsappEventUrl } from "@/lib/event-share";
 
 export default async function EventsPage({
   searchParams,
@@ -126,6 +127,7 @@ export default async function EventsPage({
                   </p>
                 </div>
               </Link>
+              {event.status === "PUBLISHED" && <a className="r-quiet-button mt-2" href={whatsappEventUrl(event.title, `${process.env.APP_URL || "http://localhost:3000"}/e/${event.slug}`)} target="_blank" rel="noopener noreferrer" aria-label={`Share ${event.title} on WhatsApp`}>Share on WhatsApp ↗</a>}
             </li>
           ))}
         </ul>

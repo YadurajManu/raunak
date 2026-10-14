@@ -362,6 +362,30 @@ async function main() {
       .waitFor();
     const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
     assert.equal(event.status, "PUBLISHED");
+    await page.goto(`/dashboard/events/${eventId}/settings`);
+    await page.getByRole("heading", { name: "Event link & share preview" }).waitFor();
+    const nextSlug = `${event.slug}-share`;
+    await page.getByLabel("Event URL name", { exact: true }).fill(nextSlug);
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Save URL", exact: true }).click();
+    await page.getByText("Event link saved.", { exact: true }).waitFor();
+    const shareHref = await page.getByRole("link", { name: "Share on WhatsApp ↗", exact: true }).getAttribute("href");
+    assert.ok(new URL(shareHref!).searchParams.get("text")?.endsWith(`/e/${nextSlug}`));
+    await page.reload();
+    assert.equal(await page.getByLabel("Event URL name", { exact: true }).inputValue(), nextSlug);
+    await page.screenshot({ path: "artifacts/experience/event-sharing.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: "artifacts/experience/event-sharing-mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const sharedPage = await context.request.get(`/e/${nextSlug}`, { headers: { "user-agent": "facebookexternalhit/1.1" } });
+    const sharedHtml = await sharedPage.text();
+    const ogImage = sharedHtml.match(/property="og:image" content="([^"]+)"/);
+    assert.ok(ogImage, "Social crawlers must receive an image preview.");
+    const preview = await context.request.get(new URL(ogImage[1].replaceAll("&amp;", "&")).pathname);
+    assert.equal(preview.status(), 200);
+    assert.ok(preview.headers()["content-type"].startsWith("image/"));
+    console.log("Event sharing passed: edited URL persists, WhatsApp uses saved URL, public poster preview responds.");
     await page.goto(`/dashboard/events/${eventId}/check-in`);
     await page.getByRole("heading",{name:"Ready to scan"}).waitFor();
     await page.screenshot({path:"artifacts/experience/scanner.png",fullPage:true});
@@ -381,7 +405,7 @@ async function main() {
       fullPage: true,
     });
     await page
-      .getByRole("link", { name: /A little room for good people/ })
+      .getByRole("link", { name: /A little room for good people/ }).filter({ has: page.getByRole("heading", { name: "A little room for good people" }) })
       .click();
     await page
       .getByRole("heading", { name: "A little room for good people" })

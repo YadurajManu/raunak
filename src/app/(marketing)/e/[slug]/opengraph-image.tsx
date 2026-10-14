@@ -13,7 +13,7 @@ export default async function Image({
 }) {
   const event = await publicEvent((await params).slug);
   if (!event) notFound();
-  const poster = event.images.find((image) => image.kind === "POSTER");
+  const poster = event.images.find((image) => image.kind === "POSTER") || event.images.find((image) => image.kind === "COVER");
   const posterUrl = variantUrl(poster?.variants, "og", "jpeg");
   if (posterUrl) {
     const response = await fetch(
@@ -24,6 +24,7 @@ export default async function Image({
     if (response.ok)
       return new Response(
         await sharp(await response.arrayBuffer())
+          .resize(1200, 630, { fit: "contain", background: "#12110e" })
           .png()
           .toBuffer(),
         { headers: { "Content-Type": "image/png" } },
@@ -37,7 +38,7 @@ export default async function Image({
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
-        background: "#312e81",
+        background: "#12110e",
         color: "white",
         fontSize: 72,
         fontWeight: 700,

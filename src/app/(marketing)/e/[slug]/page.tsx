@@ -30,7 +30,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const event = await publicEvent(slug);
   if (!event) return { title: "Event not found" };
-  const poster = event.images.find((image) => image.kind === "POSTER");
+  const poster = event.images.find((image) => image.kind === "POSTER") || event.images.find((image) => image.kind === "COVER");
+  const shareImage = variantUrl(poster?.variants, "og");
   const description =
     event.summary ||
     `${event.title} · ${eventDate(event.startsAt, event.timezone)}`;
@@ -48,20 +49,12 @@ export async function generateMetadata({
       title: event.title,
       description,
       url,
-      images: [
-        {
-          url: `${url}/opengraph-image`,
-          width: 1200,
-          height: 630,
-          alt: poster?.alt || event.title,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title: event.title,
       description,
-      images: [`${url}/opengraph-image`],
+      ...(shareImage ? { images: [new URL(shareImage, base).href] } : {}),
     },
   };
 }
