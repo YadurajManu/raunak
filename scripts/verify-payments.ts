@@ -18,6 +18,8 @@ async function main() {
   assert.equal(response.status, 404, "Cashfree must authenticate the request before reporting the missing order.");
   assert.equal(result.code, "order_not_found");
   const endpoint = `${env.APP_URL}/api/webhooks/cashfree`;
+  const reachable = await fetch(endpoint, { signal: AbortSignal.timeout(15000) });
+  assert.equal(reachable.status, 200, "The endpoint must answer read-only reachability checks.");
   const raw = JSON.stringify({
     type: "PAYMENT_SUCCESS_WEBHOOK",
     data: {
