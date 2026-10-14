@@ -20,6 +20,7 @@ services:
     env_file: ../.env
     environment:
       NODE_OPTIONS: --max-old-space-size=512
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
     restart: unless-stopped
     mem_limit: 768m
     depends_on:
@@ -37,6 +38,7 @@ services:
     env_file: ../.env
     environment:
       NODE_OPTIONS: --max-old-space-size=256
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
     restart: unless-stopped
     mem_limit: 384m
     depends_on:
