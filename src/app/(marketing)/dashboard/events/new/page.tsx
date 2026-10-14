@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { requireOrgRoleForUser } from "@/server/rbac/access";
 import { EventForm } from "@/components/dashboard/event-form";
+import Link from "next/link";
 
 export default async function NewEventPage({
   searchParams,
@@ -18,11 +19,9 @@ export default async function NewEventPage({
     redirect("/dashboard");
   }
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-3xl font-semibold">Create event</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Start with the essentials, then add images and tickets.
-      </p>
+    <main className="r-event-create">
+      <Link href={`/dashboard/events?org=${org}`} className="r-back-link">← Workspace events</Link>
+      <div className="r-compact-heading"><div><h1>Create event</h1><p>Start with the details. Add your images, people and tickets next.</p></div><span className="r-status-chip">NEW DRAFT</span></div>
       <EventForm orgId={org} />
     </main>
   );

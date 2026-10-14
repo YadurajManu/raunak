@@ -1,4 +1,3 @@
-import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
 /* eslint-disable @next/next/no-img-element -- Event images are already optimized by the media worker. */
 import { redirect } from "next/navigation";
@@ -35,30 +34,23 @@ export default async function EventsPage({
       (!q || event.title.toLowerCase().includes(q.toLowerCase())),
   );
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-6 py-8">
-      <header className="flex items-center justify-between border-b border-[var(--line)] pb-6 dark:border-[var(--line)]">
-        <Link href="/dashboard" className="text-xl font-semibold">
-          {APP_NAME}
-        </Link>
-        <span>{org.name}</span>
-      </header>
-      <div className="mt-10 flex flex-wrap items-end justify-between gap-5">
+    <main className="r-workspace-events">
+      <Link href="/dashboard" className="r-back-link">← Workspaces / {org.name}</Link>
+      <div className="r-compact-heading">
         <div>
-          <h1 className="text-3xl font-semibold">Events</h1>
-          <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-            Create and manage events for {org.name}.
-          </p>
+          <h1>Events</h1>
+          <p>{events.length} {events.length === 1 ? "event" : "events"} in {org.name}</p>
         </div>
         {membership.role !== "CHECKIN" && (
           <Link
             href={`/dashboard/events/new?org=${orgId}`}
-            className="rounded-xl bg-[var(--accent)] px-4 py-3 font-medium text-white"
+            className="m-button m-button-small"
           >
             Create event
           </Link>
         )}
       </div>
-      <form className="mt-8 flex flex-wrap gap-3">
+      <form className="r-workspace-filters">
         <input type="hidden" name="org" value={orgId} />
         <label className="sr-only" htmlFor="event-search">
           Search events
@@ -90,9 +82,7 @@ export default async function EventsPage({
         </button>
       </form>
       {filtered.length === 0 ? (
-        <p className="mt-8 rounded-2xl border border-dashed border-[var(--line)] p-10 text-center text-[var(--muted)] dark:border-[var(--line)]">
-          No events match these filters.
-        </p>
+        <section className="r-workspace-empty"><span aria-hidden="true">✳</span><div><h2>{events.length ? "No matching events" : "Your next event starts here"}</h2><p>{events.length ? "Try a different search or status." : "Create a draft, add your lineup and open the doors."}</p></div>{events.length ? <Link href={`/dashboard/events?org=${orgId}`} className="r-quiet-button">Clear filters</Link> : membership.role !== "CHECKIN" && <Link href={`/dashboard/events/new?org=${orgId}`} className="r-quiet-button">Create your first event ↗</Link>}</section>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((event) => (

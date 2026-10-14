@@ -5,6 +5,7 @@ import { PublicHeader } from "@/components/public/public-header";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { discoverEvents } from "@/server/public/events";
 import { formatInr } from "@/lib/money";
+import { eventCategories } from "@/config/event-options";
 export const metadata: Metadata = {
   title: "Discover events | Raunak",
   description: "Good people. Great events. Find your next plan on Raunak.",
@@ -66,11 +67,11 @@ export default async function DiscoverPage({
           </label>
           <label>
             Category
-            <input
-              name="category"
-              defaultValue={filters.category}
-              placeholder="All kinds of good"
-            />
+            <select name="category" defaultValue={filters.category || ""}>
+              <option value="">All categories</option>
+              {filters.category && !eventCategories.includes(filters.category) && <option>{filters.category}</option>}
+              {eventCategories.map(category => <option key={category}>{category}</option>)}
+            </select>
           </label>
           <label>
             From date

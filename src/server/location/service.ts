@@ -1,5 +1,6 @@
 import { z } from "zod";
 import IORedis from "ioredis";
+import { citySuggestions } from "@/config/cities";
 const globalRedis = globalThis as unknown as { locationRedis?: IORedis };
 const redis =
   globalRedis.locationRedis ??
@@ -51,6 +52,7 @@ export async function lookupLocation(
   z.uuid().parse(userId);
   const data = lookupSchema.parse(input);
   const apiKey = process.env.GEOAPIFY_API_KEY;
+  if (!apiKey && data.kind === "search") return citySuggestions(data.query);
   if (!apiKey)
     throw new Error(
       "Address search is not configured. You can enter your city manually.",

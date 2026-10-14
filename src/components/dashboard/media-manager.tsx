@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { personRoles } from "@/config/event-options";
 
 type Image = {
   id: string;
@@ -387,6 +388,7 @@ function PeopleEditor({
   return (
     <section>
       <h2 className="text-xl font-semibold">Lineup and people</h2>
+      <datalist id="person-role-presets">{personRoles.map(role => <option key={role} value={role}/>)}</datalist>
       <p className="mt-1 text-sm text-[var(--muted)]">
         Speakers, performers, guests, and team members.
       </p>
@@ -404,9 +406,11 @@ function PeopleEditor({
           />
         </label>
         <label className="block text-sm">
-          Title
+          Role / title
           <input
             name="title"
+            list="person-role-presets"
+            placeholder="Choose a role or enter your own"
             maxLength={100}
             className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
           />
@@ -461,9 +465,10 @@ function PeopleEditor({
                     />
                   </label>
                   <label className="block text-sm">
-                    Title
+                    Role / title
                     <input
                       name="title"
+                      list="person-role-presets"
                       defaultValue={person.title || ""}
                       className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
                     />

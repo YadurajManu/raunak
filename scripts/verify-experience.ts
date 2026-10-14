@@ -77,7 +77,23 @@ async function main() {
     await returned.waitForURL("**/account");
     await returning.close();
     await page.goto("/account/profile");
-    await page.getByRole("heading", { name: "Nice to know you." }).waitFor();
+    await page.evaluate(() => {
+      document.documentElement.dataset.marketingTheme = "dark";
+      localStorage.setItem("raunak-theme", "dark");
+      window.dispatchEvent(new Event("raunak-theme"));
+    });
+    await page.getByRole("heading", { name: "Personal details" }).waitFor();
+    const nameBox = await page.getByLabel("Full name").boundingBox();
+    const emailBox = await page.getByLabel("Email address").boundingBox();
+    assert.ok(nameBox && emailBox && Math.abs(nameBox.y - emailBox.y) < 2, "Name and email inputs must align.");
+    assert.equal(await page.locator(".maplibregl-canvas").count(), 0, "Profile maps are optional and collapsed.");
+    await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
+    await page.getByRole("combobox", { name: "City", exact: true }).press("ArrowDown");
+    await page.getByRole("combobox", { name: "City", exact: true }).press("Enter");
+    assert.equal(await page.getByLabel("State / region").inputValue(), "Maharashtra");
+    await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
+    await page.getByRole("button", { name: "Search city", exact: true }).click();
+    await page.getByRole("option", { name: /Pune/ }).click();
     await page.getByLabel("Full name").fill("Experience Check Updated");
     await page.getByRole("button", { name: "Save changes" }).click();
     await page.getByText("Your profile is saved.").waitFor();
@@ -100,21 +116,40 @@ async function main() {
     });
     assert.equal(org.status(), 201);
     orgId = (await org.json()).id;
+    await page.goto(`/dashboard/events?org=${orgId}`);
+    await page.getByRole("heading", { name: "Your next event starts here" }).waitFor();
+    await page.screenshot({ path: "artifacts/experience/workspace.png", fullPage: true });
     await page.goto(`/dashboard/events/new?org=${orgId}`);
+    await page.waitForLoadState("networkidle");
+    await page.locator('select[name="category"]').selectOption("Music & nightlife");
+    await page.getByRole("radio", { name: /Online Join/ }).check();
+    assert.equal(await page.getByLabel("Venue name").count(), 0);
+    await page.getByRole("radio", { name: /In person At/ }).check();
     await page.getByLabel("Event title").fill("A little room for good people");
     await page
       .getByLabel("Short summary")
       .fill("A Raunak experience verification event.");
     await page
-      .getByLabel("Description (Markdown supported)")
+      .getByLabel("Description", { exact: true })
       .fill(
         "## Your next good memory\nAn evening of music, conversation and good people.",
       );
     await page.getByLabel("Starts", { exact: true }).fill("2027-06-01T18:00");
     await page.getByLabel("Ends", { exact: true }).fill("2027-06-01T21:00");
     await page.getByLabel("Venue name").fill("The Courtyard");
-    await page.getByLabel("City", { exact: true }).fill("Pune");
+    await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
+    await page.getByRole("option", { name: /Pune/ }).click();
     await page.getByLabel("Address", { exact: true }).fill("Pune, Maharashtra");
+    assert.equal(await page.locator(".maplibregl-canvas").count(), 0, "Event maps start collapsed.");
+    await page.getByRole("button", { name: /Adjust map pin/ }).click();
+    await page.locator(".maplibregl-canvas").waitFor();
+    const mapBox = await page.locator(".r-small-map .r-map").boundingBox();
+    assert.ok(mapBox && mapBox.height <= 185, "The optional map must remain compact.");
+    await page.screenshot({ path: "artifacts/experience/create-event.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "Mobile form must not overflow.");
+    await page.screenshot({ path: "artifacts/experience/create-event-mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     const creation = page.waitForResponse(
       (response) =>
         response.url().endsWith("/api/events") &&

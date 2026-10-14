@@ -1,10 +1,9 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
+import { LocationSearch } from "./location-search";
 import type { ProfileValues } from "./profile-form";
 import { countries } from "@/config/countries";
-const LocationMap = dynamic(() => import("./location-map"), { ssr: false });
 export function ProfileSettings({
   initial,
   email,
@@ -64,6 +63,7 @@ export function ProfileSettings({
     }
   }
   function location(patch: Partial<NonNullable<ProfileValues["location"]>>) {
+    ++pickId.current;
     setValues({ ...values, location: { ...place, ...patch } });
   }
   async function photo(file?: File) {
@@ -118,16 +118,7 @@ export function ProfileSettings({
   }
   return (
     <div className="r-settings">
-      <p className="m-eyebrow">YOUR LITTLE CORNER</p>
-      <h1>
-        Your profile.
-        <br />
-        <em className="m-serif">All you.</em>
-      </h1>
-      <p>
-        Make yourself at home. Keep your details and your favourite starting
-        point up to date.
-      </p>
+      <div className="r-compact-heading"><div><p className="m-eyebrow">YOUR ACCOUNT</p><h1>Profile</h1><p>Your details, photo and city in one place.</p></div></div>
       <section className="r-settings-card r-photo-row">
         <div className="r-avatar-large">
           {avatar ? (
@@ -143,8 +134,8 @@ export function ProfileSettings({
           )}
         </div>
         <div>
-          <h2>A face to your name</h2>
-          <p>JPEG, PNG or WebP, up to 2 MB. We crop it into a square.</p>
+          <h2>Profile photo</h2>
+          <p>JPEG, PNG or WebP · up to 2 MB</p>
           <label className="m-button m-button-small">
             Change photo
             <input
@@ -172,8 +163,7 @@ export function ProfileSettings({
       </section>
       <form onSubmit={save}>
         <section className="r-settings-card">
-          <p className="m-eyebrow">01 / THE BASICS</p>
-          <h2>Nice to know you.</h2>
+          <h2>Personal details</h2>
           <div className="r-settings-fields">
             <label>
               Full name
@@ -189,7 +179,6 @@ export function ProfileSettings({
             <label>
               Email address
               <input value={email} readOnly type="email" />
-              <small>Your sign-in email.</small>
             </label>
             <label>
               Phone number
@@ -222,13 +211,11 @@ export function ProfileSettings({
           </div>
         </section>
         <section className="r-settings-card">
-          <p className="m-eyebrow">02 / YOUR NEIGHBOURHOOD</p>
-          <h2>Where good plans begin.</h2>
-          <p>
-            Your location stays private. Click the map or drag the pin to choose
-            a spot.
-          </p>
-          <LocationMap
+          <h2>Location</h2>
+          <LocationSearch
+            value={place.city}
+            onChange={city => location({ city, region: "", label: "", latitude: undefined, longitude: undefined, saveExact: false })}
+            onSelect={selected => location({ ...selected, saveExact: false })}
             point={
               place.latitude !== undefined && place.longitude !== undefined
                 ? { latitude: place.latitude, longitude: place.longitude }
@@ -237,15 +224,6 @@ export function ProfileSettings({
             onPick={pick}
           />
           <div className="r-settings-fields">
-            <label>
-              City
-              <input
-                value={place.city}
-                maxLength={120}
-                autoComplete="address-level2"
-                onChange={(e) => location({ city: e.target.value })}
-              />
-            </label>
             <label>
               State / region
               <input
@@ -269,16 +247,16 @@ export function ProfileSettings({
               </select>
             </label>
           </div>
-          <label className="m-auth-consent">
+          {place.latitude !== undefined && <label className="m-auth-consent">
             <input
               type="checkbox"
               checked={place.saveExact}
               onChange={(e) => location({ saveExact: e.target.checked })}
             />
             <span>
-              Save my precise pin privately. Otherwise, save only my city.
+              Save this precise pin privately. Otherwise, only my city is saved.
             </span>
-          </label>
+          </label>}
         </section>
         <div className="r-settings-save">
           <button className="m-button" disabled={busy}>
