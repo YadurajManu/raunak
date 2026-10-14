@@ -1,3 +1,6 @@
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+
+patchedDependencies:
+  '@react-pdf/hyphenate': patches/@react-pdf__hyphenate.patch
