@@ -4,6 +4,21 @@ import { db } from "@/server/db/client";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.APP_URL || "http://localhost:3000";
-  const events = await db.event.findMany({ where: { status: "PUBLISHED", visibility: "PUBLIC", deletedAt: null }, select: { slug: true, updatedAt: true } });
-  return [{ url: base, changeFrequency: "weekly" }, { url: `${base}/discover`, changeFrequency: "daily" }, ...events.map(event => ({ url: `${base}/e/${event.slug}`, lastModified: event.updatedAt, changeFrequency: "daily" as const }))];
+  const events = await db.event.findMany({
+    where: { status: "PUBLISHED", visibility: "PUBLIC", deletedAt: null },
+    select: { slug: true, updatedAt: true },
+  });
+  return [
+    { url: base, changeFrequency: "weekly" },
+    ...["privacy", "terms", "contact"].map((path) => ({
+      url: `${base}/${path}`,
+      changeFrequency: "monthly" as const,
+    })),
+    { url: `${base}/discover`, changeFrequency: "daily" },
+    ...events.map((event) => ({
+      url: `${base}/e/${event.slug}`,
+      lastModified: event.updatedAt,
+      changeFrequency: "daily" as const,
+    })),
+  ];
 }

@@ -11,10 +11,18 @@ export const metadata: Metadata = {
   description: "Event management and ticketing for organizers in India.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("raunak-theme");if(t)document.documentElement.dataset.marketingTheme=t}catch(e){}` }} /></head>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("raunak-theme");if(t)document.documentElement.dataset.marketingTheme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${geist.variable} ${geist.className}`}>{children}</body>
     </html>
   );
