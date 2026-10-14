@@ -11,7 +11,7 @@ ARG NEXT_PUBLIC_FIREBASE_APP_ID
 ARG NEXT_PUBLIC_MAP_TILE_URL
 ARG NEXT_PUBLIC_MAP_ATTRIBUTION
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN DATABASE_URL=postgresql://build:build@localhost/build pnpm exec prisma generate && pnpm build
+RUN DATABASE_URL=postgresql://build:build@localhost/build pnpm exec prisma generate && NODE_OPTIONS=--max-old-space-size=1024 pnpm build
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["pnpm", "start"]

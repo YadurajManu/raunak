@@ -1,0 +1,86 @@
+name: raunak
+services:
+  web:
+    image: raunak:latest
+    container_name: raunak-web
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+    env_file: ../.env
+    environment:
+      NODE_OPTIONS: --max-old-space-size=512
+    restart: unless-stopped
+    mem_limit: 768m
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [default, fleet]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+  worker:
+    image: raunak:latest
+    command: [pnpm, worker]
+    env_file: ../.env
+    environment:
+      NODE_OPTIONS: --max-old-space-size=256
+    restart: unless-stopped
+    mem_limit: 384m
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  postgres:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: raunak
+      POSTGRES_DB: raunak
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    mem_limit: 256m
+    volumes: [postgres:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U raunak]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-bookworm
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: [sh, -c, 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction']
+    restart: unless-stopped
+    mem_limit: 128m
+    volumes: [redis:/data]
+    healthcheck:
+      test: [CMD-SHELL, 'redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 5s
+      retries: 10
+  storage:
+    image: dxflrs/garage:v2.3.0
+    container_name: raunak-storage
+    command: [/garage, server, --single-node, --default-bucket]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_ACCESS_KEY}
+      GARAGE_DEFAULT_BUCKET: raunak-media
+    restart: unless-stopped
+    mem_limit: 256m
+    volumes:
+      - ../garage.toml:/etc/garage.toml:ro
+      - storage_meta:/var/lib/garage/meta
+      - storage_data:/var/lib/garage/data
+    networks: [default, fleet]
+volumes:
+  postgres:
+  redis:
+  storage_meta:
+  storage_data:
+networks:
+  fleet:
+    external: true
+    name: fleet-os_default
