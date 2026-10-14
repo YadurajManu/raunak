@@ -46,7 +46,7 @@
 .marketing .d-empty h3 { font-size:1.1rem; margin:0 0 7px; }
 .marketing .d-empty p { color:var(--muted); font-size:.83rem; line-height:1.6; margin:0; }
 .marketing .d-empty .m-button { font-size:.8rem; min-height:42px; padding:10px 15px; }
-.marketing .r-account-header a:not(.m-logo):hover { color:var(--accent); }
+.marketing .r-account-header a:not(.m-logo):not(.m-button):hover { color:var(--accent); }
 .marketing :is(.d-discover,.r-account-header) :is(a,button,input):focus-visible { outline:2px solid var(--sun); outline-offset:4px; }
 @media(max-width:1000px) { .marketing .d-event-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .marketing .d-host { display:none; } }
 @media(max-width:600px) { .marketing .d-discover { padding:24px 16px 40px; } .marketing .d-hero { margin-bottom:20px; } .marketing .d-search { grid-template-columns:minmax(0,1fr) auto; gap:10px; } .marketing .d-query { grid-column:1/-1; border-bottom:1px solid var(--line); padding:0 2px 10px; } .marketing .d-city { border:0; padding-left:2px; } .marketing .d-search .m-button { padding:10px 12px; } .marketing .d-event-grid { grid-template-columns:1fr; } .marketing .d-chips { flex-wrap:nowrap; overflow-x:auto; padding:4px 2px 10px; } .marketing .d-chips a { white-space:nowrap; } .marketing .d-date-row { display:block; } .marketing .d-custom-date { margin:6px 0 0; } .marketing .d-categories { padding-bottom:16px; } .marketing .d-empty { padding:20px; gap:12px; } .marketing .d-empty>div { min-width:0; flex-basis:calc(100% - 50px); } .marketing .r-account-header { padding:16px; gap:12px; } .marketing .r-account-header>div { gap:12px; } .marketing .r-account-header>div>a:first-child { display:none; } }
