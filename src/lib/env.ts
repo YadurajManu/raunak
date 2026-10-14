@@ -30,6 +30,7 @@ const serverSchema = z.object({
   WHATSAPP_PHONE_NUMBER_ID: z.string().min(1),
   WHATSAPP_WABA_ID: z.string().min(1),
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1),
+  WHATSAPP_APP_SECRET: z.string().min(16),
   TICKET_SIGNING_SECRET: z.string().min(32),
   ENCRYPTION_KEY: z.string().min(32),
 });
