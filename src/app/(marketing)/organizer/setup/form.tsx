@@ -6,12 +6,15 @@ import { useRouter } from "next/navigation";
 export function OnboardingForm() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [errorField, setErrorField] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const data = new FormData(event.currentTarget);
+    setErrorField("");
+    const form = event.currentTarget;
+    const data = new FormData(form);
     try {
       const response = await fetch("/api/orgs", {
         method: "POST",
@@ -27,6 +30,10 @@ export function OnboardingForm() {
         router.refresh();
       } else {
         setError(result.error || "Could not create workspace.");
+        setErrorField(result.field || "");
+        if (result.field === "slug" || result.field === "name") {
+          form.querySelector<HTMLInputElement>(`#${result.field}`)?.focus();
+        }
         setBusy(false);
       }
     } catch {
@@ -56,6 +63,9 @@ export function OnboardingForm() {
               required
               minLength={2}
               maxLength={100}
+              readOnly={busy}
+              aria-invalid={errorField === "name" || undefined}
+              aria-describedby={errorField === "name" ? "workspace-error" : undefined}
               className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
             />
           </div>
@@ -71,15 +81,23 @@ export function OnboardingForm() {
               minLength={3}
               maxLength={80}
               placeholder="acme-club"
+              readOnly={busy}
+              autoCapitalize="none"
+              spellCheck={false}
+              aria-invalid={errorField === "slug" || undefined}
+              aria-describedby={errorField === "slug" ? "workspace-slug-help workspace-error" : "workspace-slug-help"}
+              onChange={() => { if (errorField === "slug") { setError(""); setErrorField(""); } }}
               className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
             />
+            <p id="workspace-slug-help" className="mt-2 text-sm">A unique name using lowercase letters, numbers and hyphens.</p>
+            {error && errorField === "slug" && <p id="workspace-error" role="alert" className="m-field-error">{error}</p>}
           </div>
           <button disabled={busy} className="m-button">
-            Create workspace
+            {busy ? "Creating workspace…" : "Create workspace"}
           </button>
         </form>
-        {error && (
-          <p role="alert" className="mt-4 text-red-600">
+        {error && errorField !== "slug" && (
+          <p id="workspace-error" role="alert" className="m-field-error mt-4">
             {error}
           </p>
         )}
