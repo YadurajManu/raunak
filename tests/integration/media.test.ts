@@ -7,7 +7,7 @@ import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
 import { processMedia } from "../../worker/jobs/process-media";
 import { presignImage, confirmImage, updateImage, deleteImage } from "@/server/media/service";
-import { createPerson, updatePerson, deletePerson } from "@/server/media/people";
+import { createPerson, updatePerson, deletePerson, reorderPeople } from "@/server/media/people";
 import { mediaQueue, mediaConnection } from "../../worker/queues";
 
 const key = randomUUID().slice(0, 8);
@@ -89,7 +89,9 @@ describe("media processor", () => {
     const { url, token } = await presignImage(userId, { eventId, kind: "POSTER", mime: "image/png", sizeBytes: bytes.length });
     const response = await fetch(url, { method: "PUT", headers: { "Content-Type": "image/png" }, body: bytes });
     expect(response.ok).toBe(true);
-    const image = await confirmImage(userId, { token, alt: "Poster" });
+    const [image,replay] = await Promise.all([confirmImage(userId, { token, alt: "Poster" }),confirmImage(userId, { token, alt: "Poster" })]);
+    expect(replay.id).toBe(image.id);
+    expect(await db.eventImage.count({where:{storageKey:image.storageKey}})).toBe(1);
     keys.push(image.storageKey);
     await processMedia(image.id);
     await (await mediaQueue.getJob(image.id))?.remove();
@@ -98,6 +100,32 @@ describe("media processor", () => {
     await expect(confirmImage(userId, { token: `${token}x`, alt: "Poster" })).rejects.toThrow("Invalid upload token");
   }, 30_000);
 
+  it("replaces artwork without deleting originals or losing person links",async()=>{
+    const bytes=await readFile("tests/fixtures/source.png");
+    const original=await upload(bytes,"image/png");const replacement=await upload(bytes,"image/png");
+    const person=await createPerson(userId,eventId,{name:"Photo guest",photoImageId:original.id});
+    await updateImage(userId,eventId,original.id,{kind:"COVER"});
+    expect((await db.eventPerson.findUniqueOrThrow({where:{id:person.id}})).photoKey).toBe(original.storageKey);
+    await processMedia(replacement.id);
+    await updateImage(userId,eventId,original.id,{replacementId:replacement.id,replacementRole:"COVER"});
+    const replay=await updateImage(userId,eventId,original.id,{replacementId:replacement.id,replacementRole:"COVER"});
+    expect(replay.kind).toBe("COVER");
+    expect((await db.eventPerson.findUniqueOrThrow({where:{id:person.id}})).photoKey).toBe(replacement.storageKey);
+    expect((await db.eventImage.findUniqueOrThrow({where:{id:original.id}})).kind).toBe("GALLERY");
+    expect((await storage.head(original.storageKey)).size).toBe(bytes.length);
+    await deletePerson(userId,eventId,person.id);await deleteImage(userId,eventId,original.id);await deleteImage(userId,eventId,replacement.id);
+  });
+  it("persists lineup order, rejects invalid lists and appends new people",async()=>{
+    const a=await createPerson(userId,eventId,{name:"First",title:"DJ",links:[{label:"Website",url:"https://example.com"}]});
+    const b=await createPerson(userId,eventId,{name:"Second"});
+    await reorderPeople(userId,eventId,[b.id,a.id]);
+    expect((await db.eventPerson.findMany({where:{eventId},orderBy:{sortOrder:"asc"}})).map(person=>person.id)).toEqual([b.id,a.id]);
+    await expect(reorderPeople(userId,eventId,[a.id,a.id])).rejects.toThrow(/duplicates/);
+    const c=await createPerson(userId,eventId,{name:"Third"});
+    expect(c.sortOrder).toBeGreaterThan(a.sortOrder);
+    await expect(reorderPeople(randomUUID(),eventId,[b.id,a.id,c.id])).rejects.toThrow();
+    for(const person of [a,b,c])await deletePerson(userId,eventId,person.id);
+  });
   it("copies originals for event duplication", async () => {
     const bytes = await readFile("tests/fixtures/source.png");
     const source = await upload(bytes, "image/png");

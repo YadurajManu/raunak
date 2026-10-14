@@ -15,7 +15,9 @@ export async function GET(request: Request, {params}:Context) {
     const image = await db.eventImage.findFirstOrThrow({where:{id:imageId,eventId}});
     if(new URL(request.url).searchParams.has("preview")) {
       let input=await storage.read(image.storageKey,10*1024*1024);
-      if(["image/heic","image/heif"].includes(image.mime)) {const convert=(await import("heic-convert")).default;input=Buffer.from(await convert({buffer:input,format:"JPEG",quality:.9}));}
+      const detected=await (await import("file-type")).fileTypeFromBuffer(input);
+      if(!detected||!["jpg","png","webp","avif","gif","heic","heif"].includes(detected.ext))throw new Error("Unsupported image.");
+      if(["heic","heif"].includes(detected.ext)) {const convert=(await import("heic-convert")).default;input=Buffer.from(await convert({buffer:input,format:"JPEG",quality:.9}));}
       const sharp=(await import("sharp")).default;
       const preview=await sharp(input,{limitInputPixels:80_000_000}).rotate().resize(1280,1280,{fit:"inside",withoutEnlargement:true}).jpeg({quality:85}).toBuffer();
       return new Response(new Uint8Array(preview),{headers:{"Content-Type":"image/jpeg","Cache-Control":"private, no-store"}});

@@ -3,4 +3,4 @@ export const eventCategories = [
   "Arts & culture", "Food & drink", "Sports & wellness", "Conferences",
   "Community & celebrations", "Other",
 ];
-export const personRoles = ["Host", "Speaker", "Artist", "Performer", "Facilitator", "Panelist"];
+export const personRoles = ["Artist","Performer","Speaker","Host","DJ","Comedian","Instructor","Guest","Organizer","Team member","Facilitator","Panelist","Other"];

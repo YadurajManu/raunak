@@ -31,10 +31,6 @@ export default async function EventMediaPage({
   const event = await db.event.findUniqueOrThrow({ where: { id } });
   return (
     <main className="py-10">
-      <h1 className="text-3xl font-semibold">Media and lineup</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Add images and introduce the people behind this event.
-      </p>
       <MediaManager
         eventId={id}
         initialImages={images.map((image) => ({
@@ -46,6 +42,10 @@ export default async function EventMediaPage({
           variants: image.variants,
           processingError: image.processingError,
           crop: image.crop,
+          sizeBytes:image.sizeBytes,
+          mime:image.mime,
+          width:image.width,
+          height:image.height,
         }))}
         initialPeople={people.map((person) => ({
           id: person.id,
@@ -53,15 +53,18 @@ export default async function EventMediaPage({
           title: person.title,
           bio: person.bio,
           photoKey: person.photoKey,
+          links:person.links,
         }))}
       />
-      <DocumentManager
+      <details className="mm-documents"><summary>Event documents · {documentsSchema.parse(event.documents).length} PDFs</summary><DocumentManager
         eventId={id}
         documents={documentsSchema.parse(event.documents)}
-      />
+      /></details>
+      <div className="mm-page-actions"><Link href={`/dashboard/events/${id}`}>Review event ↗</Link>
       <Link className="m-button" href={`/dashboard/events/${id}/tickets`}>
         Next: set up tickets ↗
       </Link>
+      </div>
     </main>
   );
 }
