@@ -5,10 +5,20 @@ import { AuthForm } from "@/components/auth/auth-form";
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; intent?: string }>;
 }) {
-  const { next } = await searchParams;
-  return <AuthForm mode="signup" nextPath={authNextPath(next)} />;
+  const { next, intent } = await searchParams;
+  return (
+    <AuthForm
+      mode="signup"
+      nextPath={authNextPath(
+        next || (intent === "organizer" ? "/dashboard" : undefined),
+      )}
+    />
+  );
 }
 
-export const metadata: Metadata = { title: `Create your account | ${APP_NAME}`, robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: `Create your account | ${APP_NAME}`,
+  robots: { index: false, follow: false },
+};

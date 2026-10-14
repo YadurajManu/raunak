@@ -21,6 +21,14 @@ export default function PrivacyPage() {
         tickets and event updates, prevent duplicate entry, and support your
         account. We do not sell your personal information.
       </p>
+      <h2>Your optional profile details</h2>
+      <p>
+        You may choose to share your gender and city. Selecting a map pin uses
+        Geoapify address lookup and OpenStreetMap tiles. Browser location is
+        requested only after you choose to share it. We store only your city and
+        region unless you separately choose to save the exact pin. You can
+        remove these details in your profile.
+      </p>
       <h2>Who helps provide the service</h2>
       <p>
         Firebase handles authentication. Cashfree handles payments; we do not

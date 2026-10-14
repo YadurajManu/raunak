@@ -1,0 +1,3 @@
+ALTER TABLE "User" ADD COLUMN "gender" TEXT, ADD COLUMN "city" TEXT, ADD COLUMN "region" TEXT, ADD COLUMN "countryCode" TEXT, ADD COLUMN "locationLabel" TEXT, ADD COLUMN "latitude" DOUBLE PRECISION, ADD COLUMN "longitude" DOUBLE PRECISION, ADD COLUMN "locationConsentAt" TIMESTAMPTZ(6), ADD COLUMN "onboardingCompletedAt" TIMESTAMPTZ(6);
+ALTER TABLE "User" ADD CONSTRAINT "user_gender_valid" CHECK ("gender" IS NULL OR "gender" IN ('FEMALE','MALE','NON_BINARY','OTHER','PREFER_NOT_TO_SAY'));
+ALTER TABLE "User" ADD CONSTRAINT "user_location_valid" CHECK (("latitude" IS NULL AND "longitude" IS NULL AND "locationConsentAt" IS NULL) OR ("latitude" BETWEEN -90 AND 90 AND "longitude" BETWEEN -180 AND 180 AND "locationConsentAt" IS NOT NULL));

@@ -7,7 +7,7 @@ India-first event ticketing SaaS. Raunak is the confirmed brand; Eventra was the
 1. Install Node 24, pnpm 10, and Docker.
 2. `cp .env.example .env` and fill provider credentials.
 3. `docker compose up -d`.
-4. `pnpm install && pnpm dev`.
+4. `pnpm install && pnpm exec prisma generate && pnpm db:migrate && pnpm db:seed && pnpm dev`.
 5. Open <http://localhost:3000>; health check: <http://localhost:3000/api/health>.
 
 `pnpm typecheck`, `pnpm lint`, and `pnpm test` check the current scaffold.
@@ -66,3 +66,19 @@ Motion versions: Lenis 1.3.26, GSAP 3.15.0, Motion 14.2.0. Heavy GSAP scroll cod
 Production build checks passed: lint, TypeScript, 16 unit/integration tests, and four Playwright marketing tests. Screenshots cover 375, 768 and 1440 widths in light and dark themes, reduced motion, landing interactions, login and signup. The public navigation and social image are checked, and core content is visible with JavaScript disabled.
 
 Local Lighthouse 13.5.0 mobile audit: Performance 95, Accessibility 100, Best Practices 100, SEO 100; CLS 0. Simulated mobile LCP was 2.8s, so the brief's stricter 2.5s LCP target remains a deployment performance follow-up. Reports and screenshots are generated in `artifacts/landing` and are not committed. External Firebase login and payment-provider completion require credentials and are not claimed as verified by these UI tests.
+
+## Personal onboarding and location
+
+New verified accounts now enter `/onboarding` before their destination. This is personal setup for everyone, separate from `/organizer/setup` (workspace creation). Standard sign-in continues to `/account`; `?intent=organizer` preserves the hosting path through verification and onboarding. Existing completed profiles keep their details on future Firebase logins.
+
+Personal setup collects a name and a valid international phone number (India by default). Gender is optional, including “Prefer not to say.” Location is optional and can be searched, chosen by tapping/dragging a real map pin, or supplied with browser geolocation after an explicit click. Address candidates are confirmed before continuing. By default only city/region/country are saved; exact coordinates and the address label require a separate consent checkbox. `/account/profile` lets the user remove gender/location and revoke the saved pin. Phone numbers are normalized to E.164 but are not OTP verified.
+
+Set `GEOAPIFY_API_KEY` in `.env` from https://myprojects.geoapify.com/ to enable server-side place search and reverse geocoding. The key stays on the server. Without it, the real map and manual city entry still work and lookup explains the missing configuration. Location endpoints require a session, an allowed origin, validated inputs and a Redis-backed limit of 30 requests per user per minute. No location or API key is written to logs.
+
+MapLibre GL 6.14.0 renders the map, using its emitted same-origin worker asset. `NEXT_PUBLIC_MAP_TILE_URL` and `NEXT_PUBLIC_MAP_ATTRIBUTION` let you configure a production tile provider. Local defaults use OpenStreetMap standard tiles with visible attribution; follow https://operations.osmfoundation.org/policies/tiles/ and use an appropriately provisioned tile service for larger traffic. Geoapify address lookup: https://apidocs.geoapify.com/docs/geocoding/reverse-geocoding/.
+
+The attendee dashboard uses real ticket/order records and upcoming public events around the saved city. Its profile menu links to editing and hosting; the organizer workspace entry links back to attendee view. Full checkout, messaging and scanner milestones remain pending; their earlier checkout work stays preserved in the named Git stash.
+
+Development preview: `/style-guide/onboarding` renders the actual onboarding component without an account for visual QA. It returns 404 in production and does not bypass either profile or location API authentication. Tests use provider mocks for address lookup and profile submission, plus database integration tests for persistence, consent removal, phone validation and redirect safety. Screenshots are under `artifacts/landing/onboarding-*`.
+
+Onboarding verification: 20 unit/integration tests and seven Playwright tests passed, together with lint, TypeScript and the production build. A live OpenStreetMap tile check rendered the selected Pune pin without browser errors. Geoapify responses and profile HTTP submissions were mocked in browser tests; database persistence was checked separately against local PostgreSQL. External Firebase sign-in and live Geoapify address lookup still require project credentials.

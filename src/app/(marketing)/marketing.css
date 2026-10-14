@@ -3042,3 +3042,937 @@
   font-size: 0.78rem;
   font-weight: 550;
 }
+/* Personal onboarding and account foundation */
+.marketing .r-onboarding {
+  max-width: 1440px;
+  margin: auto;
+  min-height: 100svh;
+  padding: 32px 50px;
+}
+.marketing .r-onboarding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.marketing .r-onboarding-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 90px;
+  align-items: start;
+  margin: 85px auto 70px;
+  max-width: 1200px;
+}
+.marketing .r-onboarding-aside {
+  position: sticky;
+  top: 60px;
+}
+.marketing .r-onboarding-aside h1 {
+  font-size: clamp(3.2rem, 5vw, 5.2rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  margin-top: 25px;
+  font-weight: 500;
+}
+.marketing .r-onboarding-aside h1 em {
+  color: var(--accent-ink);
+}
+.marketing .r-onboarding-aside > p:not(.m-eyebrow) {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 330px;
+  margin-top: 25px;
+}
+.marketing .r-progress {
+  list-style: none;
+  margin: 35px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 22px;
+}
+.marketing .r-progress li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.marketing .r-progress li > span {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font: 0.6rem var(--font-mono);
+}
+.marketing .r-progress .is-active {
+  color: var(--ink);
+  font-weight: 600;
+}
+.marketing .r-progress .is-active > span {
+  background: var(--accent);
+  color: #14120f;
+  border-color: var(--ink);
+}
+.marketing .r-progress .is-complete > span {
+  background: var(--ok);
+  color: var(--paper);
+  border-color: var(--ok);
+}
+.marketing .r-profile-note {
+  display: flex;
+  gap: 15px;
+  max-width: 310px;
+  border-top: 1px dashed var(--line);
+  padding-top: 25px;
+  margin-top: 40px;
+}
+.marketing .r-profile-note > span {
+  color: var(--accent-ink);
+  font-size: 1.5rem;
+}
+.marketing .r-profile-note p {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.marketing .r-onboarding-card {
+  border: 1px solid var(--line);
+  border-radius: 25px;
+  padding: 38px;
+  background: var(--paper-2);
+}
+.marketing .r-step-label {
+  font-size: 0.56rem;
+  color: var(--muted);
+}
+.marketing .r-onboarding-card > h2 {
+  font-size: 2.7rem;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  margin-top: 22px;
+}
+.marketing .r-onboarding-card > h2 em {
+  color: var(--accent-ink);
+}
+.marketing .r-step-intro {
+  margin-top: 15px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.marketing .r-profile-fields {
+  display: grid;
+  gap: 25px;
+  margin-top: 30px;
+}
+.marketing .r-profile-fields > label,
+.marketing .r-manual-place label {
+  display: grid;
+  gap: 9px;
+  font-size: 0.78rem;
+  font-weight: 550;
+}
+.marketing .r-profile-fields input:not([type="radio"]),
+.marketing .r-manual-place input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+.marketing .r-profile-fields label > small {
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.marketing .r-profile-fields fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.marketing .r-profile-fields legend {
+  font-size: 0.78rem;
+  font-weight: 550;
+  margin-bottom: 13px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.marketing .r-profile-fields legend > span {
+  font: 0.5rem var(--font-mono);
+  color: var(--muted);
+}
+.marketing .r-gender-options {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.marketing .r-gender-options label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.73rem;
+  background: var(--paper);
+  cursor: pointer;
+}
+.marketing .r-gender-options label.is-selected {
+  border-color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+}
+.marketing .r-gender-options input {
+  accent-color: var(--accent-ink);
+  width: 12px;
+  height: 12px;
+}
+.marketing .r-quiet-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 0.73rem;
+  text-align: left;
+}
+.marketing .r-profile-fields fieldset > .r-quiet-button {
+  margin-top: 13px;
+}
+.marketing .r-onboarding-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 32px;
+}
+.marketing .r-onboarding-controls > .m-button {
+  margin-left: auto;
+  font-size: 0.8rem;
+  min-width: 160px;
+}
+.marketing .r-onboarding-foot {
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  font: 0.5rem var(--font-mono);
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.marketing .r-location-picker {
+  margin-top: 28px;
+}
+.marketing .r-location-search {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.marketing .r-location-search input {
+  width: 100%;
+  min-width: 0;
+  background: none;
+  border: 0;
+  padding: 13px;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+.marketing .r-location-search button {
+  border: 0;
+  border-left: 1px solid var(--line);
+  padding: 10px 14px;
+  background: var(--paper);
+  font-size: 0.7rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.marketing .r-location-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 18px 0;
+}
+.marketing .r-location-actions button {
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font-size: 0.73rem;
+  font-weight: 550;
+}
+.marketing .r-place-results {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.marketing .r-place-results button {
+  display: grid;
+  text-align: left;
+  gap: 5px;
+  padding: 14px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+}
+.marketing .r-place-results b {
+  font-size: 0.78rem;
+}
+.marketing .r-place-results span {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.marketing .r-map-wrap {
+  position: relative;
+}
+.marketing .r-map {
+  height: 340px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.marketing .r-map-loading {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.marketing .r-map .maplibregl-ctrl-attrib {
+  font:
+    10px/1.4 Arial,
+    sans-serif;
+  color: #14120f;
+  background: #ffffffeb;
+  max-width: 90%;
+}
+.marketing .r-map .maplibregl-ctrl-attrib a {
+  color: #14120f;
+}
+.marketing .r-map .maplibregl-canvas:focus-visible {
+  outline-offset: -4px;
+}
+.marketing .r-map-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.63rem;
+  color: var(--muted);
+}
+.marketing .r-map-error {
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--accent-ink);
+  margin-top: 8px;
+}
+.marketing .r-map-invitation {
+  border: 1px dashed var(--line);
+  border-radius: 15px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: var(--paper);
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 17px 17px;
+}
+.marketing .r-map-invitation > span {
+  font-size: 3rem;
+  color: var(--accent-ink);
+}
+.marketing .r-map-invitation > p {
+  font: 1.6rem var(--font-display);
+  margin-top: 5px;
+}
+.marketing .r-map-invitation > button {
+  font-size: 0.7rem;
+  margin-top: 15px;
+  padding: 8px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.marketing .r-location-disclosure {
+  font-size: 0.61rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 13px;
+}
+.marketing .r-lookup-status {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.marketing .r-location-error,
+.marketing .r-form-error {
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 9px;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--accent-ink);
+  margin-top: 15px;
+  background: var(--paper);
+}
+.marketing .r-manual-place {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+.marketing .r-manual-place > div {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+}
+.marketing .r-selected-place {
+  margin-top: 22px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+.marketing .r-selected-place > span {
+  font-size: 1.7rem;
+  color: var(--accent-ink);
+}
+.marketing .r-selected-place strong {
+  font-size: 0.8rem;
+}
+.marketing .r-selected-place p {
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.marketing .r-selected-place small {
+  display: block;
+  font: 0.5rem var(--font-mono);
+  color: var(--muted);
+  margin-top: 6px;
+}
+.marketing .r-selected-place button {
+  font-size: 0.64rem;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper-2);
+  padding: 9px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.marketing .r-selected-place.is-confirmed {
+  border-color: var(--ok);
+}
+.marketing .r-selected-place.is-confirmed button {
+  color: var(--ok);
+}
+.marketing .r-exact-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.67rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 16px;
+}
+.marketing .r-exact-consent input {
+  accent-color: var(--ok);
+  margin-top: 3px;
+}
+.marketing .r-location-picker > .r-quiet-button {
+  display: block;
+  margin-top: 20px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.marketing .r-map-attribution {
+  font-size: 0.52rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 16px;
+}
+.marketing .r-map-attribution a {
+  text-decoration: underline;
+}
+.marketing .r-profile-review {
+  margin-top: 30px;
+}
+.marketing .r-review-avatar {
+  width: 65px;
+  height: 65px;
+  display: grid;
+  place-items: center;
+  background: var(--sun);
+  color: #14120f;
+  border: 1px solid #14120f;
+  border-radius: 17px;
+  box-shadow: 3px 3px #14120f;
+  font: 2.7rem var(--font-display);
+  rotate: -5deg;
+}
+.marketing .r-profile-review h3 {
+  font-size: 1.5rem;
+  margin-top: 20px;
+  letter-spacing: -0.04em;
+}
+.marketing .r-profile-review dl {
+  margin: 25px 0 0;
+}
+.marketing .r-profile-review dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.77rem;
+}
+.marketing .r-profile-review dt {
+  color: var(--muted);
+}
+.marketing .r-profile-review dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.marketing .r-profile-review > p {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 24px;
+}
+.marketing .r-workspace-form {
+  max-width: 550px;
+}
+.marketing .r-workspace-form > .m-eyebrow {
+  margin-top: 40px;
+}
+.marketing .r-workspace-form input {
+  margin-top: 8px;
+}
+.marketing .r-account {
+  min-height: 100svh;
+}
+.marketing .r-account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25px 40px;
+  border-bottom: 1px solid var(--line);
+  gap: 20px;
+}
+.marketing .r-account-header > div {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.marketing .r-view-switch {
+  font-size: 0.75rem;
+  font-weight: 550;
+}
+.marketing .r-profile-menu {
+  position: relative;
+  z-index: 10;
+}
+.marketing .r-profile-menu summary {
+  list-style: none;
+  cursor: pointer;
+}
+.marketing .r-profile-menu summary::-webkit-details-marker {
+  display: none;
+}
+.marketing .r-profile-menu summary > span {
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--ink);
+  background: var(--sun);
+  color: #14120f;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font: 1.3rem var(--font-display);
+}
+.marketing .r-profile-menu nav {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: 230px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 4px 4px var(--ink);
+}
+.marketing .r-profile-menu nav > b {
+  display: block;
+  font-size: 0.8rem;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.marketing .r-profile-menu nav > a {
+  display: block;
+  padding: 10px;
+  font-size: 0.75rem;
+  border-radius: 7px;
+}
+.marketing .r-profile-menu nav > a:hover {
+  background: var(--paper-2);
+}
+.marketing .r-account-grid {
+  display: grid;
+  grid-template-columns: 245px minmax(0, 1fr);
+  max-width: 1440px;
+  margin: auto;
+  min-height: calc(100svh - 90px);
+}
+.marketing .r-account-sidebar {
+  padding: 40px 25px;
+  border-right: 1px solid var(--line);
+}
+.marketing .r-account-sidebar > .m-mono {
+  font-size: 0.5rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.marketing .r-account-sidebar > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+.marketing .r-account-sidebar > a > span {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.marketing .r-account-sidebar > a.is-active {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  font-weight: 600;
+}
+.marketing .r-host-note {
+  border-top: 1px dashed var(--line);
+  margin-top: 40px;
+  padding-top: 25px;
+}
+.marketing .r-host-note > span {
+  color: var(--accent);
+  font-size: 2rem;
+}
+.marketing .r-host-note > p {
+  font: 1.6rem/1 var(--font-display);
+  margin-top: 10px;
+}
+.marketing .r-host-note > a {
+  display: block;
+  color: var(--accent-ink);
+  font-size: 0.65rem;
+  line-height: 1.6;
+  margin-top: 15px;
+}
+.marketing .r-account-content {
+  padding: 55px clamp(25px, 5vw, 80px) 90px;
+  min-width: 0;
+}
+.marketing .r-account-content > h1 {
+  font-size: clamp(3rem, 4.5vw, 5rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  margin-top: 20px;
+}
+.marketing .r-account-intro {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 22px;
+}
+.marketing .r-account-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 45px 0 20px;
+}
+.marketing .r-account-section-title h2 {
+  font-size: 1.2rem;
+  font-weight: 550;
+  letter-spacing: -0.03em;
+}
+.marketing .r-account-section-title a {
+  font-size: 0.7rem;
+  color: var(--accent-ink);
+}
+.marketing .r-account-empty {
+  border: 1px dashed var(--line);
+  border-radius: 20px;
+  padding: 35px;
+  background: var(--paper-2);
+}
+.marketing .r-account-empty > span {
+  font-size: 2rem;
+}
+.marketing .r-account-empty h3 {
+  font: 2rem var(--font-display);
+  margin-top: 15px;
+}
+.marketing .r-account-empty > p {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.marketing .r-account-empty .m-button {
+  font-size: 0.75rem;
+  min-height: 44px;
+  margin-top: 23px;
+}
+.marketing .r-account-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+}
+.marketing .r-account-cards article {
+  height: 100%;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  padding: 25px;
+  background: var(--paper-2);
+}
+.marketing .r-account-cards .m-mono {
+  font-size: 0.5rem;
+  color: var(--accent-ink);
+}
+.marketing .r-account-cards h3 {
+  font-size: 1.3rem;
+  letter-spacing: -0.035em;
+  margin-top: 15px;
+}
+.marketing .r-account-cards article > p:not(.m-mono) {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.marketing .r-account-cards article > span,
+.marketing .r-account-cards article > b {
+  display: block;
+  font-size: 0.68rem;
+  margin-top: 22px;
+}
+.marketing .r-account-simple-empty {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  line-height: 1.6;
+}
+.marketing .r-account-simple-empty a {
+  color: var(--accent-ink);
+}
+.marketing .r-order-list {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.marketing .r-order-list > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+}
+.marketing .r-order-list > div:last-child {
+  border: 0;
+}
+.marketing .r-order-list small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.marketing .r-order-list .m-mono {
+  font-size: 0.5rem;
+}
+@media (max-width: 1000px) {
+  .marketing .r-onboarding {
+    padding: 25px 30px;
+  }
+  .marketing .r-onboarding-grid {
+    gap: 40px;
+  }
+  .marketing .r-onboarding-card {
+    padding: 25px;
+  }
+  .marketing .r-onboarding-aside h1 {
+    font-size: 3.8rem;
+  }
+  .marketing .r-account-grid {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .marketing .r-onboarding {
+    padding: 22px 16px;
+  }
+  .marketing .r-onboarding-grid {
+    grid-template-columns: 1fr;
+    margin-top: 40px;
+    gap: 28px;
+  }
+  .marketing .r-onboarding-aside {
+    position: relative;
+    top: 0;
+  }
+  .marketing .r-onboarding-aside h1,
+  .marketing .r-onboarding-aside > p,
+  .marketing .r-profile-note {
+    display: none;
+  }
+  .marketing .r-progress {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 0;
+  }
+  .marketing .r-progress li {
+    font-size: 0;
+    gap: 0;
+  }
+  .marketing .r-progress li.is-active {
+    font-size: 0.65rem;
+    gap: 9px;
+  }
+  .marketing .r-progress li > span {
+    font-size: 0.55rem;
+    width: 30px;
+    height: 30px;
+  }
+  .marketing .r-onboarding-card {
+    padding: 25px 19px;
+    border-radius: 20px;
+  }
+  .marketing .r-onboarding-card > h2 {
+    font-size: 2.45rem;
+  }
+  .marketing .r-onboarding-foot {
+    font-size: 0.4rem;
+    gap: 15px;
+  }
+  .marketing .r-location-search button {
+    font-size: 0.6rem;
+    padding-inline: 10px;
+  }
+  .marketing .r-location-search input {
+    font-size: 0.72rem;
+    padding-inline: 10px;
+  }
+  .marketing .r-map {
+    height: 300px;
+  }
+  .marketing .r-selected-place {
+    flex-wrap: wrap;
+  }
+  .marketing .r-selected-place > div {
+    flex: 1;
+    min-width: 150px;
+  }
+  .marketing .r-selected-place button {
+    margin-left: 30px;
+  }
+  .marketing .r-onboarding-controls > .m-button {
+    min-width: 130px;
+    padding-inline: 16px;
+    font-size: 0.75rem;
+  }
+  .marketing .r-account-header {
+    padding: 20px 16px;
+  }
+  .marketing .r-account-header > div {
+    gap: 15px;
+  }
+  .marketing .r-account-header .m-theme-toggle {
+    display: none;
+  }
+  .marketing .r-view-switch {
+    font-size: 0.6rem;
+    max-width: 100px;
+  }
+  .marketing .r-account-grid {
+    display: block;
+  }
+  .marketing .r-account-sidebar {
+    padding: 14px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+  }
+  .marketing .r-account-sidebar > .m-mono,
+  .marketing .r-host-note {
+    display: none;
+  }
+  .marketing .r-account-sidebar > a {
+    white-space: nowrap;
+    margin: 0;
+    padding: 9px;
+    font-size: 0.65rem;
+  }
+  .marketing .r-account-sidebar > a > span {
+    display: none;
+  }
+  .marketing .r-account-content {
+    padding: 35px 16px 65px;
+  }
+  .marketing .r-account-content > h1 {
+    font-size: 3rem;
+  }
+  .marketing .r-account-empty {
+    padding: 25px;
+  }
+  .marketing .r-account-empty h3 {
+    font-size: 1.8rem;
+  }
+  .marketing .r-order-list > div {
+    gap: 10px;
+    font-size: 0.65rem;
+  }
+  .marketing .r-order-list .m-mono {
+    font-size: 0.4rem;
+  }
+}
+.marketing .r-manual-place select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 10px;
+  font-size: 0.8rem;
+}

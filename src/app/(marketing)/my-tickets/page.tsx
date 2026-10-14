@@ -6,6 +6,7 @@ import { APP_NAME } from "@/lib/constants";
 export default async function MyTickets() {
   const user = await currentUser();
   if (!user) redirect("/login?next=/my-tickets");
+  if (!user.onboardingCompletedAt) redirect("/onboarding?next=/my-tickets");
   const tickets = await db.ticket.findMany({
     where: { order: { buyerId: user.id } },
     include: { event: true, ticketType: true },

@@ -26,7 +26,7 @@ type Values = z.infer<typeof schema>;
 
 export function AuthForm({
   mode,
-  nextPath = "/dashboard",
+  nextPath = "/account",
 }: {
   mode: "login" | "signup";
   nextPath?: string;
@@ -48,12 +48,15 @@ export function AuthForm({
     const response = await fetch("/api/auth/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken: await user.getIdToken() }),
+      body: JSON.stringify({
+        idToken: await user.getIdToken(),
+        next: nextPath,
+      }),
     });
     const result = await response.json();
     if (!response.ok)
       throw new Error(result.error || "Could not start session.");
-    router.push(nextPath);
+    router.push(result.redirectTo || nextPath);
     router.refresh();
   }
 
@@ -68,7 +71,9 @@ export function AuthForm({
           values.email,
           values.password,
         );
-        await sendEmailVerification(result.user);
+        await sendEmailVerification(result.user, {
+          url: `${window.location.origin}/login?next=${encodeURIComponent(nextPath)}`,
+        });
         await signOut(auth);
         setMessage("Check your inbox to verify your email, then sign in.");
       } else {

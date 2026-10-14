@@ -95,6 +95,15 @@ model User {
   name String?
   phone String?
   avatarKey String?
+  gender String?
+  city String?
+  region String?
+  countryCode String?
+  locationLabel String?
+  latitude Float?
+  longitude Float?
+  locationConsentAt DateTime? @db.Timestamptz(6)
+  onboardingCompletedAt DateTime? @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
   memberships OrganizationMember[]

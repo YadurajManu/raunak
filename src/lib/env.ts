@@ -2,6 +2,9 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   APP_URL: z.url(),
+  GEOAPIFY_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_MAP_TILE_URL: z.string().optional(),
+  NEXT_PUBLIC_MAP_ATTRIBUTION: z.string().optional(),
   DATABASE_URL: z.string().startsWith("postgresql://"),
   REDIS_URL: z.string().startsWith("redis://"),
   FIREBASE_PROJECT_ID: z.string().min(1),
