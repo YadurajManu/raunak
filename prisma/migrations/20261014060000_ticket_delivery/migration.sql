@@ -1,0 +1,1 @@
+ALTER TABLE "Ticket" ADD COLUMN "pdfKey" TEXT, ADD COLUMN "pdfError" TEXT;

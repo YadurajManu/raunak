@@ -52,7 +52,7 @@ export const storage: StorageProvider = {
   },
   async write(key, body, mime) {
     const env = config();
-    await client().send(new PutObjectCommand({ Bucket: env.S3_BUCKET, Key: key, Body: body, ContentType: mime, CacheControl: "public, max-age=31536000, immutable" }));
+    await client().send(new PutObjectCommand({ Bucket: env.S3_BUCKET, Key: key, Body: body, ContentType: mime, CacheControl: mime === "application/pdf" ? "private, no-store" : "public, max-age=31536000, immutable" }));
   },
   async copy(source, destination) {
     const env = config();

@@ -5,12 +5,13 @@ import { AuthForm } from "@/components/auth/auth-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; intent?: string }>;
+  searchParams: Promise<{ next?: string; intent?: string; email?: string }>;
 }) {
-  const { next, intent } = await searchParams;
+  const { next, intent, email } = await searchParams;
   return (
     <AuthForm
       mode="login"
+      initialEmail={email}
       nextPath={authNextPath(
         next || (intent === "organizer" ? "/dashboard" : undefined),
       )}

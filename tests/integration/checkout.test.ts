@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createHmac, randomUUID } from "node:crypto";
-import { afterAll, expect, it } from "vitest";
+import { afterAll, expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
 import {
   createCheckout,
@@ -10,6 +10,7 @@ import {
 } from "@/server/checkout/service";
 import { processCashfreeWebhook } from "@/server/checkout/webhook";
 import { MockPaymentProvider } from "@/server/providers/payments/mock";
+vi.mock("@/server/tickets/delivery", () => ({ queueTicketDelivery: vi.fn() }));
 const key = randomUUID();
 const provider = new MockPaymentProvider();
 const org = await db.organization.create({

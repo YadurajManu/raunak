@@ -76,6 +76,8 @@ enum MessageTrigger {
   EVENT_CANCELLED
 }
 enum NotificationStatus {
+  SENDING
+  SKIPPED
   QUEUED
   SENT
   DELIVERED
@@ -292,6 +294,8 @@ model Order {
   buyerName String
   buyerEmail String
   buyerPhone String?
+  whatsappOptIn Boolean @default(false)
+  fulfilmentQueuedAt DateTime? @db.Timestamptz(6)
   idempotencyKey String @unique
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -329,6 +333,8 @@ model Ticket {
   holderEmail String
   holderPhone String?
   status TicketStatus @default(VALID)
+  pdfKey String?
+  pdfError String?
   checkedInAt DateTime? @db.Timestamptz(6)
   checkedInById String? @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz(6)
@@ -408,6 +414,7 @@ model MessageTemplate {
 
 model NotificationLog {
   id String @id @default(uuid()) @db.Uuid
+  dedupeKey String @unique @default(uuid())
   orgId String @db.Uuid
   eventId String @db.Uuid
   orderId String @db.Uuid

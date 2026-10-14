@@ -42,6 +42,7 @@ export default async function EventLayout({
           ["Media", "/media"],
           ["Tickets", "/tickets"],
           ["Attendees", "/attendees"],
+          ["Messages", "/messages"],
           ["Team", "/team"],
           ["Settings", "/settings"],
         ];

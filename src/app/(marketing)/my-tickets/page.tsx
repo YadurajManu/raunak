@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ticketToken } from "@/server/tickets/qr";
+import { PdfDownload } from "@/components/public/pdf-download";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
@@ -39,6 +41,14 @@ export default async function MyTickets() {
                   }).format(ticket.event.startsAt)}
                 </p>
                 <strong className="m-mono">{ticket.code}</strong>
+                <Link
+                  className="m-button"
+                  href={`/t/${ticketToken(ticket.id, ticket.eventId)}`}
+                >
+                  Show entry QR ↗
+                </Link>
+                <PdfDownload ticketId={ticket.id} />
+                <Link href={`/orders/${ticket.orderId}`}>View order</Link>
               </article>
             ))}
           </div>

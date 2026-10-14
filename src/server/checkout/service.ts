@@ -8,6 +8,8 @@ import {
   type ProviderPayment,
 } from "@/server/providers/payments/cashfree";
 
+import { queueTicketDelivery } from "@/server/tickets/delivery";
+
 const cartSchema = z.object({
   eventId: z.uuid(),
   items: z
@@ -23,6 +25,7 @@ const cartSchema = z.object({
   buyerPhone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
+  whatsappOptIn: z.boolean().default(false),
   idempotencyKey: z.uuid(),
 });
 const ORDER_MS = 10 * 60 * 1000;
@@ -75,6 +78,7 @@ export async function createCheckout(
       existing.eventId !== data.eventId ||
       existing.buyerName !== data.buyerName ||
       existing.buyerPhone !== data.buyerPhone ||
+      existing.whatsappOptIn !== data.whatsappOptIn ||
       existing.items.length !== data.items.length ||
       existing.items.some(
         (item) =>
@@ -151,7 +155,8 @@ export async function createCheckout(
         const totalPaise =
           subtotalPaise +
           (event.org.feeMode === "PASS_TO_BUYER" ? feePaise : 0);
-        const expiresAt = new Date(now.getTime() + ORDER_MS);
+        if (totalPaise > 0 && totalPaise < 100) throw new Error("Paid bookings must total at least ₹1.");
+    const expiresAt = new Date(now.getTime() + ORDER_MS);
         const result = await tx.order.create({
           data: {
             eventId: event.id,
@@ -159,6 +164,7 @@ export async function createCheckout(
             buyerName: data.buyerName,
             buyerEmail: buyer.email,
             buyerPhone: data.buyerPhone,
+            whatsappOptIn: data.whatsappOptIn,
             idempotencyKey: data.idempotencyKey,
             subtotalPaise,
             feePaise,
@@ -222,6 +228,13 @@ export async function createCheckout(
         }
         throw error;
       }));
+  if (order.status === "PAID") {
+    try {
+      await queueTicketDelivery(order.id);
+    } catch {
+      /* Maintenance recovers paid orders from the database. */
+    }
+  }
   if (
     order.status === "PAID" ||
     !order.cashfreeOrderId ||
@@ -263,11 +276,27 @@ export async function releaseOrder(
       include: { items: true },
     });
     if (order.status !== "PENDING") return order;
+    await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${order.eventId}::uuid FOR UPDATE`;
     if (status === "EXPIRED" && order.expiresAt > new Date()) return order;
     for (const item of order.items)
       await tx.ticketType.update({
         where: { id: item.ticketTypeId },
         data: { quantityHeld: { decrement: item.quantity } },
+      });
+    if (status === "FAILED")
+      await tx.webhookEvent.upsert({
+        where: {
+          provider_idempotencyKey: {
+            provider: "internal-orders",
+            idempotencyKey: `failed-${orderId}`,
+          },
+        },
+        update: {},
+        create: {
+          provider: "internal-orders",
+          idempotencyKey: `failed-${orderId}`,
+          payload: { orderId, trigger: "PAYMENT_FAILED" },
+        },
       });
     return tx.order.update({ where: { id: orderId }, data: { status } });
   });
@@ -365,6 +394,13 @@ export async function applyPayment(
     return { order: paid, refund: false };
   });
   if (action.refund) await retryRefunds(provider);
+  if (action.order.status === "PAID") {
+    try {
+      await queueTicketDelivery(action.order.id);
+    } catch {
+      /* Maintenance recovers paid orders from the database. */
+    }
+  }
   return action.order;
 }
 

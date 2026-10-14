@@ -145,7 +145,7 @@ export async function updateEvent(
     });
     if (data.capacity && (inventory._sum.quantityTotal ?? 0) > data.capacity)
       throw new Error("Capacity is below ticket inventory.");
-    return tx.event.update({
+    const updated = await tx.event.update({
       where: { id: eventId },
       data: {
         title: data.title,
@@ -166,6 +166,15 @@ export async function updateEvent(
         refundPolicy: data.refundPolicy ?? null,
       },
     });
+    if (updated.status === "PUBLISHED")
+      await tx.webhookEvent.create({
+        data: {
+          provider: "internal-events",
+          idempotencyKey: `updated-${updated.id}-${updated.updatedAt.toISOString()}`,
+          payload: { eventId: updated.id, trigger: "EVENT_UPDATED" },
+        },
+      });
+    return updated;
   });
 }
 
@@ -228,6 +237,14 @@ export async function changeEventStatus(
         entityId: eventId,
       },
     });
+    if (next === "CANCELLED")
+      await tx.webhookEvent.create({
+        data: {
+          provider: "internal-events",
+          idempotencyKey: `cancelled-${updated.id}-${updated.updatedAt.toISOString()}`,
+          payload: { eventId: updated.id, trigger: "EVENT_CANCELLED" },
+        },
+      });
     return updated;
   });
 }

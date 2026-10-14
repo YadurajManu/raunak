@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ResendTickets } from "@/components/public/resend-tickets";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
@@ -65,6 +66,7 @@ export default async function OrderPage({
           >
             View tickets
           </Link>
+          <ResendTickets orderId={found.id} />
         </div>
       )}
     </main>

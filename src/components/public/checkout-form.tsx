@@ -107,6 +107,7 @@ export function CheckoutForm({
           idempotencyKey: key.current,
           buyerName: String(form.get("name")),
           buyerPhone: String(form.get("phone")),
+          whatsappOptIn: Boolean(form.get("whatsappOptIn")),
           items: items.map((item) => ({
             ticketTypeId: item.id,
             quantity: item.quantity,
@@ -199,6 +200,11 @@ export function CheckoutForm({
             placeholder="9876543210"
             className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
           />
+        </label>
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" name="whatsappOptIn" className="mt-1" />
+          Send my tickets and event updates to this number on WhatsApp
+          (optional).
         </label>
         <button
           disabled={busy || (total > 0 && !ready)}

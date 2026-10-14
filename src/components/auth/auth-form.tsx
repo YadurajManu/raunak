@@ -22,24 +22,189 @@ const schema = z.object({ email: z.email(), password: z.string().min(1) });
 const signupSchema = schema.extend({ password: z.string().min(8) });
 type Values = z.infer<typeof schema>;
 
+export type AuthBanner = {
+  type: "error" | "success" | "info";
+  title: string;
+  message: string;
+  action?: {
+    label: string;
+    href?: string;
+  };
+};
+
+function normalizeAuthError(
+  error: unknown,
+  mode: "login" | "signup",
+  emailInput?: string,
+  nextPath: string = "/account",
+): { banner: AuthBanner; fieldError?: { field: "email" | "password"; message: string } } {
+  const code = (error as { code?: string })?.code || "";
+  const raw = error instanceof Error ? error.message : String(error || "");
+
+  if (code === "auth/email-already-in-use" || raw.includes("auth/email-already-in-use")) {
+    const emailParam = emailInput ? `email=${encodeURIComponent(emailInput)}&` : "";
+    return {
+      banner: {
+        type: "error",
+        title: "Account Already Exists",
+        message: emailInput
+          ? `An account for ${emailInput} is already registered. Sign in or reset your password.`
+          : "An account with this email address already exists. Please sign in instead.",
+        action: {
+          label: "Sign in with this email ↗",
+          href: `/login?${emailParam}next=${encodeURIComponent(nextPath)}`,
+        },
+      },
+      fieldError: {
+        field: "email",
+        message: "Email is already registered. Please sign in instead.",
+      },
+    };
+  }
+
+  if (
+    code === "auth/invalid-credential" ||
+    raw.includes("auth/invalid-credential") ||
+    code === "auth/wrong-password" ||
+    raw.includes("auth/wrong-password") ||
+    code === "auth/user-not-found" ||
+    raw.includes("auth/user-not-found")
+  ) {
+    if (mode === "login") {
+      return {
+        banner: {
+          type: "error",
+          title: "Incorrect Credentials",
+          message:
+            "The email or password you entered is incorrect. Double-check your details or reset your password.",
+          action: {
+            label: "Forgot password? Send reset link ↗",
+            href: "#forgot",
+          },
+        },
+        fieldError: {
+          field: "password",
+          message: "Incorrect email or password.",
+        },
+      };
+    }
+    return {
+      banner: {
+        type: "error",
+        title: "Sign Up Failed",
+        message: "Could not create account with the provided details. Please try again.",
+      },
+    };
+  }
+
+  if (code === "auth/weak-password" || raw.includes("auth/weak-password")) {
+    return {
+      banner: {
+        type: "error",
+        title: "Password Too Weak",
+        message: "Firebase requires a stronger password. Please use at least 8 characters.",
+      },
+      fieldError: {
+        field: "password",
+        message: "Password must be at least 8 characters.",
+      },
+    };
+  }
+
+  if (code === "auth/invalid-email" || raw.includes("auth/invalid-email")) {
+    return {
+      banner: {
+        type: "error",
+        title: "Invalid Email Format",
+        message: "Please enter a valid email address.",
+      },
+      fieldError: {
+        field: "email",
+        message: "Invalid email format.",
+      },
+    };
+  }
+
+  if (code === "auth/too-many-requests" || raw.includes("auth/too-many-requests")) {
+    return {
+      banner: {
+        type: "error",
+        title: "Too Many Attempts",
+        message:
+          "Access to this account has been temporarily disabled due to many failed attempts. Please wait a moment and try again.",
+      },
+    };
+  }
+
+  if (code === "auth/user-disabled" || raw.includes("auth/user-disabled")) {
+    return {
+      banner: {
+        type: "error",
+        title: "Account Disabled",
+        message: "This account has been disabled. Please contact support.",
+      },
+    };
+  }
+
+  if (code === "auth/popup-closed-by-user" || raw.includes("auth/popup-closed-by-user")) {
+    return {
+      banner: {
+        type: "info",
+        title: "Sign-In Dismissed",
+        message: "The Google sign-in window was closed before completing authentication.",
+      },
+    };
+  }
+
+  if (code === "auth/network-request-failed" || raw.includes("auth/network-request-failed")) {
+    return {
+      banner: {
+        type: "error",
+        title: "Network Connection Error",
+        message: "Could not connect to authentication services. Please verify your internet connection.",
+      },
+    };
+  }
+
+  const cleaned = raw
+    .replace(/^Firebase:\s*/i, "")
+    .replace(/\s*\(auth\/[^)]+\)\.?/i, "")
+    .trim();
+
+  return {
+    banner: {
+      type: "error",
+      title: "Authentication Failed",
+      message: cleaned || "Something went wrong while processing your request. Please try again.",
+    },
+  };
+}
+
 export function AuthForm({
   mode,
   nextPath = "/account",
+  initialEmail = "",
 }: {
   mode: "login" | "signup";
   nextPath?: string;
+  initialEmail?: string;
 }) {
   const router = useRouter();
-  const [message, setMessage] = useState("");
+  const [banner, setBanner] = useState<AuthBanner | null>(null);
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
     getValues,
+    setError,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(mode === "signup" ? signupSchema : schema),
+    defaultValues: {
+      email: initialEmail || "",
+      password: "",
+    },
   });
 
   async function openSession(user: { getIdToken(): Promise<string> }) {
@@ -60,7 +225,7 @@ export function AuthForm({
 
   async function submit(values: Values) {
     setBusy(true);
-    setMessage("");
+    setBanner(null);
     try {
       const auth = await getClientAuth();
       if (mode === "signup") {
@@ -79,9 +244,19 @@ export function AuthForm({
         await openSession(result.user);
       }
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Authentication failed.",
+      const { banner: errBanner, fieldError } = normalizeAuthError(
+        error,
+        mode,
+        values.email,
+        nextPath,
       );
+      setBanner(errBanner);
+      if (fieldError) {
+        setError(fieldError.field, {
+          type: "manual",
+          message: fieldError.message,
+        });
+      }
     } finally {
       setBusy(false);
     }
@@ -89,15 +264,14 @@ export function AuthForm({
 
   async function googleSignIn() {
     setBusy(true);
-    setMessage("");
+    setBanner(null);
     try {
       const auth = await getClientAuth();
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
       await openSession(result.user);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Google sign-in failed.",
-      );
+      const { banner: errBanner } = normalizeAuthError(error, mode, undefined, nextPath);
+      setBanner(errBanner);
     } finally {
       setBusy(false);
     }
@@ -106,17 +280,34 @@ export function AuthForm({
   async function resetPassword() {
     const email = getValues("email");
     if (!email) {
-      setMessage("Enter your email address first.");
+      setBanner({
+        type: "error",
+        title: "Email Required",
+        message: "Please enter your email address first so we know where to send the reset link.",
+      });
+      setError("email", {
+        type: "manual",
+        message: "Enter your email address first.",
+      });
       return;
     }
     setBusy(true);
     try {
       await sendPasswordResetEmail(await getClientAuth(), email);
-      setMessage("Password reset email sent.");
+      setBanner({
+        type: "success",
+        title: "Password Reset Link Sent",
+        message: `We've sent a password reset link to ${email}. Check your inbox and spam folder.`,
+      });
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Could not send reset email.",
-      );
+      const { banner: errBanner, fieldError } = normalizeAuthError(error, mode, email, nextPath);
+      setBanner(errBanner);
+      if (fieldError) {
+        setError(fieldError.field, {
+          type: "manual",
+          message: fieldError.message,
+        });
+      }
     } finally {
       setBusy(false);
     }
@@ -313,10 +504,67 @@ export function AuthForm({
               <span aria-hidden="true">↗</span>
             </button>
           </form>
-          {message && (
-            <p role="status" className="m-auth-message">
-              {message}
-            </p>
+          {banner && (
+            <div
+              role={banner.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+              className={`m-auth-alert m-auth-alert--${banner.type}`}
+            >
+              <div className="m-auth-alert-icon" aria-hidden="true">
+                {banner.type === "success" && (
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                {banner.type === "error" && (
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                    <path
+                      fillRule="evenodd"
+                      d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                {banner.type === "info" && (
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div className="m-auth-alert-body">
+                <p className="m-auth-alert-title">{banner.title}</p>
+                <p className="m-auth-alert-text">{banner.message}</p>
+                {banner.action && (
+                  <div className="m-auth-alert-action">
+                    {banner.action.href === "#forgot" ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={resetPassword}
+                        className="m-auth-alert-btn"
+                      >
+                        {banner.action.label}
+                      </button>
+                    ) : (
+                      <Link
+                        href={banner.action.href || "#"}
+                        className="m-auth-alert-link"
+                      >
+                        {banner.action.label}
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
           <p className="m-auth-switch">
             {mode === "login" ? (

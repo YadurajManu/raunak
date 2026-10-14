@@ -62,10 +62,10 @@ export const webhookSchema = z
   .passthrough();
 
 const priorStatuses = {
-  sent: ["QUEUED"],
-  delivered: ["QUEUED", "SENT", "FAILED"],
-  read: ["QUEUED", "SENT", "DELIVERED", "FAILED"],
-  failed: ["QUEUED", "SENT"],
+  sent: ["QUEUED", "SENDING"],
+  delivered: ["QUEUED", "SENDING", "SENT", "FAILED"],
+  read: ["QUEUED", "SENDING", "SENT", "DELIVERED", "FAILED"],
+  failed: ["QUEUED", "SENDING", "SENT"],
 } as const;
 const nextStatuses = {
   sent: "SENT",
@@ -128,11 +128,25 @@ export async function receiveWebhook(payload: z.infer<typeof webhookSchema>) {
           await tx.notificationLog.updateMany({
             where: {
               channel: "WHATSAPP",
-              providerMessageId: delivery.id,
+              OR: [
+                { providerMessageId: delivery.id },
+                ...(z.uuid().safeParse(delivery.biz_opaque_callback_data)
+                  .success
+                  ? [
+                      {
+                        id: String(delivery.biz_opaque_callback_data),
+                        ...(typeof delivery.recipient_id === "string"
+                          ? { toAddress: `+${delivery.recipient_id}` }
+                          : {}),
+                      },
+                    ]
+                  : []),
+              ],
               status: { in: [...priorStatuses[state]] },
             },
             data: {
               status: nextStatuses[state],
+              providerMessageId: delivery.id,
               ...(state === "failed"
                 ? {
                     error:

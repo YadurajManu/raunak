@@ -43,6 +43,7 @@ it("prevents late delivery events from downgrading a read message", async () => 
   await receiveWebhook(payload("failed"));
   expect(updateMany.mock.calls[0][0].where.status.in).toEqual([
     "QUEUED",
+    "SENDING",
     "SENT",
   ]);
 });
