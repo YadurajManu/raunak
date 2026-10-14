@@ -37,6 +37,7 @@ services:
       redis: { condition: service_healthy }
   postgres:
     image: postgres:16-bookworm
+    container_name: raunak-postgres
     environment:
       POSTGRES_USER: raunak
       POSTGRES_DB: raunak
@@ -50,6 +51,7 @@ services:
       retries: 10
   redis:
     image: redis:7-bookworm
+    container_name: raunak-redis
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     command: [sh, -c, 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction']
