@@ -3,7 +3,9 @@ const processWebhook = vi.hoisted(() => vi.fn());
 vi.mock("@/server/checkout/webhook", () => ({ processCashfreeWebhook: processWebhook }));
 import { GET, POST } from "@/app/api/webhooks/cashfree/route";
 
-beforeEach(() => processWebhook.mockReset());
+beforeEach(() => {
+  processWebhook.mockReset();
+});
 
 it("answers a read-only endpoint reachability check without processing payments", async () => {
   const response = GET();
