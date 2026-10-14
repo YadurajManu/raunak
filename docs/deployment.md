@@ -38,7 +38,7 @@ Do not use `down -v`: it deletes persistent application data.
 ssh fleet-cp 'docker exec -e AUTH_SMOKE_URL=https://raunak.yaduraj.me raunak-web pnpm exec tsx scripts/verify-auth.ts'
 ```
 
-This creates a disposable Firebase account, checks email verification enforcement,
+This creates a disposable Firebase account, checks immediate sign-in without email verification,
 new-user onboarding, saved profile preservation, returning-user routing, and
 logout, then removes the Firebase and database records. Google popup consent must
 also be checked interactively with a real Google account.

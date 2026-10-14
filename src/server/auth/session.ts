@@ -7,8 +7,8 @@ const SESSION_AGE_MS = 5 * 24 * 60 * 60 * 1000;
 
 export async function createSession(idToken: string) {
   const decoded = await adminAuth().verifyIdToken(idToken);
-  if (!decoded.email || !decoded.email_verified)
-    throw new Error("Verify your email before signing in.");
+  if (!decoded.email)
+    throw new Error("An email address is required to sign in.");
   if (Date.now() / 1000 - decoded.auth_time > 5 * 60)
     throw new Error("Please sign in again.");
   const session = await adminAuth().createSessionCookie(idToken, {

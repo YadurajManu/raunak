@@ -38,14 +38,12 @@ async function main() {
     });
   }
   try {
-    assert.equal(
-      (await session(await signIn())).status,
-      400,
-      "Unverified email must be rejected",
-    );
-    await auth.updateUser(user.uid, { emailVerified: true });
     const first = await session(await signIn());
-    assert.equal(first.status, 200);
+    assert.equal(
+      first.status,
+      200,
+      "Unverified email should proceed directly to onboarding",
+    );
     assert.equal(
       (await first.json()).redirectTo,
       "/onboarding?next=%2Faccount",
@@ -84,7 +82,7 @@ async function main() {
     assert.equal(logout.status, 200);
     assert.ok(logout.headers.get("set-cookie")?.includes("eventra_session="));
     console.log(
-      "Live auth passed: email sign-in, verification guard, new-user onboarding, profile save, returning-user dashboard, profile preservation, logout.",
+      "Live auth passed: email sign-in without verification, new-user onboarding, profile save, returning-user dashboard, profile preservation, logout.",
     );
   } finally {
     await db.user.deleteMany({ where: { firebaseUid: user.uid } });

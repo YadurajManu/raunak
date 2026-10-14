@@ -12,11 +12,9 @@ import { z } from "zod";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signOut,
 } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebase-client";
 
@@ -71,11 +69,7 @@ export function AuthForm({
           values.email,
           values.password,
         );
-        await sendEmailVerification(result.user, {
-          url: `${window.location.origin}/login?next=${encodeURIComponent(nextPath)}`,
-        });
-        await signOut(auth);
-        setMessage("Check your inbox to verify your email, then sign in.");
+        await openSession(result.user);
       } else {
         const result = await signInWithEmailAndPassword(
           auth,
