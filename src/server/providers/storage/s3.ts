@@ -12,7 +12,7 @@ function config() {
 
 function client() {
   const env = config();
-  return new S3Client({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION, forcePathStyle: true,
+  return new S3Client({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION, forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== "false",
     credentials: { accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY },
   });
 }
@@ -64,3 +64,7 @@ export const storage: StorageProvider = {
   },
   publicUrl(key) { return `${config().S3_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`; },
 };
+
+export async function presignMediaRead(key: string) {
+  return getSignedUrl(client(), new GetObjectCommand({ Bucket: config().S3_BUCKET, Key: key }), { expiresIn: 300 });
+}

@@ -18,6 +18,8 @@ export default async function DashboardPage() {
   return (
     <AccountShell
       name={user.name || "Your account"}
+      email={user.email}
+      avatarUrl={user.avatarKey}
       organizer
       active="Workspaces"
     >

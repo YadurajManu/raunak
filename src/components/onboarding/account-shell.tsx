@@ -1,13 +1,18 @@
 import Link from "next/link";
+import { ProfileControls } from "./profile-controls";
 import { APP_NAME } from "@/lib/constants";
 import { ThemeToggle } from "@/components/marketing/footer";
 export function AccountShell({
   name,
+  email,
+  avatarUrl,
   active = "Overview",
   organizer = false,
   children,
 }: {
   name: string;
+  email?: string;
+  avatarUrl?: string | null;
   active?: string;
   organizer?: boolean;
   children: React.ReactNode;
@@ -29,18 +34,7 @@ export function AccountShell({
             {organizer ? "← Attendee view" : "Host your own event ↗"}
           </Link>
           <ThemeToggle />
-          <details className="r-profile-menu">
-            <summary aria-label="Open profile menu">
-              <span>{name.slice(0, 1).toUpperCase()}</span>
-            </summary>
-            <nav aria-label="Profile">
-              <b>{name}</b>
-              <Link href="/account">My dashboard</Link>
-              <Link href="/my-tickets">My tickets</Link>
-              <Link href="/account/profile">Edit profile</Link>
-              <Link href="/dashboard">Organizer workspace ↗</Link>
-            </nav>
-          </details>
+          <ProfileControls name={name} email={email} avatarUrl={avatarUrl} />
         </div>
       </header>
       <div className="r-account-grid">

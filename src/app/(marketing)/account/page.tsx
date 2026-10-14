@@ -40,7 +40,11 @@ export default async function AccountPage() {
     }),
   ]);
   return (
-    <AccountShell name={user.name || "Your account"}>
+    <AccountShell
+      name={user.name || "Your account"}
+      email={user.email}
+      avatarUrl={user.avatarKey}
+    >
       <p className="m-eyebrow">
         {user.city
           ? `YOUR PLANS IN ${user.city.toUpperCase()}`
