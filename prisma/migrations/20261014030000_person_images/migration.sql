@@ -1,0 +1,1 @@
+ALTER TYPE "ImageKind" ADD VALUE 'PERSON';

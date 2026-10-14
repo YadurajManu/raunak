@@ -19,7 +19,7 @@ services:
     environment:
       SERVICES: s3
     ports: ["9000:4566"]
-    volumes: ["./docker/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro"]
+    volumes: ["./docker/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro", "./docker/localstack-policy.json:/etc/localstack/init/ready.d/policy.json:ro", "./docker/localstack-cors.json:/etc/localstack/init/ready.d/cors.json:ro"]
   mailpit:
     image: axllent/mailpit:latest
     ports: ["1025:1025", "8025:8025"]

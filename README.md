@@ -31,3 +31,11 @@ M0 and M1 are complete and verified locally. M2 has Firebase sign-in, sessions, 
 ## Decisions
 
 Next.js Cache Components are disabled for now because authenticated pages resolve cookie and database data at request time. The public pages can be cached separately when built.
+
+## Media worker
+
+Run `pnpm worker` alongside `pnpm dev`. Images are uploaded directly to S3-compatible storage through five-minute presigned URLs, then processed by the Redis-backed worker. LocalStack starts with an `eventra` bucket, browser CORS, and public access only for generated variants. Originals stay private. For AWS S3 or Cloudflare R2, set the `S3_*` variables and configure the same CORS and variant-read policy on that bucket.
+
+The image limit is 20 per event and 10 MB per file. The worker verifies the actual file format before decoding and creates thumb, card, hero, and OG sizes in AVIF, WebP, and JPEG. HEIC/HEIF uses a dedicated decoder. `pnpm test` exercises all six accepted format families against the local S3 service.
+
+A deletion that races an already-running conversion can leave an unreferenced variant in storage. A durable deletion outbox is needed before using this for sensitive uploads; event images should be treated as public assets.

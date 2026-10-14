@@ -45,6 +45,7 @@ enum ImageKind {
   POSTER
   COVER
   GALLERY
+  PERSON
 }
 enum OrderStatus {
   PENDING
@@ -199,11 +200,12 @@ model EventImage {
   id String @id @default(uuid()) @db.Uuid
   eventId String @db.Uuid
   kind ImageKind
-  storageKey String
+  storageKey String @unique
   variants Json?
   width Int?
   height Int?
   blurhash String?
+  processingError String?
   alt String @default("")
   mime String
   sizeBytes Int
