@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: eventra
+      POSTGRES_PASSWORD: eventra
+      POSTGRES_DB: eventra
+    ports: ["5433:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventra"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  s3:
+    image: localstack/localstack:4.8.1
+    environment:
+      SERVICES: s3
+    ports: ["9000:4566"]
+    volumes: ["./docker/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro"]
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["1025:1025", "8025:8025"]
+volumes:
+  postgres_data:
