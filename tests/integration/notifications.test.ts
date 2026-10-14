@@ -126,6 +126,7 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
         name: "approved_ticket",
         language: "en",
         variables: ["event_title", "ticket_url"],
+        documentHeader: true,
       },
     }),
   );
@@ -164,6 +165,7 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
     whatsapp: { sendTemplate },
   });
   expect(sendTemplate.mock.calls[0][0].params[0]).toBe(event.title);
+  expect(sendTemplate.mock.calls[0][0].document.content.subarray(0, 5).toString()).toBe("%PDF-");
   expect(
     (await db.notificationLog.findUniqueOrThrow({ where: { id: waLog.id } }))
       .status,

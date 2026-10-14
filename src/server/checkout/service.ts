@@ -214,6 +214,7 @@ export async function createCheckout(
             replay &&
             replay.buyerId === buyer.id &&
             replay.eventId === data.eventId &&
+            replay.whatsappOptIn === data.whatsappOptIn &&
             replay.buyerName === data.buyerName &&
             replay.buyerPhone === data.buyerPhone &&
             replay.items.length === data.items.length &&
@@ -331,6 +332,23 @@ export async function applyPayment(
       },
     });
     await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${order.eventId}::uuid FOR UPDATE`;
+    const currentEvent = await tx.event.findUniqueOrThrow({ where: { id: order.eventId } });
+    if (order.status === "PENDING" &&
+        (currentEvent.status !== "PUBLISHED" || currentEvent.deletedAt || currentEvent.startsAt <= new Date())) {
+      for (const item of order.items)
+        await tx.ticketType.update({
+          where: { id: item.ticketTypeId },
+          data: { quantityHeld: { decrement: item.quantity } },
+        });
+      const expired = await tx.order.update({ where: { id: order.id }, data: { status: "EXPIRED" } });
+      await tx.refund.create({ data: {
+        paymentId: current.id,
+        amountPaise: payment.amountPaise,
+        status: "PENDING",
+        reason: "Event unavailable when payment was received",
+      } });
+      return { order: expired, refund: true };
+    }
     if (order.status === "PENDING") {
       for (const item of order.items)
         await tx.ticketType.update({

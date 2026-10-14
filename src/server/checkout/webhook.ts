@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db/client";
-import { applyPayment, releaseOrder } from "./service";
+import { applyPayment } from "./service";
 import {
   cashfree,
   type PaymentProvider,
@@ -43,16 +43,19 @@ export async function processCashfreeWebhook(
   if (!verifyCashfreeSignature(raw, timestamp, signature, secret))
     throw new Error("Invalid webhook signature.");
   const payload = schema.parse(JSON.parse(raw));
-  if (
-    payload.type === "PAYMENT_SUCCESS_WEBHOOK" &&
-    payload.data.payment.payment_status !== "SUCCESS"
-  )
+  const expectedStatus = {
+    PAYMENT_SUCCESS_WEBHOOK: "SUCCESS",
+    PAYMENT_FAILED_WEBHOOK: "FAILED",
+    PAYMENT_USER_DROPPED_WEBHOOK: "USER_DROPPED",
+  }[payload.type];
+  if (payload.data.payment.payment_status !== expectedStatus)
     throw new Error("Payment event mismatch.");
   const id = `${payload.data.payment.cf_payment_id}:${payload.data.payment.payment_status}`;
   const order = await db.order.findUnique({
     where: { cashfreeOrderId: payload.data.order.order_id },
   });
-  if (!order) throw new Error("Order not found.");
+  // A merchant account can notify several apps; unrelated orders need no retry.
+  if (!order) return null;
   const existing = await db.webhookEvent.findUnique({
     where: {
       provider_idempotencyKey: { provider: "cashfree", idempotencyKey: id },
@@ -92,7 +95,8 @@ export async function processCashfreeWebhook(
             },
             provider,
           )
-        : await releaseOrder(order.id, "FAILED");
+        // Failed attempts can be retried in the same Cashfree checkout session.
+        : order;
     await db.webhookEvent.update({
       where: {
         provider_idempotencyKey: { provider: "cashfree", idempotencyKey: id },

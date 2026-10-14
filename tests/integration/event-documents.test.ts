@@ -2,7 +2,6 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
-import { duplicateEvent } from "@/server/events/service";
 import { storage } from "@/server/providers/storage/s3";
 import {
   addDocument,

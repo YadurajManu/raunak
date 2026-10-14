@@ -1,4 +1,4 @@
-export async function boundedFormData(request: Request, maxBytes: number) {
+export async function boundedBody(request: Request, maxBytes: number) {
   if (Number(request.headers.get("content-length") || 0) > maxBytes)
     throw new Error("Upload is too large.");
   const reader = request.body?.getReader();
@@ -19,7 +19,11 @@ export async function boundedFormData(request: Request, maxBytes: number) {
   } finally {
     reader.releaseLock();
   }
-  return new Response(Buffer.concat(chunks), {
+  return Buffer.concat(chunks);
+}
+
+export async function boundedFormData(request: Request, maxBytes: number) {
+  return new Response(await boundedBody(request, maxBytes), {
     headers: { "Content-Type": request.headers.get("content-type") || "" },
   }).formData();
 }

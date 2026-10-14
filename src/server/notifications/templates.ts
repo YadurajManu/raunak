@@ -57,6 +57,7 @@ const metaConfig = z.record(
     name: z.string().regex(/^[a-z0-9_]+$/),
     language: z.string().min(2),
     variables: z.array(z.enum(variables)).max(30),
+    documentHeader: z.boolean().default(false),
   }),
 );
 export function whatsappTemplate(trigger: MessageTrigger) {

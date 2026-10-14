@@ -136,6 +136,14 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
   await expect(
     processCashfreeWebhook(raw, timestamp, "bad", provider, "test-secret"),
   ).rejects.toThrow("signature");
+  const failedPayload = JSON.parse(raw);
+  failedPayload.type = "PAYMENT_FAILED_WEBHOOK";
+  failedPayload.data.payment.payment_status = "FAILED";
+  const failed = JSON.stringify(failedPayload);
+  const failedSignature = createHmac("sha256", "test-secret").update(timestamp + failed).digest("base64");
+  await processCashfreeWebhook(failed, timestamp, failedSignature, provider, "test-secret");
+  expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING");
+  expect((await db.ticketType.findUniqueOrThrow({ where: { id: type.id } })).quantityHeld).toBe(1);
   await processCashfreeWebhook(
     raw,
     timestamp,
@@ -155,7 +163,24 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
     where: { id: type.id },
   });
   expect([inventory.quantitySold, inventory.quantityHeld]).toEqual([1, 0]);
+  const unrelated = JSON.parse(raw);
+  unrelated.data.order.order_id = randomUUID();
+  const unrelatedRaw = JSON.stringify(unrelated);
+  const unrelatedSignature = createHmac("sha256", "test-secret").update(timestamp + unrelatedRaw).digest("base64");
+  expect(await processCashfreeWebhook(unrelatedRaw, timestamp, unrelatedSignature, provider, "test-secret")).toBeNull();
 });
+it("does not issue entry tickets when an event is cancelled during checkout", async () => {
+  const { event, type, cart } = await setup();
+  const order = await createCheckout(buyer, cart(), provider);
+  await db.event.update({ where: { id: event.id }, data: { status: "CANCELLED" } });
+  await applyPayment(order.id, {
+    id: randomUUID(), status: "SUCCESS", amountPaise: order.totalPaise, raw: {},
+  }, provider);
+  expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(0);
+  expect((await db.ticketType.findUniqueOrThrow({ where: { id: type.id } })).quantityHeld).toBe(0);
+  expect(await db.refund.count({ where: { payment: { orderId: order.id } } })).toBe(1);
+});
+
 it("refunds late payments without issuing unavailable tickets and reconciles pending refunds", async () => {
   const { type, cart } = await setup(10000, 1);
   const expired = await createCheckout(buyer, cart(), provider);

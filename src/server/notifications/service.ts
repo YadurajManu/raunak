@@ -313,12 +313,19 @@ export async function processNotification(
       if (!log.order.whatsappOptIn)
         throw new Error("WhatsApp updates were not requested by this buyer.");
       const approved = whatsappTemplate(log.trigger);
+      let document: { filename: string; content: Buffer } | undefined;
+      if (approved.documentHeader) {
+        if (log.trigger !== "TICKET_ISSUED" || !ticket?.pdfKey)
+          throw new Error("A prepared ticket PDF is required for this WhatsApp template.");
+        document = { filename: `raunak-${ticket.code}.pdf`, content: await storage.read(ticket.pdfKey, 10 * 1024 * 1024) };
+      }
       const result = await providers.whatsapp.sendTemplate({
         to: log.toAddress,
         templateName: approved.name,
         language: approved.language,
         params: approved.variables.map((key) => values[key] || "—"),
         notificationId: id,
+        document,
       });
       await db.notificationLog.update({
         where: { id },

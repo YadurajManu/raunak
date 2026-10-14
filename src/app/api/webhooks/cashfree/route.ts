@@ -1,8 +1,9 @@
 import { processCashfreeWebhook } from "@/server/checkout/webhook";
+import { boundedBody } from "@/server/http/form-data";
 export async function POST(request: Request) {
   try {
     await processCashfreeWebhook(
-      await request.text(),
+      (await boundedBody(request, 1024 * 1024)).toString("utf8"),
       request.headers.get("x-webhook-timestamp"),
       request.headers.get("x-webhook-signature"),
     );

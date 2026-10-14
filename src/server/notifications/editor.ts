@@ -113,6 +113,8 @@ export async function sendMessageTest(
         "Add your phone number to your profile before sending a WhatsApp test.",
       );
     const approved = whatsappTemplate(data.trigger);
+    if (approved.documentHeader)
+      throw new Error("Use a paid order's Resend tickets action to test a ticket PDF. Template previews do not create entry tickets.");
     await whatsapp.sendTemplate({
       to: user.phone,
       templateName: approved.name,
