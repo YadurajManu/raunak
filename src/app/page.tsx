@@ -1,18 +1,10 @@
+export const dynamic = "force-dynamic";
+import Link from "next/link";
 import { APP_NAME } from "@/lib/constants";
+import { discoverEvents } from "@/server/public/events";
+import { EventImage } from "@/components/public/event-image";
 
-export default function Home() {
-  return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8 sm:px-10">
-      <header className="flex items-center justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800">
-        <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
-        <span className="rounded-full border border-zinc-300 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">Phase 1 in development</span>
-      </header>
-      <section className="flex flex-1 flex-col justify-center py-20">
-        <p className="mb-5 text-sm font-medium uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Made for events in India</p>
-        <h1 className="max-w-3xl text-5xl font-semibold leading-tight tracking-tight sm:text-7xl">Bring people together, beautifully.</h1>
-        <p className="mt-8 max-w-xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">Create events, sell tickets, and welcome guests from one calm workspace. {APP_NAME} is currently being built.</p>
-      </section>
-      <footer className="border-t border-zinc-200 py-6 text-sm text-zinc-500 dark:border-zinc-800">{APP_NAME} · Event management and ticketing</footer>
-    </main>
-  );
+export default async function Home() {
+  const events = (await discoverEvents({})).slice(0, 3);
+  return <main className="min-h-screen"><header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-7"><Link href="/" className="text-xl font-semibold">{APP_NAME}</Link><nav className="flex gap-5 text-sm"><Link href="/discover">Discover</Link><Link href="/login" className="text-indigo-600 dark:text-indigo-400">Organizer sign in</Link></nav></header><section className="mx-auto max-w-6xl px-6 py-24 sm:py-32"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Events made easy</p><h1 className="mt-5 max-w-4xl text-5xl font-semibold tracking-tight sm:text-7xl">Bring people together, beautifully.</h1><p className="mt-7 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">Find your next experience. Create events, sell tickets, and welcome guests from one calm workspace.</p><div className="mt-10 flex flex-wrap gap-3"><Link href="/discover" className="rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white">Explore events</Link><Link href="/login" className="rounded-xl border border-zinc-300 px-6 py-3 font-medium dark:border-zinc-700">Create an event</Link></div></section><section className="border-t border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50"><div className="mx-auto max-w-6xl px-6"><div className="flex items-end justify-between gap-4"><div><h2 className="text-3xl font-semibold">Upcoming events</h2><p className="mt-2 text-zinc-600 dark:text-zinc-400">Good things are happening nearby.</p></div><Link href="/discover" className="text-sm text-indigo-600 dark:text-indigo-400">View all →</Link></div>{events.length ? <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{events.map(event => <Link href={`/e/${event.slug}`} key={event.id} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"><EventImage variants={event.images[0]?.variants} alt={event.images[0]?.alt || event.title} size="card" className="h-48 w-full object-cover" /><div className="p-5"><p className="text-sm text-indigo-600 dark:text-indigo-400">{event.category || "Event"}</p><h3 className="mt-2 text-xl font-semibold">{event.title}</h3><p className="mt-2 text-sm text-zinc-500">{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: event.timezone }).format(event.startsAt)} · {event.city || "Online"}</p></div></Link>)}</div> : <div className="mt-8 rounded-2xl border border-dashed border-zinc-300 p-10 text-zinc-500 dark:border-zinc-700">No upcoming events yet. Check back soon.</div>}</div></section><footer className="border-t border-zinc-200 px-6 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800">{APP_NAME} · Event management and ticketing</footer></main>;
 }

@@ -17,6 +17,7 @@ type EventValues = {
   timezone: string;
   venueName: string | null;
   address: string | null;
+  mapUrl: string | null;
   city: string | null;
   onlineUrl: string | null;
   capacity: number | null;
@@ -53,6 +54,7 @@ export function EventForm({
         timezone,
         venueName: String(form.get("venueName")),
         address: String(form.get("address")),
+        mapUrl: String(form.get("mapUrl")) || undefined,
         city: String(form.get("city")),
         onlineUrl: String(form.get("onlineUrl")) || undefined,
         capacity: form.get("capacity")
@@ -215,6 +217,10 @@ export function EventForm({
             defaultValue={event?.address || ""}
             className={input}
           />
+        </label>
+        <label className="sm:col-span-2 text-sm font-medium">
+          Map link
+          <input name="mapUrl" type="url" defaultValue={event?.mapUrl || ""} className={input} />
         </label>
         <label className="sm:col-span-2 text-sm font-medium">
           Online event link

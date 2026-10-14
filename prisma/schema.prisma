@@ -173,6 +173,7 @@ model Event {
   timezone String @default("Asia/Kolkata")
   venueName String?
   address String?
+  mapUrl String?
   city String?
   lat Decimal? @db.Decimal(10, 7)
   lng Decimal? @db.Decimal(10, 7)

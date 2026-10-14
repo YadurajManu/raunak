@@ -26,7 +26,7 @@ Local invitation email uses Mailpit at <http://localhost:8025> with `EMAIL_PROVI
 
 ## Current implementation
 
-M0–M4 are implemented and checked locally. M2 has Firebase sign-in, sessions, workspace creation, invitations, role changes, removals, and tenant checks; external Firebase sign-in still needs project credentials for a manual check. Organizers can create a draft, upload media, add ticket types, assign staff, publish, duplicate, and soft-delete unused drafts. The public event site, checkout, delivery, scanner, and analytics remain in later milestones.
+M0–M5 are implemented and checked locally. M2 has Firebase sign-in, sessions, workspace creation, invitations, role changes, removals, and tenant checks; external Firebase sign-in still needs project credentials for a manual check. Organizers can create a draft, upload media, add ticket types, assign staff, publish, duplicate, and soft-delete unused drafts. The public landing, discovery, event page, social image, and sitemap are live. Checkout, delivery, scanner, and analytics remain in later milestones.
 
 ## Decisions
 
@@ -42,4 +42,4 @@ A deletion that races an already-running conversion can leave an unreferenced va
 
 ## Organizer event flow
 
-Sign in, create a workspace, then open its Events page. Create a draft with local date and time in the selected event timezone. Add a poster on Media, add ticket types on Tickets, and publish from Overview. Published events require a processed poster, a future start time, and at least one ticket type. A capacity, when set, limits the sum of ticket inventory. Event Managers only see events assigned to them; Check-in Staff only see assigned attendee lists.
+Sign in, create a workspace, then open its Events page. Create a draft with local date and time in the selected event timezone. Add a poster on Media, add ticket types on Tickets, and publish from Overview. Published events require a processed poster, a future start time, and at least one ticket type. A capacity, when set, limits the sum of ticket inventory. Event Managers only see events assigned to them; Check-in Staff only see assigned attendee lists. Published unlisted events open by direct URL but are excluded from discovery and the sitemap.
