@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { z } from "zod";
 
@@ -22,6 +22,7 @@ export interface StorageProvider {
   head(key: string): Promise<{ size: number; mime?: string }>;
   read(key: string, maxBytes: number): Promise<Buffer>;
   write(key: string, body: Buffer, mime: string): Promise<void>;
+  copy(source: string, destination: string): Promise<void>;
   delete(key: string): Promise<void>;
   publicUrl(key: string): string;
 }
@@ -52,6 +53,10 @@ export const storage: StorageProvider = {
   async write(key, body, mime) {
     const env = config();
     await client().send(new PutObjectCommand({ Bucket: env.S3_BUCKET, Key: key, Body: body, ContentType: mime, CacheControl: "public, max-age=31536000, immutable" }));
+  },
+  async copy(source, destination) {
+    const env = config();
+    await client().send(new CopyObjectCommand({ Bucket: env.S3_BUCKET, Key: destination, CopySource: `${env.S3_BUCKET}/${source.split("/").map(encodeURIComponent).join("/")}` }));
   },
   async delete(key) {
     const env = config();

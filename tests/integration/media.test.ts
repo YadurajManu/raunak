@@ -82,6 +82,15 @@ describe("media processor", () => {
     await expect(confirmImage(userId, { token: `${token}x`, alt: "Poster" })).rejects.toThrow("Invalid upload token");
   }, 30_000);
 
+  it("copies originals for event duplication", async () => {
+    const bytes = await readFile("tests/fixtures/source.png");
+    const source = await upload(bytes, "image/png");
+    const copyKey = `orgs/${orgId}/events/${eventId}/original/${randomUUID()}`;
+    keys.push(copyKey);
+    await storage.copy(source.storageKey, copyKey);
+    expect((await storage.head(copyKey)).size).toBe(bytes.length);
+  });
+
   it("links and edits a lineup photo within its event", async () => {
     const image = await upload(await readFile("tests/fixtures/source.png"), "image/png");
     await db.eventImage.update({ where: { id: image.id }, data: { kind: "PERSON" } });

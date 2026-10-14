@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/constants";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -60,7 +61,7 @@ export function AuthForm({ mode, nextPath = "/dashboard" }: { mode: "login" | "s
   }
 
   return <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-    <Link href="/" className="mb-12 text-xl font-semibold">Eventra</Link>
+    <Link href="/" className="mb-12 text-xl font-semibold">{APP_NAME}</Link>
     <h1 className="text-3xl font-semibold tracking-tight">{mode === "login" ? "Welcome back" : "Create your account"}</h1>
     <p className="mt-2 text-zinc-600 dark:text-zinc-400">{mode === "login" ? "Sign in to manage events and tickets." : "Start organizing your next event."}</p>
     <form onSubmit={handleSubmit(submit)} className="mt-8 space-y-5">

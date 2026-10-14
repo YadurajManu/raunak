@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
@@ -16,7 +17,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const org = await db.organization.findUniqueOrThrow({ where: { id: orgId } });
   const members = await db.organizationMember.findMany({ where: { orgId, status: "ACTIVE" }, include: { user: { select: { name: true, email: true } } }, orderBy: { createdAt: "asc" } });
   return <main className="mx-auto min-h-screen max-w-5xl px-6 py-8">
-    <header className="flex items-center justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800"><Link href="/dashboard" className="text-xl font-semibold">Eventra</Link><span>{org.name}</span></header>
+    <header className="flex items-center justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800"><Link href="/dashboard" className="text-xl font-semibold">{APP_NAME}</Link><span>{org.name}</span></header>
     <h1 className="mt-12 text-3xl font-semibold">Team</h1>
     <p className="mt-2 text-zinc-600 dark:text-zinc-400">Members of {org.name}</p>
     {membership.role === "OWNER" || membership.role === "ADMIN" ? <TeamActions orgId={orgId} members={members.map(({ userId, role, user }) => ({ userId, role, name: user.name, email: user.email }))} /> : null}

@@ -26,7 +26,7 @@ Local invitation email uses Mailpit at <http://localhost:8025> with `EMAIL_PROVI
 
 ## Current implementation
 
-M0 and M1 are complete and verified locally. M2 has Firebase sign-in, sessions, workspace creation, invitations, role changes, removals, and tenant checks; external Firebase sign-in needs project credentials to verify manually. Event creation, checkout, delivery, scanner, and analytics remain in the next milestones.
+M0–M4 are implemented and checked locally. M2 has Firebase sign-in, sessions, workspace creation, invitations, role changes, removals, and tenant checks; external Firebase sign-in still needs project credentials for a manual check. Organizers can create a draft, upload media, add ticket types, assign staff, publish, duplicate, and soft-delete unused drafts. The public event site, checkout, delivery, scanner, and analytics remain in later milestones.
 
 ## Decisions
 
@@ -39,3 +39,7 @@ Run `pnpm worker` alongside `pnpm dev`. Images are uploaded directly to S3-compa
 The image limit is 20 per event and 10 MB per file. The worker verifies the actual file format before decoding and creates thumb, card, hero, and OG sizes in AVIF, WebP, and JPEG. HEIC/HEIF uses a dedicated decoder. `pnpm test` exercises all six accepted format families against the local S3 service.
 
 A deletion that races an already-running conversion can leave an unreferenced variant in storage. A durable deletion outbox is needed before using this for sensitive uploads; event images should be treated as public assets.
+
+## Organizer event flow
+
+Sign in, create a workspace, then open its Events page. Create a draft with local date and time in the selected event timezone. Add a poster on Media, add ticket types on Tickets, and publish from Overview. Published events require a processed poster, a future start time, and at least one ticket type. A capacity, when set, limits the sum of ticket inventory. Event Managers only see events assigned to them; Check-in Staff only see assigned attendee lists.
