@@ -9,7 +9,10 @@ import { storage } from "../src/server/providers/storage/s3";
 import { documentsSchema } from "../src/server/events/documents";
 import { processMedia } from "../worker/jobs/process-media";
 import { prepareTicketPdfs } from "../src/server/tickets/pdf";
-import { enqueueOrderNotifications, processNotification } from "../src/server/notifications/service";
+import {
+  enqueueOrderNotifications,
+  processNotification,
+} from "../src/server/notifications/service";
 import { ticketUrl } from "../src/server/tickets/qr";
 import {
   mediaQueue,
@@ -90,15 +93,33 @@ async function main() {
     await page.getByRole("heading", { name: "Personal details" }).waitFor();
     const nameBox = await page.getByLabel("Full name").boundingBox();
     const emailBox = await page.getByLabel("Email address").boundingBox();
-    assert.ok(nameBox && emailBox && Math.abs(nameBox.y - emailBox.y) < 2, "Name and email inputs must align.");
-    assert.equal(await page.locator(".maplibregl-canvas").count(), 0, "Profile maps are optional and collapsed.");
+    assert.ok(
+      nameBox && emailBox && Math.abs(nameBox.y - emailBox.y) < 2,
+      "Name and email inputs must align.",
+    );
+    assert.equal(
+      await page.locator(".maplibregl-canvas").count(),
+      0,
+      "Profile maps are optional and collapsed.",
+    );
     await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
-    await page.getByRole("combobox", { name: "City", exact: true }).press("ArrowDown");
-    await page.getByRole("combobox", { name: "City", exact: true }).press("Enter");
-    assert.equal(await page.getByLabel("State / region").inputValue(), "Maharashtra");
+    await page
+      .getByRole("combobox", { name: "City", exact: true })
+      .press("ArrowDown");
+    await page
+      .getByRole("combobox", { name: "City", exact: true })
+      .press("Enter");
+    assert.equal(
+      await page.getByLabel("State / region").inputValue(),
+      "Maharashtra",
+    );
     await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
-    await page.getByRole("combobox", { name: "City", exact: true }).fill("Pune");
-    await page.getByRole("button", { name: "Search city", exact: true }).click();
+    await page
+      .getByRole("combobox", { name: "City", exact: true })
+      .fill("Pune");
+    await page
+      .getByRole("button", { name: "Search city", exact: true })
+      .click();
     await page.getByRole("option", { name: /Pune/ }).first().click();
     await page.getByLabel("Full name").fill("Experience Check Updated");
     await page.getByRole("button", { name: "Save changes" }).click();
@@ -123,11 +144,18 @@ async function main() {
     assert.equal(org.status(), 201);
     orgId = (await org.json()).id;
     await page.goto(`/dashboard/events?org=${orgId}`);
-    await page.getByRole("heading", { name: "Your next event starts here" }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/workspace.png", fullPage: true });
+    await page
+      .getByRole("heading", { name: "Your next event starts here" })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/workspace.png",
+      fullPage: true,
+    });
     await page.goto(`/dashboard/events/new?org=${orgId}`);
     await page.waitForLoadState("networkidle");
-    await page.locator('select[name="category"]').selectOption("Music & nightlife");
+    await page
+      .locator('select[name="category"]')
+      .selectOption("Music & nightlife");
     await page.getByRole("radio", { name: /Online Join/ }).check();
     assert.equal(await page.getByLabel("Venue name").count(), 0);
     await page.getByRole("radio", { name: /In person At/ }).check();
@@ -146,15 +174,33 @@ async function main() {
     await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
     await page.getByRole("option", { name: /Pune/ }).click();
     await page.getByLabel("Address", { exact: true }).fill("Pune, Maharashtra");
-    assert.equal(await page.locator(".maplibregl-canvas").count(), 0, "Event maps start collapsed.");
+    assert.equal(
+      await page.locator(".maplibregl-canvas").count(),
+      0,
+      "Event maps start collapsed.",
+    );
     await page.getByRole("button", { name: /Adjust map pin/ }).click();
     await page.locator(".maplibregl-canvas").waitFor();
     const mapBox = await page.locator(".r-small-map .r-map").boundingBox();
-    assert.ok(mapBox && mapBox.height <= 185, "The optional map must remain compact.");
-    await page.screenshot({ path: "artifacts/experience/create-event.png", fullPage: true });
+    assert.ok(
+      mapBox && mapBox.height <= 185,
+      "The optional map must remain compact.",
+    );
+    await page.screenshot({
+      path: "artifacts/experience/create-event.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "Mobile form must not overflow.");
-    await page.screenshot({ path: "artifacts/experience/create-event-mobile.png", fullPage: true });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "Mobile form must not overflow.",
+    );
+    await page.screenshot({
+      path: "artifacts/experience/create-event-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
     const creation = page.waitForResponse(
       (response) =>
@@ -170,7 +216,7 @@ async function main() {
     eventId = page.url().match(/events\/([^/]+)/)?.[1];
     assert.ok(eventId);
     console.log("Created event draft through the organizer UI.");
-    await page.getByText("Event documents · 0 PDFs",{exact:true}).click();
+    await page.getByText("Event documents · 0 PDFs", { exact: true }).click();
     await page.getByLabel("Add a PDF").setInputFiles({
       name: "Programme.pdf",
       mimeType: "application/pdf",
@@ -180,16 +226,51 @@ async function main() {
     console.log("Uploaded event PDF through the organizer UI.");
     const { readFile } = await import("node:fs/promises");
     const bytes = await readFile("tests/fixtures/source.png");
-    page.on("response",response=>{if(response.url().endsWith("/api/uploads/confirm")&&response.status()===201)void (async()=>{try{const {id}=await response.json();await processMedia(id);await (await mediaQueue.getJob(id))?.remove();}catch(error){errors.push(String(error));}})();});
-    await page.getByRole("button",{name:"＋ Add media",exact:true}).click();
-    await page.getByLabel("Choose media files").setInputFiles([{name:"First gallery.png",mimeType:"image/png",buffer:bytes},{name:"Second gallery.png",mimeType:"image/png",buffer:bytes},{name:"Third gallery.png",mimeType:"image/png",buffer:bytes},{name:"Fourth gallery.png",mimeType:"image/png",buffer:bytes},{name:"Fifth gallery.png",mimeType:"image/png",buffer:bytes}]);
-    await page.getByRole("button",{name:"Upload images",exact:true}).click();
-    await page.getByText("5 completed · 0 waiting",{exact:true}).waitFor({timeout:60000});
-    assert.equal(await page.locator(".mm-upload-list progress").count(),0,"Completed files must not keep progress bars.");
-    await page.getByRole("button",{name:"Done",exact:true}).click();
-    const gallery = await db.eventImage.findMany({where:{eventId,kind:"GALLERY"}});
-    assert.equal(gallery.length,5,"Every selected file must upload.");
-    for(const image of gallery) {await processMedia(image.id);await (await mediaQueue.getJob(image.id))?.remove();}
+    page.on("response", (response) => {
+      if (
+        response.url().endsWith("/api/uploads/confirm") &&
+        response.status() === 201
+      )
+        void (async () => {
+          try {
+            const { id } = await response.json();
+            await processMedia(id);
+            await (await mediaQueue.getJob(id))?.remove();
+          } catch (error) {
+            errors.push(String(error));
+          }
+        })();
+    });
+    await page
+      .getByRole("button", { name: "＋ Add media", exact: true })
+      .click();
+    await page.getByLabel("Choose media files").setInputFiles([
+      { name: "First gallery.png", mimeType: "image/png", buffer: bytes },
+      { name: "Second gallery.png", mimeType: "image/png", buffer: bytes },
+      { name: "Third gallery.png", mimeType: "image/png", buffer: bytes },
+      { name: "Fourth gallery.png", mimeType: "image/png", buffer: bytes },
+      { name: "Fifth gallery.png", mimeType: "image/png", buffer: bytes },
+    ]);
+    await page
+      .getByRole("button", { name: "Upload images", exact: true })
+      .click();
+    await page
+      .getByText("5 completed · 0 waiting", { exact: true })
+      .waitFor({ timeout: 60000 });
+    assert.equal(
+      await page.locator(".mm-upload-list progress").count(),
+      0,
+      "Completed files must not keep progress bars.",
+    );
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    const gallery = await db.eventImage.findMany({
+      where: { eventId, kind: "GALLERY" },
+    });
+    assert.equal(gallery.length, 5, "Every selected file must upload.");
+    for (const image of gallery) {
+      await processMedia(image.id);
+      await (await mediaQueue.getJob(image.id))?.remove();
+    }
     const signed = await context.request.post("/api/uploads/presign", {
       headers: { origin: base },
       data: {
@@ -221,128 +302,326 @@ async function main() {
     console.log("Uploaded and processed event poster.");
     const job = await mediaQueue.getJob(imageId);
     if (job) await job.remove();
-    await page.getByRole("button",{name:"Refresh media status"}).click();
-    const card=page.locator("li").filter({has:page.getByRole("img",{name:"Event poster",exact:true})});
-    await card.getByRole("button",{name:"Edit Event poster",exact:true}).click();
-    await page.getByRole("button",{name:"Crop / resize"}).click();
-    await page.getByRole("radio",{name:"Square 1:1"}).check();
-    page.once("dialog",dialog=>dialog.dismiss());
+    await page.getByRole("button", { name: "Refresh media status" }).click();
+    const card = page
+      .locator("li")
+      .filter({
+        has: page.getByRole("img", { name: "Event poster", exact: true }),
+      });
+    await card
+      .getByRole("button", { name: "Edit Event poster", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Crop / resize" }).click();
+    await page.getByRole("radio", { name: "Square 1:1" }).check();
+    page.once("dialog", (dialog) => dialog.dismiss());
     await page.keyboard.press("Escape");
-    await page.getByRole("heading",{name:"Frame your image",exact:true}).waitFor();
-    await page.getByRole("button",{name:"Save crop"}).waitFor({state:"visible"});
-    await page.getByRole("img",{name:"Crop preview: Event poster"}).waitFor();
-    await page.screenshot({path:"artifacts/experience/crop-editor.png"});
-    const editedResponse=page.waitForResponse(r=>r.url().endsWith(`/images/${imageId}`)&&r.request().method()==="PATCH");
-    await page.getByRole("button",{name:"Save crop"}).click();
-    const edited=await (await editedResponse).json();
-    assert.equal(edited.crop.aspect,"square");
+    await page
+      .getByRole("heading", { name: "Frame your image", exact: true })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Save crop" })
+      .waitFor({ state: "visible" });
+    await page
+      .getByRole("img", { name: "Crop preview: Event poster" })
+      .waitFor();
+    await page.screenshot({ path: "artifacts/experience/crop-editor.png" });
+    const editedResponse = page.waitForResponse(
+      (r) =>
+        r.url().endsWith(`/images/${imageId}`) &&
+        r.request().method() === "PATCH",
+    );
+    await page.getByRole("button", { name: "Save crop" }).click();
+    const edited = await (await editedResponse).json();
+    assert.equal(edited.crop.aspect, "square");
     await processMedia(imageId);
-    await (await mediaQueue.getJob(`${imageId}-${edited.crop.revision}`))?.remove();
-    await page.getByRole("button",{name:"Close Image details",exact:true}).click();
-    await page.getByRole("button",{name:"Refresh media status"}).click();
-    await page.getByRole("button",{name:"Edit First gallery",exact:true}).click();
-    await page.getByLabel("Alt text",{exact:true}).fill("A warm welcome");
-    await page.getByLabel("Media role",{exact:true}).selectOption("COVER");
-    await page.getByRole("button",{name:"Save changes",exact:true}).click();
-    await page.getByRole("button",{name:"＋ Add person",exact:true}).click();
-    await page.getByLabel("Name",{exact:true}).fill("Aarav Mehta");
-    await page.getByLabel("Role / title",{exact:true}).fill("Host");
-    await page.getByRole("button",{name:"Choose existing",exact:true}).click();
-    await page.getByRole("button",{name:"Use A warm welcome as photo",exact:true}).click();
-    await page.getByRole("button",{name:"Save person",exact:true}).click();
-    await page.getByText("Aarav Mehta",{exact:true}).waitFor();
-    await page.getByRole("button",{name:"＋ Add person",exact:true}).click();
-    await page.getByLabel("Name",{exact:true}).fill("Meera Rao");
-    await page.getByLabel("Role / title",{exact:true}).fill("Artist");
-    await page.getByRole("button",{name:"Save person",exact:true}).click();
-    await page.getByLabel("Actions for Meera Rao",{exact:true}).click();
-    await page.locator(".mm-people-list li").filter({hasText:"Meera Rao"}).getByRole("button",{name:"Move earlier",exact:true}).click();
-    await page.getByText("Lineup order saved.",{exact:true}).waitFor();
+    await (
+      await mediaQueue.getJob(`${imageId}-${edited.crop.revision}`)
+    )?.remove();
+    await page
+      .getByRole("button", { name: "Close Image details", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Refresh media status" }).click();
+    await page
+      .getByRole("button", { name: "Edit First gallery", exact: true })
+      .click();
+    await page.getByLabel("Alt text", { exact: true }).fill("A warm welcome");
+    await page.getByLabel("Media role", { exact: true }).selectOption("COVER");
+    await page
+      .getByRole("button", { name: "Save changes", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "＋ Add person", exact: true })
+      .click();
+    await page.getByLabel("Name", { exact: true }).fill("Aarav Mehta");
+    await page.getByLabel("Role / title", { exact: true }).fill("Host");
+    await page
+      .getByRole("button", { name: "Choose existing", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Use A warm welcome as photo", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Save person", exact: true })
+      .click();
+    await page.getByText("Aarav Mehta", { exact: true }).waitFor();
+    await page
+      .getByRole("button", { name: "＋ Add person", exact: true })
+      .click();
+    await page.getByLabel("Name", { exact: true }).fill("Meera Rao");
+    await page.getByLabel("Role / title", { exact: true }).fill("Artist");
+    await page
+      .getByRole("button", { name: "Save person", exact: true })
+      .click();
+    await page.getByLabel("Actions for Meera Rao", { exact: true }).click();
+    await page
+      .locator(".mm-people-list li")
+      .filter({ hasText: "Meera Rao" })
+      .getByRole("button", { name: "Move earlier", exact: true })
+      .click();
+    await page.getByText("Lineup order saved.", { exact: true }).waitFor();
     await page.reload();
-    await page.getByRole("heading",{name:"Media & lineup",exact:true}).waitFor();
-    assert.equal(await page.locator(".mm-people-list li").first().locator("strong").textContent(),"Meera Rao");
-    const cover=await db.eventImage.findFirstOrThrow({where:{eventId,kind:"COVER"}});
-    assert.equal(cover.alt,"A warm welcome");
-    const linked=await db.eventPerson.findFirstOrThrow({where:{eventId,name:"Aarav Mehta"}});
-    assert.equal(linked.photoKey,cover.storageKey);
-    await page.getByLabel("Actions for Fifth gallery",{exact:true}).focus();
+    await page
+      .getByRole("heading", { name: "Media & lineup", exact: true })
+      .waitFor();
+    assert.equal(
+      await page
+        .locator(".mm-people-list li")
+        .first()
+        .locator("strong")
+        .textContent(),
+      "Meera Rao",
+    );
+    const cover = await db.eventImage.findFirstOrThrow({
+      where: { eventId, kind: "COVER" },
+    });
+    assert.equal(cover.alt, "A warm welcome");
+    const linked = await db.eventPerson.findFirstOrThrow({
+      where: { eventId, name: "Aarav Mehta" },
+    });
+    assert.equal(linked.photoKey, cover.storageKey);
+    await page.getByLabel("Actions for Fifth gallery", { exact: true }).focus();
     await page.keyboard.press("Enter");
-    const moved=page.waitForResponse(r=>r.url().endsWith("images/order")&&r.request().method()==="PATCH");
-    await page.locator(".mm-card").filter({has:page.getByRole("img",{name:"Fifth gallery",exact:true})}).getByRole("button",{name:"Move earlier",exact:true}).click();
-    assert.equal((await moved).status(),200);
-    await page.waitForFunction(()=>document.querySelectorAll(".mm-drag[draggable=true]").length>0);
-    const draggedOrder=page.waitForResponse(r=>r.url().endsWith("images/order")&&r.request().method()==="PATCH");
-    await page.getByRole("button",{name:/^Reorder Fifth gallery/}).dragTo(page.locator(".mm-card").filter({has:page.getByRole("img",{name:"Second gallery",exact:true})}));
-    assert.equal((await draggedOrder).status(),200);
-    await page.getByRole("button",{name:"Edit A warm welcome",exact:true}).click();
-    await page.getByRole("button",{name:"Replace image",exact:true}).click();
-    await page.getByLabel("Choose media files").setInputFiles({name:"Replacement cover.png",mimeType:"image/png",buffer:bytes});
-    await page.getByRole("button",{name:"Upload images",exact:true}).click();
-    await page.getByText("1 completed · 0 waiting",{exact:true}).waitFor();
-    await page.getByRole("button",{name:"Done",exact:true}).click();
-    const replacement=await db.eventImage.findFirstOrThrow({where:{eventId,kind:"COVER"}});
-    assert.notEqual(replacement.id,cover.id);
-    assert.equal((await db.eventPerson.findUniqueOrThrow({where:{id:linked.id}})).photoKey,replacement.storageKey);
-    assert.equal((await db.eventImage.findUniqueOrThrow({where:{id:cover.id}})).kind,"GALLERY");
-    await page.locator(".mm-people-list li").filter({hasText:"Meera Rao"}).getByRole("button",{name:"Edit",exact:true}).click();
-    await page.getByLabel("Role / title",{exact:true}).fill("Performer");
-    await page.getByRole("button",{name:"Upload a photo",exact:true}).click();
-    await page.getByLabel("Choose media files").setInputFiles({name:"Portrait photo.png",mimeType:"image/png",buffer:bytes});
-    await page.getByRole("button",{name:"Upload images",exact:true}).click();
-    await page.getByText("1 completed · 0 waiting",{exact:true}).waitFor();
-    await page.getByRole("button",{name:"Done",exact:true}).click();
-    await page.getByRole("button",{name:"Save person",exact:true}).click();
-    await page.getByText("Performer",{exact:true}).waitFor();
-    await page.getByRole("button",{name:"＋ Add media",exact:true}).click();
-    await page.getByLabel("Choose media files").setInputFiles({name:"Not an image.txt",mimeType:"text/plain",buffer:Buffer.from("invalid")});
+    const moved = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("images/order") && r.request().method() === "PATCH",
+    );
+    await page
+      .locator(".mm-card")
+      .filter({
+        has: page.getByRole("img", { name: "Fifth gallery", exact: true }),
+      })
+      .getByRole("button", { name: "Move earlier", exact: true })
+      .click();
+    assert.equal((await moved).status(), 200);
+    await page.waitForFunction(
+      () => document.querySelectorAll(".mm-drag[draggable=true]").length > 0,
+    );
+    const draggedOrder = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("images/order") && r.request().method() === "PATCH",
+    );
+    await page
+      .getByRole("button", { name: /^Reorder Fifth gallery/ })
+      .dragTo(
+        page
+          .locator(".mm-card")
+          .filter({
+            has: page.getByRole("img", { name: "Second gallery", exact: true }),
+          }),
+      );
+    assert.equal((await draggedOrder).status(), 200);
+    await page
+      .getByRole("button", { name: "Edit A warm welcome", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Replace image", exact: true })
+      .click();
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Replacement cover.png",
+        mimeType: "image/png",
+        buffer: bytes,
+      });
+    await page
+      .getByRole("button", { name: "Upload images", exact: true })
+      .click();
+    await page.getByText("1 completed · 0 waiting", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    const replacement = await db.eventImage.findFirstOrThrow({
+      where: { eventId, kind: "COVER" },
+    });
+    assert.notEqual(replacement.id, cover.id);
+    assert.equal(
+      (await db.eventPerson.findUniqueOrThrow({ where: { id: linked.id } }))
+        .photoKey,
+      replacement.storageKey,
+    );
+    assert.equal(
+      (await db.eventImage.findUniqueOrThrow({ where: { id: cover.id } })).kind,
+      "GALLERY",
+    );
+    await page
+      .locator(".mm-people-list li")
+      .filter({ hasText: "Meera Rao" })
+      .getByRole("button", { name: "Edit", exact: true })
+      .click();
+    await page.getByLabel("Role / title", { exact: true }).fill("Performer");
+    await page
+      .getByRole("button", { name: "Upload a photo", exact: true })
+      .click();
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Portrait photo.png",
+        mimeType: "image/png",
+        buffer: bytes,
+      });
+    await page
+      .getByRole("button", { name: "Upload images", exact: true })
+      .click();
+    await page.getByText("1 completed · 0 waiting", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Save person", exact: true })
+      .click();
+    await page.getByText("Performer", { exact: true }).waitFor();
+    await page
+      .getByRole("button", { name: "＋ Add media", exact: true })
+      .click();
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Not an image.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("invalid"),
+      });
     await page.getByText(/Use JPEG, PNG, WebP/).waitFor();
-    await page.getByRole("button",{name:"Remove",exact:true}).click();
-    await page.getByLabel("Choose media files").setInputFiles({name:"Second gallery.png",mimeType:"image/png",buffer:bytes});
+    await page.getByRole("button", { name: "Remove", exact: true }).click();
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Second gallery.png",
+        mimeType: "image/png",
+        buffer: bytes,
+      });
     await page.getByText(/appears to be in this upload or library/).waitFor();
-    assert.equal(await page.locator(".mm-upload-list li").count(),0);
-    let held:import("@playwright/test").Route|undefined;
-    await page.route("**/original/**",route=>{if(route.request().method()==="PUT"){held=route;return;}return route.continue();});
-    await page.getByLabel("Choose media files").setInputFiles({name:"Cancelled photo.png",mimeType:"image/png",buffer:bytes});
-    const putStarted=page.waitForRequest(request=>request.method()==="PUT"&&request.url().includes("/original/"));
-    await page.getByRole("button",{name:"Upload images",exact:true}).click();
+    assert.equal(await page.locator(".mm-upload-list li").count(), 0);
+    let held: import("@playwright/test").Route | undefined;
+    await page.route("**/original/**", (route) => {
+      if (route.request().method() === "PUT") {
+        held = route;
+        return;
+      }
+      return route.continue();
+    });
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Cancelled photo.png",
+        mimeType: "image/png",
+        buffer: bytes,
+      });
+    const putStarted = page.waitForRequest(
+      (request) =>
+        request.method() === "PUT" && request.url().includes("/original/"),
+    );
+    await page
+      .getByRole("button", { name: "Upload images", exact: true })
+      .click();
     await putStarted;
-    await page.getByRole("button",{name:"Cancel",exact:true}).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.getByText(/MB · Cancelled/).waitFor();
-    await held?.abort().catch(()=>{});
+    await held?.abort().catch(() => {});
     await page.unroute("**/original/**");
-    await page.getByRole("button",{name:"Remove",exact:true}).click();
-    let fail=true;
-    await page.route("**/original/**",route=>{if(route.request().method()==="PUT"&&fail){fail=false;return route.abort("failed");}return route.continue();});
-    await page.getByLabel("Choose media files").setInputFiles({name:"Retry photo.png",mimeType:"image/png",buffer:bytes});
-    await page.getByRole("button",{name:"Upload images",exact:true}).click();
-    await page.getByRole("button",{name:"Retry",exact:true}).waitFor();
-    await page.getByRole("button",{name:"Retry",exact:true}).click();
-    await page.getByText("1 completed · 0 waiting",{exact:true}).waitFor();
-    await page.getByRole("button",{name:"Done",exact:true}).click();
+    await page.getByRole("button", { name: "Remove", exact: true }).click();
+    let fail = true;
+    await page.route("**/original/**", (route) => {
+      if (route.request().method() === "PUT" && fail) {
+        fail = false;
+        return route.abort("failed");
+      }
+      return route.continue();
+    });
+    await page
+      .getByLabel("Choose media files")
+      .setInputFiles({
+        name: "Retry photo.png",
+        mimeType: "image/png",
+        buffer: bytes,
+      });
+    await page
+      .getByRole("button", { name: "Upload images", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Retry", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Retry", exact: true }).click();
+    await page.getByText("1 completed · 0 waiting", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
     await page.unroute("**/original/**");
-    assert.equal(await db.eventImage.count({where:{eventId,alt:"Retry photo"}}),1,"Retry must not create duplicate images.");
-    await page.getByLabel("Actions for Retry photo",{exact:true}).click();
-    page.once("dialog",dialog=>dialog.accept());
-    const deleted=page.waitForResponse(r=>r.url().includes("/images/")&&r.request().method()==="DELETE");
-    await page.locator(".mm-card").filter({has:page.getByRole("img",{name:"Retry photo",exact:true})}).getByRole("button",{name:"Delete",exact:true}).click();
-    assert.equal((await deleted).status(),200);
+    assert.equal(
+      await db.eventImage.count({ where: { eventId, alt: "Retry photo" } }),
+      1,
+      "Retry must not create duplicate images.",
+    );
+    await page.getByLabel("Actions for Retry photo", { exact: true }).click();
+    page.once("dialog", (dialog) => dialog.accept());
+    const deleted = page.waitForResponse(
+      (r) => r.url().includes("/images/") && r.request().method() === "DELETE",
+    );
+    await page
+      .locator(".mm-card")
+      .filter({
+        has: page.getByRole("img", { name: "Retry photo", exact: true }),
+      })
+      .getByRole("button", { name: "Delete", exact: true })
+      .click();
+    assert.equal((await deleted).status(), 200);
     await page.reload();
-    await page.getByRole("heading",{name:"Media & lineup",exact:true}).waitFor();
-    await page.screenshot({path:"artifacts/media-after-desktop.png",fullPage:true});
-    await page.setViewportSize({width:1366,height:768});
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    const thumbBox=await page.locator(".mm-gallery .mm-thumbnail").first().boundingBox();
-    assert.ok(thumbBox&&thumbBox.width<=180,"Gallery thumbnails must stay compact.");
-    console.log(`Media gallery thumbnail: ${Math.round(thumbBox.width)}px; five desktop columns, with editing fields hidden by default.`);
-    await page.screenshot({path:"artifacts/media-after-laptop.png",fullPage:true});
-    await page.setViewportSize({width:390,height:844});
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    await page.screenshot({path:"artifacts/media-after-mobile.png",fullPage:true});
-    await page.setViewportSize({width:1440,height:1000});
+    await page
+      .getByRole("heading", { name: "Media & lineup", exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/media-after-desktop.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1366, height: 768 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    const thumbBox = await page
+      .locator(".mm-gallery .mm-thumbnail")
+      .first()
+      .boundingBox();
+    assert.ok(
+      thumbBox && thumbBox.width <= 180,
+      "Gallery thumbnails must stay compact.",
+    );
+    console.log(
+      `Media gallery thumbnail: ${Math.round(thumbBox.width)}px; five desktop columns, with editing fields hidden by default.`,
+    );
+    await page.screenshot({
+      path: "artifacts/media-after-laptop.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/media-after-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole("link", { name: "Next: set up tickets" }).click();
     await page.waitForURL("**/tickets");
     await page.waitForLoadState("networkidle");
-    await page.getByRole("button", { name: "＋ Add ticket type", exact: true }).click();
+    await page
+      .getByRole("button", { name: "＋ Add ticket type", exact: true })
+      .click();
     await page.getByLabel("Name", { exact: true }).fill("Good company pass");
     await page.getByLabel("Price (₹)").fill("0");
     await page.getByLabel("Quantity", { exact: true }).fill("25");
@@ -356,17 +635,35 @@ async function main() {
     assert.equal(ticketResult.status(), 201, await ticketResult.text());
     console.log("Created ticket type through the organizer UI.");
     await page.getByRole("heading", { name: "Good company pass" }).waitFor();
-    await page.getByText("Draft · publish to start selling", { exact: true }).waitFor();
-    await page.getByRole("button", { name: "Edit Good company pass", exact: true }).click();
-    await page.getByLabel("Description", { exact: true }).fill("One guest. One good memory.");
+    await page
+      .getByText("Draft · publish to start selling", { exact: true })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Edit Good company pass", exact: true })
+      .click();
+    await page
+      .getByLabel("Description", { exact: true })
+      .fill("One guest. One good memory.");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.getByText("Ticket updated.", { exact: true }).waitFor();
     await page.reload();
-    await page.getByText("One guest. One good memory.", { exact: true }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/ticket-editor.png", fullPage: true });
+    await page
+      .getByText("One guest. One good memory.", { exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/ticket-editor.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.screenshot({ path: "artifacts/experience/ticket-editor-mobile.png", fullPage: true });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/experience/ticket-editor-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole("link", { name: "Next: review & publish" }).click();
     const publishResponse = page.waitForResponse((response) =>
@@ -381,36 +678,71 @@ async function main() {
     const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
     assert.equal(event.status, "PUBLISHED");
     await page.goto(`/dashboard/events/${eventId}/settings`);
-    await page.getByRole("heading", { name: "Event link & share preview" }).waitFor();
+    await page
+      .getByRole("heading", { name: "Event link & share preview" })
+      .waitFor();
     const nextSlug = `${event.slug}-share`;
     await page.getByLabel("Event URL name", { exact: true }).fill(nextSlug);
-    page.once("dialog", dialog => dialog.accept());
+    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Save URL", exact: true }).click();
     await page.getByText("Event link saved.", { exact: true }).waitFor();
-    const shareHref = await page.getByRole("link", { name: "Share on WhatsApp ↗", exact: true }).getAttribute("href");
-    assert.ok(new URL(shareHref!).searchParams.get("text")?.endsWith(`/e/${nextSlug}`));
+    const shareHref = await page
+      .getByRole("link", { name: "Share on WhatsApp ↗", exact: true })
+      .getAttribute("href");
+    assert.ok(
+      new URL(shareHref!).searchParams.get("text")?.endsWith(`/e/${nextSlug}`),
+    );
     await page.reload();
-    assert.equal(await page.getByLabel("Event URL name", { exact: true }).inputValue(), nextSlug);
-    await page.screenshot({ path: "artifacts/experience/event-sharing.png", fullPage: true });
+    assert.equal(
+      await page.getByLabel("Event URL name", { exact: true }).inputValue(),
+      nextSlug,
+    );
+    await page.screenshot({
+      path: "artifacts/experience/event-sharing.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.screenshot({ path: "artifacts/experience/event-sharing-mobile.png", fullPage: true });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/experience/event-sharing-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
-    const sharedPage = await context.request.get(`/e/${nextSlug}`, { headers: { "user-agent": "facebookexternalhit/1.1" } });
+    const sharedPage = await context.request.get(`/e/${nextSlug}`, {
+      headers: { "user-agent": "facebookexternalhit/1.1" },
+    });
     const sharedHtml = await sharedPage.text();
     const ogImage = sharedHtml.match(/property="og:image" content="([^"]+)"/);
     assert.ok(ogImage, "Social crawlers must receive an image preview.");
-    const preview = await context.request.get(new URL(ogImage[1].replaceAll("&amp;", "&")).pathname);
+    const preview = await context.request.get(
+      new URL(ogImage[1].replaceAll("&amp;", "&")).pathname,
+    );
     assert.equal(preview.status(), 200);
     assert.ok(preview.headers()["content-type"].startsWith("image/"));
-    console.log("Event sharing passed: edited URL persists, WhatsApp uses saved URL, public poster preview responds.");
+    console.log(
+      "Event sharing passed: edited URL persists, WhatsApp uses saved URL, public poster preview responds.",
+    );
     await page.goto(`/dashboard/events/${eventId}/check-in`);
-    await page.getByRole("heading",{name:"Ready to scan"}).waitFor();
-    await page.screenshot({path:"artifacts/experience/scanner.png",fullPage:true});
-    await page.setViewportSize({width:390,height:844});
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    await page.screenshot({path:"artifacts/experience/scanner-mobile.png",fullPage:true});
-    await page.setViewportSize({width:1440,height:1000});
+    await page.getByRole("heading", { name: "Ready to scan" }).waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/scanner.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/experience/scanner-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/discover?city=Pune");
     await page
       .getByRole("heading", {
@@ -422,8 +754,83 @@ async function main() {
       path: "artifacts/experience/discover.png",
       fullPage: true,
     });
+    const discoveryCard = page
+      .locator(".market-card")
+      .filter({
+        has: page.getByRole("heading", {
+          name: "A little room for good people",
+          exact: true,
+        }),
+      });
+    await discoveryCard
+      .getByRole("button", { name: "Save event", exact: true })
+      .click();
+    await discoveryCard
+      .getByRole("button", { name: "Unsave event", exact: true })
+      .waitFor();
+    await page.goto("/saved");
     await page
-      .getByRole("link", { name: /A little room for good people/ }).filter({ has: page.getByRole("heading", { name: "A little room for good people" }) })
+      .getByRole("heading", {
+        name: "A little room for good people",
+        exact: true,
+      })
+      .waitFor();
+    await page.reload();
+    await page
+      .getByRole("button", { name: "Unsave event", exact: true })
+      .click();
+    await page
+      .getByRole("heading", { name: "Your next plan is waiting." })
+      .waitFor();
+    await page.goto("/discover?city=Pune&price=free&mode=IN_PERSON&sort=price");
+    await page
+      .getByRole("heading", {
+        name: "A little room for good people",
+        exact: true,
+      })
+      .waitFor();
+    await page.reload();
+    assert.equal(new URL(page.url()).searchParams.get("mode"), "IN_PERSON");
+    await page.goto("/discover?city=Delhi");
+    await page.getByRole("heading", { name: /No events/ }).waitFor();
+    await page.goBack();
+    await page
+      .getByRole("heading", {
+        name: "A little room for good people",
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(new URL(page.url()).searchParams.get("price"), "free");
+    await page.screenshot({
+      path: "artifacts/discovery-wallet/after-discover-populated-desktop.png",
+      fullPage: true,
+    });
+    assert.ok(
+      await page.evaluate(
+        () =>
+          document.querySelector(".m-footer")!.getBoundingClientRect().top >=
+          document.querySelector("main")!.getBoundingClientRect().bottom - 1,
+      ),
+      "Discover footer must not cover event cards",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/discovery-wallet/after-discover-populated-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page
+      .getByRole("link", { name: /A little room for good people/ })
+      .filter({
+        has: page.getByRole("heading", {
+          name: "A little room for good people",
+        }),
+      })
       .click();
     await page
       .getByRole("heading", { name: "A little room for good people" })
@@ -451,86 +858,248 @@ async function main() {
       .getByRole("heading", { name: "Checkout", exact: true })
       .waitFor();
     await page.getByLabel("Mobile number").fill("9876543210");
-    await page.getByRole("button", { name: "Confirm free tickets", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Confirm free tickets", exact: true })
+      .click();
     await page.waitForURL("**/orders/**");
-    await page.getByRole("heading", { name: "You're going.", exact: true }).waitFor();
+    await page
+      .getByRole("heading", { name: "You're going.", exact: true })
+      .waitFor();
     const orderId = new URL(page.url()).pathname.split("/").pop()!;
     await (await ticketQueue.getJob(`order-${orderId}`))?.remove();
     await prepareTicketPdfs(orderId);
     await enqueueOrderNotifications(orderId);
-    const logs = await db.notificationLog.findMany({ where: { orderId, channel: "EMAIL" } });
+    const logs = await db.notificationLog.findMany({
+      where: { orderId, channel: "EMAIL" },
+    });
     let ticketEmail = "";
     for (const log of logs) {
       await (await notificationQueue.getJob(log.id))?.remove();
-      await processNotification(log.id, { email: { send: async input => {
-        assert.ok(input.html);
-        if (log.trigger === "TICKET_ISSUED") {
-          assert.ok(input.attachments?.some(file => file.filename.endsWith(".pdf")));
-          const qr = input.attachments?.find(file => file.contentId === "ticket-qr");
-          assert.ok(qr);
-          ticketEmail = input.html!.replace("cid:ticket-qr", `data:image/png;base64,${qr.content.toString("base64")}`);
-        }
-      } }, whatsapp: { sendTemplate: async () => ({ providerMessageId: "unused-test" }) } });
+      await processNotification(log.id, {
+        email: {
+          send: async (input) => {
+            assert.ok(input.html);
+            if (log.trigger === "TICKET_ISSUED") {
+              assert.ok(
+                input.attachments?.some((file) =>
+                  file.filename.endsWith(".pdf"),
+                ),
+              );
+              const qr = input.attachments?.find(
+                (file) => file.contentId === "ticket-qr",
+              );
+              assert.ok(qr);
+              ticketEmail = input.html!.replace(
+                "cid:ticket-qr",
+                `data:image/png;base64,${qr.content.toString("base64")}`,
+              );
+            }
+          },
+        },
+        whatsapp: {
+          sendTemplate: async () => ({ providerMessageId: "unused-test" }),
+        },
+      });
     }
     assert.ok(ticketEmail);
     await page.reload();
-    await page.getByText("Confirmation and tickets sent to your inbox.", { exact: true }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/booking-confirmation.png", fullPage: true });
+    await page
+      .getByText("Confirmation and tickets sent to your inbox.", {
+        exact: true,
+      })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/booking-confirmation.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.screenshot({ path: "artifacts/experience/booking-confirmation-mobile.png", fullPage: true });
-    await page.getByRole("link", { name: "Show entry QR ↗", exact: true }).click();
-    await page.getByRole("img", { name: "Your signed entry QR code" }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/entry-qr.png", fullPage: true });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/experience/booking-confirmation-mobile.png",
+      fullPage: true,
+    });
+    await page
+      .getByRole("link", { name: "Show entry QR ↗", exact: true })
+      .click();
+    await page
+      .getByRole("img", { name: "Your signed entry QR code" })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/entry-qr.png",
+      fullPage: true,
+    });
     const ticket = await db.ticket.findFirstOrThrow({ where: { orderId } });
+    await page.goto(`/my-tickets/${ticket.id}`);
+    await page
+      .getByRole("img", { name: "Your signed entry QR code" })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/discovery-wallet/after-ticket-detail-mobile.png",
+      fullPage: true,
+    });
+    const calendar = await context.request.get(
+      `/api/events/${eventId}/calendar`,
+    );
+    assert.equal(calendar.status(), 200);
+    assert.ok((await calendar.text()).includes("BEGIN:VCALENDAR"));
+    const anonymous = await browser.newContext({ baseURL: base });
+    assert.equal(
+      (await anonymous.request.get(`/api/tickets/${ticket.id}/pdf`)).status(),
+      401,
+    );
+    const anonymousPage = await anonymous.newPage();
+    await anonymousPage.goto(`/my-tickets/${ticket.id}`);
+    await anonymousPage.waitForURL(/\/login\?next=/);
+    assert.equal(
+      (
+        await anonymous.request.post(`/api/events/${eventId}/save`, {
+          headers: { origin: base },
+          data: { saved: true },
+        })
+      ).status(),
+      401,
+    );
+    await anonymous.close();
     const pdf = await context.request.get(`/api/tickets/${ticket.id}/pdf`);
     assert.equal(pdf.status(), 200);
     assert.equal((await pdf.body()).subarray(0, 4).toString(), "%PDF");
-    const scanned = await context.request.post("/api/checkin", { headers: { origin: base }, data: { eventId, token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}` } });
+    const scanned = await context.request.post("/api/checkin", {
+      headers: { origin: base },
+      data: {
+        eventId,
+        token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}`,
+      },
+    });
     assert.equal((await scanned.json()).result, "VALID");
-    const repeated = await context.request.post("/api/checkin", { headers: { origin: base }, data: { eventId, token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}` } });
+    const repeated = await context.request.post("/api/checkin", {
+      headers: { origin: base },
+      data: {
+        eventId,
+        token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}`,
+      },
+    });
     assert.equal((await repeated.json()).result, "ALREADY_USED");
     await page.goto("/my-tickets");
-    await page.getByText("Good company pass", { exact: false }).first().waitFor();
+    await page
+      .getByText("Good company pass", { exact: false })
+      .first()
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/discovery-wallet/after-wallet-populated-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.screenshot({
+      path: "artifacts/discovery-wallet/after-wallet-populated-desktop.png",
+      fullPage: true,
+    });
     await page.goto(`/dashboard/events/${eventId}`);
-    await page.getByRole("heading", { name: "Bookings", exact: false }).waitFor();
+    await page
+      .getByRole("heading", { name: "Bookings", exact: false })
+      .waitFor();
     await page.getByText("Payments received", { exact: true }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/operations-overview.png", fullPage: true });
+    await page.screenshot({
+      path: "artifacts/experience/operations-overview.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.screenshot({ path: "artifacts/experience/operations-overview-mobile.png", fullPage: true });
-    await page.goto(`/dashboard/events/${eventId}/attendees?q=Experience&status=USED`);
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: "artifacts/experience/operations-overview-mobile.png",
+      fullPage: true,
+    });
+    await page.goto(
+      `/dashboard/events/${eventId}/attendees?q=Experience&status=USED`,
+    );
     await page.getByText("Checked in", { exact: true }).waitFor();
-    const csv = await context.request.get(`/api/events/${eventId}/attendees/export?status=USED`);
+    const csv = await context.request.get(
+      `/api/events/${eventId}/attendees/export?status=USED`,
+    );
     assert.equal(csv.status(), 200);
     assert.ok((await csv.text()).includes(ticket.code));
-    await page.getByRole("button", { name: "Resend tickets", exact: true }).click();
-    await page.getByText("Receipt and ticket delivery queued.", { exact: true }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/operations-attendees-mobile.png", fullPage: true });
+    await page
+      .getByRole("button", { name: "Resend tickets", exact: true })
+      .click();
+    await page
+      .getByText("Receipt and ticket delivery queued.", { exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/operations-attendees-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`/dashboard/events/${eventId}/check-in`);
-    await page.getByRole("heading", { name: "Ready to scan", exact: true }).waitFor();
-    await page.screenshot({ path: "artifacts/experience/operations-checkin.png", fullPage: true });
+    await page
+      .getByRole("heading", { name: "Ready to scan", exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: "artifacts/experience/operations-checkin.png",
+      fullPage: true,
+    });
     await page.goto(`/dashboard/events/${eventId}`);
-    page.once("dialog", dialog => dialog.accept());
-    await page.getByRole("button", { name: "Cancel event", exact: true }).click();
-    await page.getByRole("heading", { name: "Event cancelled", exact: true }).waitFor();
-    const closed = await context.request.post("/api/checkin", { headers: { origin: base }, data: { eventId, token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}` } });
+    page.once("dialog", (dialog) => dialog.accept());
+    await page
+      .getByRole("button", { name: "Cancel event", exact: true })
+      .click();
+    await page
+      .getByRole("heading", { name: "Event cancelled", exact: true })
+      .waitFor();
+    const closed = await context.request.post("/api/checkin", {
+      headers: { origin: base },
+      data: {
+        eventId,
+        token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}`,
+      },
+    });
     assert.equal((await closed.json()).result, "INVALID");
-    await page.getByRole("button", { name: "Cancel booking", exact: true }).click();
-    await page.getByLabel("Reason", { exact: true }).fill("Cancelled event test booking");
-    page.once("dialog", dialog => dialog.accept());
-    await page.getByRole("button", { name: "Confirm cancellation", exact: true }).click();
-    await page.getByText("Booking cancelled. Any payment refund is now tracked below.", { exact: true }).waitFor();
-    assert.equal((await db.order.findUniqueOrThrow({ where: { id: orderId } })).status, "CANCELLED");
-    await page.screenshot({ path: "artifacts/experience/operations-cancellation.png", fullPage: true });
-    console.log("Organizer operations passed: overview, filtered attendees, CSV export, resend queue, live check-in history, event cancellation, invalid entry after cancellation and free booking cancellation. No live refund requested.");
+    await page
+      .getByRole("button", { name: "Cancel booking", exact: true })
+      .click();
+    await page
+      .getByLabel("Reason", { exact: true })
+      .fill("Cancelled event test booking");
+    page.once("dialog", (dialog) => dialog.accept());
+    await page
+      .getByRole("button", { name: "Confirm cancellation", exact: true })
+      .click();
+    await page
+      .getByText(
+        "Booking cancelled. Any payment refund is now tracked below.",
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(
+      (await db.order.findUniqueOrThrow({ where: { id: orderId } })).status,
+      "CANCELLED",
+    );
+    await page.screenshot({
+      path: "artifacts/experience/operations-cancellation.png",
+      fullPage: true,
+    });
+    console.log(
+      "Organizer operations passed: overview, filtered attendees, CSV export, resend queue, live check-in history, event cancellation, invalid entry after cancellation and free booking cancellation. No live refund requested.",
+    );
     await page.setContent(ticketEmail);
-    await page.screenshot({ path: "artifacts/experience/ticket-email-mobile.png", fullPage: true });
+    await page.screenshot({
+      path: "artifacts/experience/ticket-email-mobile.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 800, height: 1000 });
-    await page.screenshot({ path: "artifacts/experience/ticket-email.png", fullPage: true });
-    console.log("Booking passed: free checkout, confirmed order, QR/PDF email payload, private PDF download, ticket wallet, valid check-in and duplicate rejection. Email captured locally; no customer message sent.");
+    await page.screenshot({
+      path: "artifacts/experience/ticket-email.png",
+      fullPage: true,
+    });
+    console.log(
+      "Booking passed: free checkout, confirmed order, QR/PDF email payload, private PDF download, ticket wallet, valid check-in and duplicate rejection. Email captured locally; no customer message sent.",
+    );
     if (errors.length)
       console.log(
         "Browser errors:",
@@ -564,7 +1133,11 @@ async function main() {
         for (const document of documentsSchema.parse(event.documents))
           await storage.delete(document.key);
         for (const image of event.images) {
-          if(record) { const {deleteImage}=await import("../src/server/media/service");await deleteImage(record.id,eventId,image.id);continue; }
+          if (record) {
+            const { deleteImage } = await import("../src/server/media/service");
+            await deleteImage(record.id, eventId, image.id);
+            continue;
+          }
           await storage.delete(image.storageKey);
           if (image.variants)
             for (const value of Object.values(
@@ -579,13 +1152,23 @@ async function main() {
         }
       }
       await db.eventImage.deleteMany({ where: { eventId } });
-      await db.eventPerson.deleteMany({where:{eventId}});
+      await db.eventPerson.deleteMany({ where: { eventId } });
       const tickets = await db.ticket.findMany({ where: { eventId } });
-      for (const ticket of tickets) if (ticket.pdfKey) await storage.delete(ticket.pdfKey);
+      for (const ticket of tickets)
+        if (ticket.pdfKey) await storage.delete(ticket.pdfKey);
       const logs = await db.notificationLog.findMany({ where: { eventId } });
-      for (const log of logs) await (await notificationQueue.getJob(log.id))?.remove();
+      for (const log of logs)
+        await (await notificationQueue.getJob(log.id))?.remove();
       const orders = await db.order.findMany({ where: { eventId } });
-      for (const order of orders) { await (await ticketQueue.getJob(`order-${order.id}`))?.remove(); await db.webhookEvent.deleteMany({ where: { provider: "operations-email", payload: { path: ["orderId"], equals: order.id } } }); }
+      for (const order of orders) {
+        await (await ticketQueue.getJob(`order-${order.id}`))?.remove();
+        await db.webhookEvent.deleteMany({
+          where: {
+            provider: "operations-email",
+            payload: { path: ["orderId"], equals: order.id },
+          },
+        });
+      }
       await db.notificationLog.deleteMany({ where: { eventId } });
       await db.ticket.deleteMany({ where: { eventId } });
       await db.orderItem.deleteMany({ where: { order: { eventId } } });

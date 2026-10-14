@@ -7,6 +7,7 @@ import { formatInr } from "@/lib/money";
 import { EventActions } from "@/components/dashboard/event-actions";
 import { BookingActions } from "@/components/dashboard/booking-actions";
 import { LiveRefresh } from "@/components/dashboard/live-refresh";
+import { eventQuality } from "@/lib/event-quality";
 
 export default async function EventOverview({
   params,
@@ -68,7 +69,13 @@ export default async function EventOverview({
     await Promise.all([
       db.event.findUniqueOrThrow({
         where: { id },
-        include: { ticketTypes: true },
+        include: {
+          ticketTypes: true,
+          images: true,
+          org: {
+            select: { name: true, supportEmail: true, supportPhone: true },
+          },
+        },
       }),
       db.payment.aggregate({
         where: { status: "SUCCESS", order: { eventId: id } },
@@ -168,6 +175,22 @@ export default async function EventOverview({
             refunds according to your policy.
           </p>
         </div>
+      )}
+      {canManage && eventQuality(event).length > 0 && (
+        <details className="ops-notice">
+          <summary>
+            Event quality · {eventQuality(event).length} things to review
+          </summary>
+          <ul>
+            {eventQuality(event).map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+          <p>
+            Content and image recommendations are advisory. Preview your event
+            before publishing.
+          </p>
+        </details>
       )}
       <section className="ops-section">
         <div className="ops-section-heading">

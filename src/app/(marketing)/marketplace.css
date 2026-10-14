@@ -1,0 +1,458 @@
+.market-page {
+  max-width: 1480px;
+  margin: auto;
+  padding: 28px 28px 64px;
+  min-height: 65vh;
+}
+.marketing .d-discover.market-page {
+  max-width: 1480px;
+}
+.marketing .d-discover + .m-footer {
+  position: relative;
+}
+.market-page .m-eyebrow,
+.marketing .market-page .d-clear {
+  color: var(--accent-ink);
+}
+.marketing .market-page .d-chips a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.marketing .market-page .d-city-clear {
+  width: 44px;
+  height: 44px;
+  top: 0;
+}
+.market-page .market-advanced summary {
+  min-height: 44px;
+}
+.market-page h1 {
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 10px 0 16px;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+}
+.market-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+  transition: border-color 0.15s;
+}
+.market-card:hover {
+  border-color: var(--accent);
+}
+.market-main {
+  display: block;
+}
+.market-cover {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  background: var(--surface);
+  display: block;
+}
+.market-main > div {
+  padding: 18px;
+}
+.market-card h3 {
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  margin: 8px 0 12px;
+  overflow-wrap: anywhere;
+}
+.market-card time {
+  font-size: 13px;
+  font-weight: 600;
+}
+.market-card p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.market-card strong {
+  display: block;
+  font-size: 15px;
+  margin-top: 14px;
+}
+.market-card footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.market-card footer > a:first-child {
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.market-card footer a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.save-action {
+  position: relative;
+}
+.save-action button {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  color: var(--accent);
+  border-radius: 8px;
+}
+.save-action small {
+  display: block;
+  font-size: 10px;
+  max-width: 120px;
+}
+.market-advanced {
+  grid-column: 1/-1;
+  border-top: 1px solid var(--line);
+  padding: 12px 8px 0;
+  font-size: 13px;
+}
+.market-advanced summary {
+  cursor: pointer;
+  min-height: 32px;
+}
+.market-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.market-filter-grid select,
+.market-filter-grid input {
+  width: 100%;
+  border: 1px solid var(--line);
+  padding: 10px !important;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  border-radius: 8px;
+}
+.market-advanced p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.market-near {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.market-near small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.d-filters > .d-chips {
+  margin-top: 12px;
+}
+.market-empty {
+  padding: 28px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  margin: 24px 0;
+  color: var(--muted);
+}
+.market-empty h2 {
+  font-size: 23px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.market-empty .m-button {
+  margin-top: 18px;
+}
+.market-skeleton {
+  height: 330px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.market-page :is(a, button, input, select, summary):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+.wallet-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.wallet-heading p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.wallet-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.wallet-tabs a {
+  min-height: 44px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+}
+.wallet-tabs [aria-current="page"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.wallet-tabs small {
+  opacity: 0.7;
+  margin-left: 4px;
+}
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+.wallet-card {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  background: var(--paper);
+}
+.wallet-card > picture {
+  flex-shrink: 0;
+}
+.wallet-cover {
+  width: 110px;
+  height: 145px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface);
+}
+.wallet-card h2 {
+  font-size: 21px;
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.wallet-card p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.wallet-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin: 8px 0;
+}
+.wallet-card .m-button {
+  margin-top: 12px;
+}
+.wallet-reference {
+  overflow-wrap: anywhere;
+}
+.wallet-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.ticket-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 32px;
+  margin-top: 24px;
+  max-width: 1100px;
+}
+.ticket-detail-cover {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 14px;
+  background: var(--surface);
+}
+.ticket-detail p {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 12px 0;
+}
+.ticket-detail h1 {
+  font-size: 34px;
+}
+.ticket-facts {
+  margin: 24px 0;
+  border-block: 1px solid var(--line);
+  padding: 12px 0;
+}
+.ticket-facts > div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.ticket-facts dt {
+  color: var(--muted);
+}
+.wallet-qr {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  height: fit-content;
+}
+.wallet-qr h2 {
+  font-size: 23px;
+  margin: 16px 0;
+}
+.wallet-qr img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 16px auto;
+  background: white;
+  border-radius: 0;
+}
+.wallet-qr strong {
+  display: block;
+  letter-spacing: 2px;
+}
+.wallet-qr small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.wallet-qr nav {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.wallet-qr nav a {
+  display: block;
+  min-height: 44px;
+  padding: 12px;
+  font-size: 13px;
+}
+.recovery-page {
+  max-width: 800px;
+}
+.recovery-page p {
+  line-height: 1.7;
+  font-size: 15px;
+  margin: 18px 0;
+}
+.recovery-page h2 {
+  font-size: 23px;
+  margin-top: 32px;
+}
+.r-account-header > div {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (min-width: 1400px) {
+  .market-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1050px) {
+  .market-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wallet-grid {
+    grid-template-columns: 1fr;
+  }
+  .market-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .marketing .r-account-header .m-theme-toggle {
+    display: inline-flex;
+  }
+  .marketing .r-account-header .r-view-switch {
+    display: none;
+  }
+  .marketing .r-account-header > div {
+    gap: 8px;
+  }
+  .marketing .r-account-header > div > a {
+    font-size: 12px;
+  }
+  .marketing .r-account-header .m-button {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+  .market-page {
+    padding: 24px 16px 48px;
+  }
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
+  .wallet-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .wallet-card {
+    gap: 14px;
+    padding: 14px;
+  }
+  .wallet-cover {
+    width: 75px;
+    height: 100px;
+  }
+  .wallet-card h2 {
+    font-size: 19px;
+  }
+  .ticket-detail {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .wallet-qr {
+    max-width: 360px;
+    width: 100%;
+    margin: auto;
+    grid-row: 1;
+  }
+  .ticket-facts > div {
+    grid-template-columns: 80px 1fr;
+  }
+  .r-account-header {
+    gap: 10px;
+  }
+  .r-account-header > div {
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .r-account-header > div > a {
+    font-size: 12px;
+  }
+  .wallet-tabs {
+    gap: 6px;
+  }
+  .wallet-tabs a {
+    padding: 12px;
+    font-size: 12px;
+  }
+}

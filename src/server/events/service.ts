@@ -214,6 +214,15 @@ export async function changeEventStatus(
         throw new Error("Only drafts can be published.");
       if (event.startsAt <= new Date())
         throw new Error("Event start must be in the future.");
+      if (event.endsAt <= event.startsAt)
+        throw new Error("Event end must be after its start.");
+      if (
+        event.mode !== "ONLINE" &&
+        (!event.city || !(event.address || event.venueName))
+      )
+        throw new Error("Add a city and venue or address before publishing.");
+      if (event.mode !== "IN_PERSON" && !event.onlineUrl)
+        throw new Error("Add the online joining link before publishing.");
       if (!event.ticketTypes.length)
         throw new Error("Add a ticket type before publishing.");
       if (
@@ -284,6 +293,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
       category: source.category,
       mode: source.mode,
       visibility: source.visibility,
+      isTest: source.isTest,
       startsAt: source.startsAt,
       endsAt: source.endsAt,
       timezone: source.timezone,
@@ -349,7 +359,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
           variants: isSeedImage
             ? (image.variants ?? Prisma.DbNull)
             : Prisma.DbNull,
-          crop:image.crop ?? Prisma.DbNull,
+          crop: image.crop ?? Prisma.DbNull,
           width: isSeedImage ? image.width : null,
           height: isSeedImage ? image.height : null,
           blurhash: isSeedImage ? image.blurhash : null,

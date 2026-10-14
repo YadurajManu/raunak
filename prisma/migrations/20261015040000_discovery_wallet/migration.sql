@@ -1,0 +1,8 @@
+ALTER TABLE "Event" ADD COLUMN "isTest" BOOLEAN NOT NULL DEFAULT false;
+CREATE TABLE "SavedEvent" (
+  "userId" UUID NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "eventId" UUID NOT NULL REFERENCES "Event"("id") ON DELETE CASCADE,
+  "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY ("userId", "eventId")
+);
+CREATE INDEX "SavedEvent_eventId_idx" ON "SavedEvent"("eventId");

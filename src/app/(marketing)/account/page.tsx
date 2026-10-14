@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
+import { publicListing } from "@/server/public/events";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { formatInr } from "@/lib/money";
 export default async function AccountPage() {
@@ -27,9 +28,7 @@ export default async function AccountPage() {
     }),
     db.event.findMany({
       where: {
-        status: "PUBLISHED",
-        visibility: "PUBLIC",
-        deletedAt: null,
+        ...publicListing,
         startsAt: { gt: new Date() },
         ...(user.city
           ? { city: { equals: user.city, mode: "insensitive" as const } }

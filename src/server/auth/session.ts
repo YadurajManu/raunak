@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { adminAuth } from "@/server/auth/firebase-admin";
 import { db } from "@/server/db/client";
 
@@ -42,16 +43,18 @@ export async function createSession(idToken: string, rememberMe = true) {
   return user;
 }
 
-export async function currentUser() {
+export const currentUser = cache(async function currentUser() {
   const session = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!session) return null;
+  let uid: string;
   try {
     const decoded = await adminAuth().verifySessionCookie(session, true);
-    return db.user.findUnique({ where: { firebaseUid: decoded.uid } });
+    uid = decoded.uid;
   } catch {
     return null;
   }
-}
+  return db.user.findUnique({ where: { firebaseUid: uid } });
+});
 
 export async function requireUser() {
   const user = await currentUser();

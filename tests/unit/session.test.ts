@@ -5,18 +5,23 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   find: vi.fn(),
   upsert: vi.fn(),
+  cookie: vi.fn(),
+  session: vi.fn(),
 }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ set: mocks.set }) }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ set: mocks.set, get: mocks.cookie }),
+}));
 vi.mock("@/server/auth/firebase-admin", () => ({
   adminAuth: () => ({
     verifyIdToken: mocks.verify,
     createSessionCookie: mocks.create,
+    verifySessionCookie: mocks.session,
   }),
 }));
 vi.mock("@/server/db/client", () => ({
   db: { user: { findUnique: mocks.find, upsert: mocks.upsert } },
 }));
-import { createSession } from "@/server/auth/session";
+import { createSession, currentUser } from "@/server/auth/session";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.verify.mockResolvedValue({
@@ -56,4 +61,12 @@ it("rejects old authentication before issuing a session", async () => {
   });
   await expect(createSession("token")).rejects.toThrow("sign in again");
   expect(mocks.create).not.toHaveBeenCalled();
+});
+it("distinguishes invalid authentication from a failed database lookup", async () => {
+  mocks.cookie.mockReturnValue({ value: "session" });
+  mocks.session.mockRejectedValue(new Error("Expired"));
+  expect(await currentUser()).toBeNull();
+  mocks.session.mockResolvedValue({ uid: "firebase-id" });
+  mocks.find.mockRejectedValue(new Error("Database unavailable"));
+  await expect(currentUser()).rejects.toThrow("Database unavailable");
 });

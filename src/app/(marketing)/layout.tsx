@@ -6,6 +6,7 @@ import "./media.css";
 import "./media-editor.css";
 import "./tickets.css";
 import "./operations.css";
+import "./marketplace.css";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
 
 const display = Instrument_Serif({

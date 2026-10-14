@@ -12,8 +12,10 @@ export async function PublicHeader() {
         </span>
         Raunak
       </Link>
-      <div>
+      <div role="navigation" aria-label="Main navigation">
         <Link href="/discover">Discover events</Link>
+        <Link href="/my-tickets">My tickets</Link>
+        <Link href="/saved">Saved</Link>
         <Link href="/dashboard" className="r-view-switch">
           Host your own event ↗
         </Link>

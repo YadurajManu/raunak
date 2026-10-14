@@ -101,6 +101,7 @@ export async function createCheckout(
           where: {
             id: data.eventId,
             status: "PUBLISHED",
+            isTest: false,
             deletedAt: null,
             startsAt: { gt: now },
             org: { status: "ACTIVE" },
@@ -156,8 +157,9 @@ export async function createCheckout(
         const totalPaise =
           subtotalPaise +
           (event.org.feeMode === "PASS_TO_BUYER" ? feePaise : 0);
-        if (totalPaise > 0 && totalPaise < 100) throw new Error("Paid bookings must total at least ₹1.");
-    const expiresAt = new Date(now.getTime() + ORDER_MS);
+        if (totalPaise > 0 && totalPaise < 100)
+          throw new Error("Paid bookings must total at least ₹1.");
+        const expiresAt = new Date(now.getTime() + ORDER_MS);
         const result = await tx.order.create({
           data: {
             eventId: event.id,
@@ -333,21 +335,33 @@ export async function applyPayment(
       },
     });
     await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${order.eventId}::uuid FOR UPDATE`;
-    const currentEvent = await tx.event.findUniqueOrThrow({ where: { id: order.eventId } });
-    if (order.status === "PENDING" &&
-        (currentEvent.status !== "PUBLISHED" || currentEvent.deletedAt || currentEvent.startsAt <= new Date())) {
+    const currentEvent = await tx.event.findUniqueOrThrow({
+      where: { id: order.eventId },
+    });
+    if (
+      order.status === "PENDING" &&
+      (currentEvent.status !== "PUBLISHED" ||
+        currentEvent.isTest ||
+        currentEvent.deletedAt ||
+        currentEvent.startsAt <= new Date())
+    ) {
       for (const item of order.items)
         await tx.ticketType.update({
           where: { id: item.ticketTypeId },
           data: { quantityHeld: { decrement: item.quantity } },
         });
-      const expired = await tx.order.update({ where: { id: order.id }, data: { status: "EXPIRED" } });
-      await tx.refund.create({ data: {
-        paymentId: current.id,
-        amountPaise: payment.amountPaise,
-        status: "PENDING",
-        reason: "Event unavailable when payment was received",
-      } });
+      const expired = await tx.order.update({
+        where: { id: order.id },
+        data: { status: "EXPIRED" },
+      });
+      await tx.refund.create({
+        data: {
+          paymentId: current.id,
+          amountPaise: payment.amountPaise,
+          status: "PENDING",
+          reason: "Event unavailable when payment was received",
+        },
+      });
       return { order: expired, refund: true };
     }
     if (order.status === "PENDING") {
@@ -375,6 +389,7 @@ export async function applyPayment(
         (inventory._sum.quantitySold || 0) + (inventory._sum.quantityHeld || 0);
       const available =
         event.status === "PUBLISHED" &&
+        !event.isTest &&
         !event.deletedAt &&
         event.startsAt > new Date() &&
         (event.capacity === null ||
@@ -459,9 +474,15 @@ export async function expireOrders(provider: PaymentProvider = cashfree) {
   return pending.length;
 }
 
-export async function retryRefunds(provider: PaymentProvider = cashfree, orderId?: string) {
+export async function retryRefunds(
+  provider: PaymentProvider = cashfree,
+  orderId?: string,
+) {
   const refunds = await db.refund.findMany({
-    where: { status: { in: ["PENDING", "FAILED", "ONHOLD"] }, ...(orderId ? { payment: { orderId } } : {}) },
+    where: {
+      status: { in: ["PENDING", "FAILED", "ONHOLD"] },
+      ...(orderId ? { payment: { orderId } } : {}),
+    },
     include: { payment: { include: { order: true } } },
     take: 100,
   });
@@ -486,7 +507,9 @@ export async function retryRefunds(provider: PaymentProvider = cashfree, orderId
       }
       await db.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT id FROM "Refund" WHERE id = ${refund.id}::uuid FOR UPDATE`;
-        const currentRefund = await tx.refund.findUniqueOrThrow({ where: { id: refund.id } });
+        const currentRefund = await tx.refund.findUniqueOrThrow({
+          where: { id: refund.id },
+        });
         if (currentRefund.status === "SUCCESS") return;
         await tx.refund.update({
           where: { id: refund.id },
@@ -497,15 +520,55 @@ export async function retryRefunds(provider: PaymentProvider = cashfree, orderId
             where: { id: refund.payment.orderId, status: { not: "PAID" } },
             data: { status: "REFUNDED" },
           });
-        if (result.status === "SUCCESS") await tx.ticket.updateMany({ where: { orderId: refund.payment.orderId, status: "CANCELLED" }, data: { status: "REFUNDED" } });
-        if (result.status !== refund.status) await tx.webhookEvent.upsert({ where: { provider_idempotencyKey: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-${result.status}` } }, update: {}, create: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-${result.status}`, payload: { orderId: refund.payment.orderId, refundId: refund.id, kind: "REFUND_UPDATED" } } });
+        if (result.status === "SUCCESS")
+          await tx.ticket.updateMany({
+            where: { orderId: refund.payment.orderId, status: "CANCELLED" },
+            data: { status: "REFUNDED" },
+          });
+        if (result.status !== refund.status)
+          await tx.webhookEvent.upsert({
+            where: {
+              provider_idempotencyKey: {
+                provider: "operations-email",
+                idempotencyKey: `refund-${refund.id}-${result.status}`,
+              },
+            },
+            update: {},
+            create: {
+              provider: "operations-email",
+              idempotencyKey: `refund-${refund.id}-${result.status}`,
+              payload: {
+                orderId: refund.payment.orderId,
+                refundId: refund.id,
+                kind: "REFUND_UPDATED",
+              },
+            },
+          });
       });
     } catch {
       const failed = await db.refund.updateMany({
         where: { id: refund.id, status: { not: "SUCCESS" } },
         data: { status: "FAILED" },
       });
-      if (failed.count) await db.webhookEvent.upsert({ where: { provider_idempotencyKey: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-FAILED` } }, update: {}, create: { provider: "operations-email", idempotencyKey: `refund-${refund.id}-FAILED`, payload: { orderId: refund.payment.orderId, refundId: refund.id, kind: "REFUND_UPDATED" } } });
+      if (failed.count)
+        await db.webhookEvent.upsert({
+          where: {
+            provider_idempotencyKey: {
+              provider: "operations-email",
+              idempotencyKey: `refund-${refund.id}-FAILED`,
+            },
+          },
+          update: {},
+          create: {
+            provider: "operations-email",
+            idempotencyKey: `refund-${refund.id}-FAILED`,
+            payload: {
+              orderId: refund.payment.orderId,
+              refundId: refund.id,
+              kind: "REFUND_UPDATED",
+            },
+          },
+        });
     }
   }
 }

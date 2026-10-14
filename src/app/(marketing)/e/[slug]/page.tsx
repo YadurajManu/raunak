@@ -1,4 +1,9 @@
 import { VenueMap } from "@/components/public/venue-map";
+import Link from "next/link";
+import { currentUser } from "@/server/auth/session";
+import { db } from "@/server/db/client";
+import { EventCard } from "@/components/public/event-card";
+import { SaveEvent } from "@/components/public/save-event";
 import { documentsSchema } from "@/server/events/documents";
 import { PublicHeader } from "@/components/public/public-header";
 import { MarketingFooter } from "@/components/marketing/footer";
@@ -10,7 +15,7 @@ import { APP_NAME } from "@/lib/constants";
 import { formatInr } from "@/lib/money";
 import { variantUrl } from "@/lib/images";
 import { EventImage } from "@/components/public/event-image";
-import { publicEvent } from "@/server/public/events";
+import { publicEvent, discoverPage } from "@/server/public/events";
 import { TicketSelector } from "@/components/public/ticket-selector";
 
 const base = process.env.APP_URL || "http://localhost:3000";
@@ -30,7 +35,9 @@ export async function generateMetadata({
   const { slug } = await params;
   const event = await publicEvent(slug);
   if (!event) return { title: "Event not found" };
-  const poster = event.images.find((image) => image.kind === "POSTER") || event.images.find((image) => image.kind === "COVER");
+  const poster =
+    event.images.find((image) => image.kind === "POSTER") ||
+    event.images.find((image) => image.kind === "COVER");
   const shareImage = variantUrl(poster?.variants, "og");
   const description =
     event.summary ||
@@ -66,6 +73,34 @@ export default async function EventPage({
 }) {
   const event = await publicEvent((await params).slug);
   if (!event) notFound();
+  const user = await currentUser();
+  const saved = user
+    ? Boolean(
+        await db.savedEvent.findUnique({
+          where: { userId_eventId: { userId: user.id, eventId: event.id } },
+        }),
+      )
+    : false;
+  const related =
+    event.visibility === "PUBLIC"
+      ? (
+          await discoverPage({
+            category: event.category || "",
+            city: event.mode === "ONLINE" ? "" : event.city || "",
+          })
+        ).events
+          .filter((item) => item.id !== event.id)
+          .slice(0, 3)
+      : [];
+  const relatedSaved = user
+    ? await db.savedEvent.findMany({
+        where: {
+          userId: user.id,
+          eventId: { in: related.map((item) => item.id) },
+        },
+        select: { eventId: true },
+      })
+    : [];
   const poster = event.images.find((image) => image.kind === "POSTER");
   const gallery = event.images.filter(
     (image) => image.kind === "GALLERY" || image.kind === "COVER",
@@ -143,6 +178,22 @@ export default async function EventPage({
               {event.category || "Event"}
             </p>
             <h1 className="r-event-title">{event.title}</h1>
+            <div className="wallet-actions">
+              <Link href={`/organizers/${event.org.slug}`}>
+                Hosted by {event.org.name} ↗
+              </Link>
+              {event.visibility === "PUBLIC" && (
+                <SaveEvent eventId={event.id} initial={saved} />
+              )}
+              <a href={`/api/events/${event.id}/calendar`}>Add to calendar ↗</a>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${event.title} ${base}/e/${event.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Share on WhatsApp ↗
+              </a>
+            </div>
             {event.summary && (
               <p className="mt-5 max-w-2xl text-lg text-[var(--muted)] dark:text-[var(--muted)]">
                 {event.summary}
@@ -308,6 +359,21 @@ export default async function EventPage({
           </aside>
         </div>
       </div>
+      {related.length > 0 && (
+        <section className="market-page">
+          <h2>More upcoming events</h2>
+          <p>More plans in this category and city.</p>
+          <ul className="market-grid">
+            {related.map((item) => (
+              <EventCard
+                key={item.id}
+                event={item}
+                saved={relatedSaved.some((saved) => saved.eventId === item.id)}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
       <footer className="border-t border-[var(--line)] px-6 py-8 text-center text-sm text-[var(--muted)] dark:border-[var(--line)]">
         {event.org.name} ·{" "}
         {event.org.supportEmail || event.org.supportPhone || APP_NAME}

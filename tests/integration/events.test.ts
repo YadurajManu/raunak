@@ -67,6 +67,7 @@ describe("organizer event workflow", () => {
       title: "Test Gala",
       mode: "IN_PERSON",
       venueName: "Main Hall",
+      city: "Pune",
       startsAt: start.toISOString(),
       endsAt: end.toISOString(),
       capacity: 10,

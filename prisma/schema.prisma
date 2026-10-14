@@ -114,6 +114,7 @@ model User {
   orders Order[]
   checkedInTickets Ticket[] @relation("TicketChecker")
   auditLogs AuditLog[]
+  savedEvents SavedEvent[]
 }
 
 model Organization {
@@ -192,6 +193,7 @@ model Event {
   capacity Int?
   refundPolicy String?
   publishedAt DateTime? @db.Timestamptz(6)
+  isTest Boolean @default(false)
   deletedAt DateTime? @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -205,8 +207,19 @@ model Event {
   tickets Ticket[]
   messageTemplates MessageTemplate[]
   notificationLogs NotificationLog[]
+  savedBy SavedEvent[]
   @@index([orgId, status, deletedAt])
   @@index([status, visibility, startsAt])
+}
+
+model SavedEvent {
+  userId String @db.Uuid
+  eventId String @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@id([userId, eventId])
+  @@index([eventId])
 }
 
 model EventImage {

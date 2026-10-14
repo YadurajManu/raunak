@@ -12,7 +12,12 @@ export async function GET(
   const id = z.uuid().safeParse((await params).id);
   if (!id.success) return new Response("Not found", { status: 404 });
   const ticket = await db.ticket.findFirst({
-    where: { id: id.data, order: { buyerId: user.id, status: "PAID" } },
+    where: {
+      id: id.data,
+      order: { buyerId: user.id, status: "PAID" },
+      status: { in: ["VALID", "USED"] },
+      event: { status: { not: "CANCELLED" }, deletedAt: null },
+    },
   });
   if (!ticket) return new Response("Not found", { status: 404 });
   if (!ticket.pdfKey) {
