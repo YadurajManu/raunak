@@ -1,6 +1,7 @@
 import "dotenv/config";
 import assert from "node:assert/strict";
 import { createHmac, randomUUID } from "node:crypto";
+import { cashfree } from "../src/server/providers/payments/cashfree";
 
 async function main() {
   const env = process.env;
@@ -41,6 +42,11 @@ async function main() {
     signal: AbortSignal.timeout(15000),
   });
   assert.equal(valid.status, 200, "Signed notifications for unrelated orders must be acknowledged without creating tickets.");
+  if (process.argv.includes("--create-order")) {
+    const check = await cashfree.createOrder({ orderId:randomUUID(), amountPaise:500, customerId:randomUUID(), name:"Integration check", email:"check@example.com", phone:"9876543210", returnUrl:`${env.APP_URL}/discover`, notifyUrl:endpoint, expiresAt:new Date(Date.now()+20*60*1000) });
+    assert.ok(check.paymentSessionId);
+    console.log("Cashfree created a valid unpaid checkout session with a 20-minute expiry. No payment was attempted.");
+  }
   console.log("Live Cashfree checks passed: production credentials accepted; unsigned webhook rejected; signed unrelated notification safely acknowledged. No payment was created or charged.");
 }
 

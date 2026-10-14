@@ -40,7 +40,7 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
     try {
       const response = await fetch("/api/location", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "reverse", ...value }) });
       const result = await response.json(); if (id !== lookupId.current) return;
-      if (response.ok && result.places?.[0]) { setAddress(result.places[0].label); setCity(result.places[0].city); }
+      if (response.ok && result.places?.[0]) { setAddress(result.places[0].label); setCity(result.places[0].city); setMapMessage(result.places[0].label); }
       else setMapMessage("Pin saved. Enter the street address below.");
     } catch { if (id === lookupId.current) setMapMessage("Pin saved. Enter the street address below."); }
   }

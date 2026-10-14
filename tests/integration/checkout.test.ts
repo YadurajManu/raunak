@@ -69,6 +69,15 @@ async function setup(price = 10000, capacity = 5) {
   });
   return { event, type, cart };
 }
+it("gives Cashfree and inventory the same expiry above its 15-minute minimum", async () => {
+  const { cart } = await setup();
+  const createOrder = vi.fn(async (input: { expiresAt: Date }) => {
+    expect(input.expiresAt.getTime() - Date.now()).toBeGreaterThan(15 * 60 * 1000);
+    return { paymentSessionId: "expiry-check" };
+  });
+  const order = await createCheckout(buyer, cart(), { ...provider, createOrder } as unknown as typeof provider);
+  expect(createOrder.mock.calls[0][0].expiresAt).toEqual(order.expiresAt);
+});
 it("never oversells under concurrent checkouts and safely expires holds", async () => {
   const { type, cart } = await setup();
   const outcomes = await Promise.allSettled(

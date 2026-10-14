@@ -28,7 +28,8 @@ const cartSchema = z.object({
   whatsappOptIn: z.boolean().default(false),
   idempotencyKey: z.uuid(),
 });
-const ORDER_MS = 10 * 60 * 1000;
+// Cashfree requires an expiry more than 15 minutes away; inventory uses the same deadline.
+const ORDER_MS = 20 * 60 * 1000;
 function ticketCode() {
   return randomBytes(5).toString("hex").toUpperCase();
 }

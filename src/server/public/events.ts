@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { db } from "@/server/db/client";
+import { discoveryDates, dateChoices } from "@/lib/discovery-dates";
 
 export async function publicEvent(slug: string) {
   const parsed = z.string().min(1).max(150).parse(slug);
@@ -31,6 +32,7 @@ export async function discoverEvents(input: unknown) {
       city: z.string().trim().max(100).optional(),
       category: z.string().trim().max(80).optional(),
       from: z.iso.date().optional(),
+      period: z.enum(dateChoices).optional(),
     })
     .parse(input);
   return db.event.findMany({
@@ -38,9 +40,7 @@ export async function discoverEvents(input: unknown) {
       status: "PUBLISHED",
       visibility: "PUBLIC",
       deletedAt: null,
-      startsAt: {
-        gte: filters.from ? new Date(`${filters.from}T00:00:00Z`) : new Date(),
-      },
+      startsAt: discoveryDates(filters.period, filters.from),
       ...(filters.q
         ? {
             OR: [

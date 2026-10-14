@@ -92,8 +92,9 @@ async function main() {
     await page.getByRole("combobox", { name: "City", exact: true }).press("Enter");
     assert.equal(await page.getByLabel("State / region").inputValue(), "Maharashtra");
     await page.getByRole("combobox", { name: "City", exact: true }).fill("Pun");
+    await page.getByRole("combobox", { name: "City", exact: true }).fill("Pune");
     await page.getByRole("button", { name: "Search city", exact: true }).click();
-    await page.getByRole("option", { name: /Pune/ }).click();
+    await page.getByRole("option", { name: /Pune/ }).first().click();
     await page.getByLabel("Full name").fill("Experience Check Updated");
     await page.getByRole("button", { name: "Save changes" }).click();
     await page.getByText("Your profile is saved.").waitFor();

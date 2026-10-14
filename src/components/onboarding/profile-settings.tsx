@@ -223,6 +223,7 @@ export function ProfileSettings({
             }
             onPick={pick}
           />
+          {place.label && <p className="r-resolved-address" role="status">{place.label}</p>}
           <div className="r-settings-fields">
             <label>
               State / region

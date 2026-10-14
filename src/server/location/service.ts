@@ -74,6 +74,7 @@ export async function lookupLocation(
   url.searchParams.set("lang", "en");
   url.searchParams.set("limit", data.kind === "search" ? "5" : "1");
   if (data.kind === "search") {
+    url.searchParams.set("type", "city");
     url.searchParams.set("text", data.query);
     url.searchParams.set("bias", "countrycode:in");
   } else {
