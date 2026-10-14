@@ -7,6 +7,7 @@ import "./media-editor.css";
 import "./tickets.css";
 import "./operations.css";
 import "./marketplace.css";
+import "./site-polish.css";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
 
 const display = Instrument_Serif({

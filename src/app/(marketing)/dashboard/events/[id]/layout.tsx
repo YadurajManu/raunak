@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NavigationLink } from "@/components/navigation-link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { requireEventAccessForUser } from "@/server/rbac/access";
@@ -34,22 +35,27 @@ export default async function EventLayout({
     where: { orgId_userId: { orgId: access.orgId, userId: user.id } },
   });
   const tabs =
-    member.role === "FINANCE" ? [["Overview", ""], ["Attendees", "/attendees"]] : member.role === "CHECKIN"
+    member.role === "FINANCE"
       ? [
-          ["Check-in", "/check-in"],
+          ["Overview", ""],
           ["Attendees", "/attendees"],
         ]
-      : [
-          ["Overview", ""],
-          ["Details", "/details"],
-          ["Media", "/media"],
-          ["Tickets", "/tickets"],
-          ["Attendees", "/attendees"],
-          ["Check-in", "/check-in"],
-          ["Messages", "/messages"],
-          ["Team", "/team"],
-          ["Settings", "/settings"],
-        ];
+      : member.role === "CHECKIN"
+        ? [
+            ["Check-in", "/check-in"],
+            ["Attendees", "/attendees"],
+          ]
+        : [
+            ["Overview", ""],
+            ["Details", "/details"],
+            ["Media", "/media"],
+            ["Tickets", "/tickets"],
+            ["Attendees", "/attendees"],
+            ["Check-in", "/check-in"],
+            ["Messages", "/messages"],
+            ["Team", "/team"],
+            ["Settings", "/settings"],
+          ];
   return (
     <div className="r-event-workspace mx-auto min-h-screen max-w-6xl">
       <header className="flex items-center justify-between gap-4 border-b border-[var(--line)] pb-3">
@@ -66,13 +72,14 @@ export default async function EventLayout({
         className="mt-3 flex gap-2 overflow-x-auto border-b border-[var(--line)] pb-3"
       >
         {tabs.map(([label, suffix]) => (
-          <Link
+          <NavigationLink
             key={label}
             href={`/dashboard/events/${id}${suffix}`}
+            exact
             className="rounded-lg px-3 py-2 text-sm hover:bg-[var(--surface)] dark:hover:bg-[var(--surface)]"
           >
             {label}
-          </Link>
+          </NavigationLink>
         ))}
       </nav>
       {children}

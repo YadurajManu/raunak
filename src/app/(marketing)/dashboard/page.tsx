@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { APP_NAME } from "@/lib/constants";
 export const metadata = { robots: { index: false, follow: false } };
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
@@ -17,16 +16,12 @@ export default async function DashboardPage() {
   return (
     <>
       <p className="m-eyebrow">YOUR IDEAS LIVE HERE</p>
-      <h1>
-        Let’s make
-        <br />
-        <em className="m-serif">a little {APP_NAME.toLowerCase()}.</em>
-      </h1>
+      <h1>Your workspaces</h1>
       <p className="r-account-intro">
         Choose a workspace to manage its events and team.
       </p>
       <div className="r-account-section-title">
-        <h2>Your workspaces</h2>
+        <h2>Choose where to create</h2>
         <Link href="/organizer/setup">Create another ↗</Link>
       </div>
       <div className="r-account-cards">

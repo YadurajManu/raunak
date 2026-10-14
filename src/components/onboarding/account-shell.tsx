@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ProfileControls } from "./profile-controls";
 import { APP_NAME } from "@/lib/constants";
 import { ThemeToggle } from "@/components/marketing/footer";
+import { NavigationLink } from "@/components/navigation-link";
 export function AccountShell({
   name,
   email,
@@ -55,14 +56,14 @@ export function AccountShell({
                 { label: "Profile", href: "/account/profile" },
               ]
           ).map((item) => (
-            <Link
+            <NavigationLink
               href={item.href}
-              className={item.label === active ? "is-active" : ""}
+              active={item.label === active}
               key={item.href}
             >
               {item.label}
               <span>↗</span>
-            </Link>
+            </NavigationLink>
           ))}
           <div className="r-host-note">
             <span>✳</span>

@@ -1,0 +1,253 @@
+/* Shared navigation and control rhythm across attendee and organizer pages. */
+.marketing .r-public-header {
+  gap: 20px;
+}
+.marketing .r-public-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.marketing .r-public-links a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.marketing .r-public-links a:hover {
+  background: var(--surface);
+}
+.marketing .r-public-links a[aria-current="page"] {
+  background: var(--surface);
+  border-color: var(--line);
+  font-weight: 600;
+}
+.marketing .r-public-header .r-public-controls {
+  flex-wrap: nowrap;
+  gap: 14px;
+}
+.marketing
+  :is(.r-account-header, .r-account-sidebar, .r-event-workspace)
+  :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.marketing .r-account-sidebar > a {
+  min-height: 44px;
+  border: 1px solid transparent;
+  margin-top: 4px;
+}
+.marketing .r-account-sidebar > a:hover {
+  background: var(--surface);
+}
+.marketing .r-account-sidebar > a[aria-current="page"] {
+  border-color: var(--line);
+}
+.marketing .r-account-sidebar .m-mono {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  line-height: 1.6;
+}
+.marketing .r-account-header .r-profile-menu nav > a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.marketing .r-profile-menu nav {
+  max-width: calc(100vw - 32px);
+}
+.marketing .r-profile-menu summary {
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+}
+.marketing .r-organizer > h1 {
+  font-size: clamp(30px, 3.5vw, 42px);
+  line-height: 1.15;
+  margin: 12px 0;
+}
+.marketing .r-account-section-title {
+  margin: 28px 0 16px;
+  flex-wrap: wrap;
+}
+.marketing .r-account-section-title a,
+.marketing .r-back-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.marketing .r-account-empty {
+  padding: 24px;
+  border-radius: 14px;
+}
+.marketing .r-account-empty h3 {
+  font-size: clamp(25px, 3vw, 34px);
+  line-height: 1.2;
+}
+.marketing .r-account-empty > p {
+  max-width: 560px;
+}
+.marketing .r-account-content > h1 {
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.06;
+}
+.marketing .r-event-workspace nav[aria-label="Event sections"] {
+  gap: 6px;
+  scrollbar-width: thin;
+}
+.marketing .r-event-workspace nav[aria-label="Event sections"] > a {
+  flex-shrink: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.marketing
+  .r-event-workspace
+  nav[aria-label="Event sections"]
+  > a[aria-current="page"] {
+  background: var(--surface);
+  border-color: var(--line);
+  font-weight: 600;
+}
+.marketing
+  :is(.r-account, .r-event-detail, .market-page)
+  :is(.r-quiet-button, .m-button-small) {
+  min-height: 44px;
+}
+.marketing
+  :is(.r-settings-fields, .r-form-fields, .r-location-input-row)
+  :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 44px;
+}
+.marketing
+  :is(.r-workspace-filters, .ops-filters)
+  :is(input:not([type="hidden"]), select, button) {
+  min-height: 44px;
+}
+.marketing
+  :is(.r-settings, .r-organizer, .market-page)
+  :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.marketing
+  :is(.r-organizer, .market-page)
+  :is(.r-inline-button, .ops-links a, .r-form-message) {
+  color: var(--accent-ink);
+}
+.marketing :is(.r-settings-fields, .r-form-fields) label {
+  min-width: 0;
+}
+.marketing :is(.r-workspace-empty, .market-empty) {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1050px) {
+  .marketing .r-public-header .r-view-switch {
+    display: none;
+  }
+  .marketing .r-public-header {
+    padding-inline: 24px;
+    gap: 12px;
+  }
+  .marketing .r-public-links a {
+    padding-inline: 10px;
+  }
+}
+@media (max-width: 767px) {
+  .marketing .r-account-header:not(.r-public-header) > div {
+    gap: 8px;
+  }
+  .marketing .r-account-header:not(.r-public-header) > div > .r-view-switch {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 11px;
+  }
+  .marketing .r-public-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 16px;
+  }
+  .marketing .r-public-header .m-logo {
+    min-width: 0;
+  }
+  .marketing .r-public-links {
+    grid-column: 1/-1;
+    grid-row: 2;
+    margin: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    gap: 6px;
+  }
+  .marketing .r-public-links a {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  .marketing .r-public-header .r-public-controls {
+    gap: 12px;
+  }
+  .marketing .r-account-header .m-theme-toggle {
+    display: inline-flex;
+    min-height: 44px;
+  }
+  .marketing .r-account-sidebar {
+    padding: 10px 16px;
+    gap: 6px;
+    scrollbar-width: thin;
+  }
+  .marketing .r-account-sidebar > a {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .marketing .r-account-content {
+    padding: 20px 16px 40px;
+  }
+  .marketing .r-account-content > h1 {
+    font-size: 36px;
+  }
+  .marketing .r-account-intro {
+    margin-top: 14px;
+  }
+  .marketing .r-account-section-title {
+    margin-top: 24px;
+    gap: 8px;
+  }
+  .marketing .r-account-cards {
+    grid-template-columns: 1fr;
+  }
+  .marketing .r-workspace-filters {
+    gap: 10px;
+  }
+  .marketing .r-workspace-filters input:not([type="hidden"]) {
+    flex-basis: 100%;
+  }
+  .marketing
+    :is(.r-account, .market-page, .m-auth)
+    :is(
+      input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea
+    ) {
+    font-size: 16px;
+  }
+  .marketing .r-settings .r-settings-fields {
+    gap: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing :is(.r-account, .market-page, .r-event-detail) * {
+    scroll-behavior: auto !important;
+  }
+}
