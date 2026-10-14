@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatInr } from "@/lib/money";
+import { ticketAvailability } from "@/lib/ticket-availability";
 
 type Type = {
   id: string;
@@ -22,23 +23,38 @@ export function TicketSelector({
   eventId,
   eventSlug,
   startsAt,
+  timezone,
   ticketTypes,
 }: {
   eventId: string;
   eventSlug: string;
   startsAt: string;
+  timezone: string;
   ticketTypes: Type[];
 }) {
   const router = useRouter();
-  const [now] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const visible = ticketTypes.filter((type) => !type.isHidden);
   const total = visible.reduce(
-    (sum, type) => sum + type.pricePaise * (quantities[type.id] || 0),
+    (sum, type) =>
+      sum +
+      type.pricePaise *
+        (ticketAvailability(type, startsAt, timezone, now).available
+          ? quantities[type.id] || 0
+          : 0),
     0,
   );
   const count = visible.reduce(
-    (sum, type) => sum + (quantities[type.id] || 0),
+    (sum, type) =>
+      sum +
+      (ticketAvailability(type, startsAt, timezone, now).available
+        ? quantities[type.id] || 0
+        : 0),
     0,
   );
   return (
@@ -50,15 +66,12 @@ export function TicketSelector({
       {visible.length ? (
         <div className="mt-5 space-y-4">
           {visible.map((type) => {
-            const remaining =
-              type.quantityTotal - type.quantitySold - type.quantityHeld;
-            const onSale =
-              remaining > 0 &&
-              new Date(startsAt).getTime() > now &&
-              (!type.saleStartsAt ||
-                new Date(type.saleStartsAt).getTime() <= now) &&
-              (!type.saleEndsAt || new Date(type.saleEndsAt).getTime() >= now);
-            const current = quantities[type.id] || 0;
+            const {
+              remaining,
+              available: onSale,
+              label,
+            } = ticketAvailability(type, startsAt, timezone, now);
+            const current = onSale ? quantities[type.id] || 0 : 0;
             return (
               <div
                 key={type.id}
@@ -76,9 +89,7 @@ export function TicketSelector({
                       {formatInr(type.pricePaise)}
                     </p>
                     {!onSale && (
-                      <p className="mt-1 text-xs text-amber-600">
-                        {remaining <= 0 ? "Sold out" : "Not on sale"}
-                      </p>
+                      <p className="mt-1 text-xs text-amber-600">{label}</p>
                     )}
                   </div>
                   <div className="flex h-9 shrink-0 items-center rounded-lg border border-[var(--line)] dark:border-[var(--line)]">
@@ -87,7 +98,11 @@ export function TicketSelector({
                       aria-label={`Remove ${type.name}`}
                       disabled={!current}
                       onClick={() =>
-                        setQuantities({ ...quantities, [type.id]: current - 1 })
+                        setQuantities({
+                          ...quantities,
+                          [type.id]:
+                            current <= type.minPerOrder ? 0 : current - 1,
+                        })
                       }
                       className="h-9 w-9 disabled:opacity-40"
                     >
@@ -144,7 +159,17 @@ export function TicketSelector({
           onClick={() => {
             sessionStorage.setItem(
               `cart:${eventId}`,
-              JSON.stringify(quantities),
+              JSON.stringify(
+                Object.fromEntries(
+                  visible
+                    .filter(
+                      (type) =>
+                        ticketAvailability(type, startsAt, timezone, now)
+                          .available && quantities[type.id],
+                    )
+                    .map((type) => [type.id, quantities[type.id]]),
+                ),
+              ),
             );
             router.push(`/checkout/${eventSlug}`);
           }}

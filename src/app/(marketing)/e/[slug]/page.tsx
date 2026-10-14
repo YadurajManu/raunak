@@ -288,6 +288,7 @@ export default async function EventPage({
             <TicketSelector
               eventId={event.id}
               eventSlug={event.slug}
+              timezone={event.timezone}
               startsAt={event.startsAt.toISOString()}
               ticketTypes={event.ticketTypes.map((type) => ({
                 id: type.id,

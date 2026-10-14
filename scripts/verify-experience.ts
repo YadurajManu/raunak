@@ -8,8 +8,13 @@ import { db } from "../src/server/db/client";
 import { storage } from "../src/server/providers/storage/s3";
 import { documentsSchema } from "../src/server/events/documents";
 import { processMedia } from "../worker/jobs/process-media";
+import { prepareTicketPdfs } from "../src/server/tickets/pdf";
+import { enqueueOrderNotifications, processNotification } from "../src/server/notifications/service";
+import { ticketUrl } from "../src/server/tickets/qr";
 import {
   mediaQueue,
+  ticketQueue,
+  notificationQueue,
   mediaConnection,
   producerConnection,
 } from "../worker/queues";
@@ -337,6 +342,7 @@ async function main() {
     await page.getByRole("link", { name: "Next: set up tickets" }).click();
     await page.waitForURL("**/tickets");
     await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: "＋ Add ticket type", exact: true }).click();
     await page.getByLabel("Name", { exact: true }).fill("Good company pass");
     await page.getByLabel("Price (₹)").fill("0");
     await page.getByLabel("Quantity", { exact: true }).fill("25");
@@ -350,6 +356,18 @@ async function main() {
     assert.equal(ticketResult.status(), 201, await ticketResult.text());
     console.log("Created ticket type through the organizer UI.");
     await page.getByRole("heading", { name: "Good company pass" }).waitFor();
+    await page.getByText("Draft · publish to start selling", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Edit Good company pass", exact: true }).click();
+    await page.getByLabel("Description", { exact: true }).fill("One guest. One good memory.");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByText("Ticket updated.", { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText("One guest. One good memory.", { exact: true }).waitFor();
+    await page.screenshot({ path: "artifacts/experience/ticket-editor.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: "artifacts/experience/ticket-editor-mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole("link", { name: "Next: review & publish" }).click();
     const publishResponse = page.waitForResponse((response) =>
       response.url().endsWith("/status"),
@@ -432,6 +450,53 @@ async function main() {
     await page
       .getByRole("heading", { name: "Checkout", exact: true })
       .waitFor();
+    await page.getByLabel("Mobile number").fill("9876543210");
+    await page.getByRole("button", { name: "Confirm free tickets", exact: true }).click();
+    await page.waitForURL("**/orders/**");
+    await page.getByRole("heading", { name: "You're going.", exact: true }).waitFor();
+    const orderId = new URL(page.url()).pathname.split("/").pop()!;
+    await (await ticketQueue.getJob(`order-${orderId}`))?.remove();
+    await prepareTicketPdfs(orderId);
+    await enqueueOrderNotifications(orderId);
+    const logs = await db.notificationLog.findMany({ where: { orderId, channel: "EMAIL" } });
+    let ticketEmail = "";
+    for (const log of logs) {
+      await (await notificationQueue.getJob(log.id))?.remove();
+      await processNotification(log.id, { email: { send: async input => {
+        assert.ok(input.html);
+        if (log.trigger === "TICKET_ISSUED") {
+          assert.ok(input.attachments?.some(file => file.filename.endsWith(".pdf")));
+          const qr = input.attachments?.find(file => file.contentId === "ticket-qr");
+          assert.ok(qr);
+          ticketEmail = input.html!.replace("cid:ticket-qr", `data:image/png;base64,${qr.content.toString("base64")}`);
+        }
+      } }, whatsapp: { sendTemplate: async () => ({ providerMessageId: "unused-test" }) } });
+    }
+    assert.ok(ticketEmail);
+    await page.reload();
+    await page.getByText("Confirmation and tickets sent to your inbox.", { exact: true }).waitFor();
+    await page.screenshot({ path: "artifacts/experience/booking-confirmation.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: "artifacts/experience/booking-confirmation-mobile.png", fullPage: true });
+    await page.getByRole("link", { name: "Show entry QR ↗", exact: true }).click();
+    await page.getByRole("img", { name: "Your signed entry QR code" }).waitFor();
+    await page.screenshot({ path: "artifacts/experience/entry-qr.png", fullPage: true });
+    const ticket = await db.ticket.findFirstOrThrow({ where: { orderId } });
+    const pdf = await context.request.get(`/api/tickets/${ticket.id}/pdf`);
+    assert.equal(pdf.status(), 200);
+    assert.equal((await pdf.body()).subarray(0, 4).toString(), "%PDF");
+    const scanned = await context.request.post("/api/checkin", { headers: { origin: base }, data: { eventId, token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}` } });
+    assert.equal((await scanned.json()).result, "VALID");
+    const repeated = await context.request.post("/api/checkin", { headers: { origin: base }, data: { eventId, token: `${base}${new URL(ticketUrl(ticket.id, ticket.eventId)).pathname}` } });
+    assert.equal((await repeated.json()).result, "ALREADY_USED");
+    await page.goto("/my-tickets");
+    await page.getByText("Good company pass", { exact: false }).first().waitFor();
+    await page.setContent(ticketEmail);
+    await page.screenshot({ path: "artifacts/experience/ticket-email-mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 800, height: 1000 });
+    await page.screenshot({ path: "artifacts/experience/ticket-email.png", fullPage: true });
+    console.log("Booking passed: free checkout, confirmed order, QR/PDF email payload, private PDF download, ticket wallet, valid check-in and duplicate rejection. Email captured locally; no customer message sent.");
     if (errors.length)
       console.log(
         "Browser errors:",
@@ -481,6 +546,16 @@ async function main() {
       }
       await db.eventImage.deleteMany({ where: { eventId } });
       await db.eventPerson.deleteMany({where:{eventId}});
+      const tickets = await db.ticket.findMany({ where: { eventId } });
+      for (const ticket of tickets) if (ticket.pdfKey) await storage.delete(ticket.pdfKey);
+      const logs = await db.notificationLog.findMany({ where: { eventId } });
+      for (const log of logs) await (await notificationQueue.getJob(log.id))?.remove();
+      const orders = await db.order.findMany({ where: { eventId } });
+      for (const order of orders) await (await ticketQueue.getJob(`order-${order.id}`))?.remove();
+      await db.notificationLog.deleteMany({ where: { eventId } });
+      await db.ticket.deleteMany({ where: { eventId } });
+      await db.orderItem.deleteMany({ where: { order: { eventId } } });
+      await db.order.deleteMany({ where: { eventId } });
       await db.ticketType.deleteMany({ where: { eventId } });
       await db.event.deleteMany({ where: { id: eventId } });
     }
@@ -494,6 +569,8 @@ async function main() {
     await db.user.deleteMany({ where: { firebaseUid: user.uid } });
     await auth.deleteUser(user.uid);
     await mediaQueue.close();
+    await ticketQueue.close();
+    await notificationQueue.close();
     await producerConnection.quit();
     await mediaConnection.quit();
     await db.$disconnect();

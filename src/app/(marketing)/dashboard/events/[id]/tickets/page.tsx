@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { requireEventAccessForUser } from "@/server/rbac/access";
 import { db } from "@/server/db/client";
-import { utcToLocalEventTime } from "@/lib/dates";
 import { TicketEditor } from "@/components/dashboard/ticket-editor";
 
 export default async function TicketsPage({
@@ -34,6 +33,8 @@ export default async function TicketsPage({
       <TicketEditor
         eventId={id}
         timezone={event.timezone}
+        startsAt={event.startsAt.toISOString()}
+        status={event.status}
         types={event.ticketTypes.map((type) => ({
           id: type.id,
           name: type.name,
@@ -43,13 +44,10 @@ export default async function TicketsPage({
           quantitySold: type.quantitySold,
           quantityHeld: type.quantityHeld,
           saleStartsAt: type.saleStartsAt
-            ? utcToLocalEventTime(
-                type.saleStartsAt.toISOString(),
-                event.timezone,
-              )
+            ? type.saleStartsAt.toISOString()
             : null,
           saleEndsAt: type.saleEndsAt
-            ? utcToLocalEventTime(type.saleEndsAt.toISOString(), event.timezone)
+            ? type.saleEndsAt.toISOString()
             : null,
           minPerOrder: type.minPerOrder,
           maxPerOrder: type.maxPerOrder,

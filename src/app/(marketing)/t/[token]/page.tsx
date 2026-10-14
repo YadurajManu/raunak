@@ -34,7 +34,7 @@ export default async function TicketPage({
     !ticket.event.deletedAt;
   const qr = await QRCode.toDataURL(ticketUrl(ticket.id, ticket.eventId), {
     width: 360,
-    margin: 2,
+    margin: 4,
   });
   return (
     <main className="m-legal m-container">
@@ -66,16 +66,15 @@ export default async function TicketPage({
             {ticket.event.city ? ` · ${ticket.event.city}` : ""}
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {active && ticket.status === "VALID" && <img
             src={qr}
             alt="Your signed entry QR code"
             width={280}
             height={280}
-          />
+          />}
           <strong className="m-mono">{ticket.code}</strong>
           <p>
-            Present this QR to entry staff. Opening this page does not check you
-            in.
+            {active && ticket.status === "VALID" ? "Present this QR to entry staff. Opening this page does not check you in." : ticket.status === "USED" ? "This ticket has already been checked in. It cannot be used again." : "This ticket is inactive and cannot be used for entry."}
           </p>
           <Link href="/my-tickets" className="m-button">
             My ticket wallet ↗

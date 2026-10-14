@@ -25,7 +25,7 @@ function cartSnapshot(eventId: string) {
             typeof value === "number" &&
             Number.isInteger(value) &&
             value >= 0 &&
-            value <= 10,
+            value <= 100,
         )
           ? parsed
           : emptyCart;

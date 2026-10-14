@@ -13,6 +13,7 @@ import QRCode from "qrcode";
 import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
 import { ticketUrl } from "./qr";
+import { variantUrl } from "@/lib/images";
 Font.register({
   family: "Raunak Sans",
   src: path.join(process.cwd(), "public/fonts/NotoSans-Regular.ttf"),
@@ -36,15 +37,18 @@ export async function ticketPdf(ticketId: string) {
   const event = ticket.event;
   const qr = await QRCode.toDataURL(ticketUrl(ticket.id, event.id), {
     width: 360,
-    margin: 2,
+    margin: 4,
     errorCorrectionLevel: "M",
   });
   let poster: Buffer | undefined;
   const image = event.images[0];
   if (image?.variants) {
     try {
+      const card = variantUrl(image.variants, "card");
+      const prefix = `${process.env.S3_PUBLIC_BASE_URL?.replace(/\/$/, "")}/`;
+      const key = card?.startsWith(prefix) ? decodeURIComponent(card.slice(prefix.length)) : `${image.storageKey.replace("/original/", "/variants/")}/card.jpg`;
       poster = await storage.read(
-        `${image.storageKey.replace("/original/", "/variants/")}/card.jpg`,
+        key,
         5 * 1024 * 1024,
       );
     } catch {
@@ -71,6 +75,7 @@ export async function ticketPdf(ticketId: string) {
         <Text style={{ color: "#bd452c", fontSize: 22, marginBottom: 16 }}>
           raunak.
         </Text>
+        <Text style={{ fontSize: 9, color: "#234d3c", marginBottom: 10 }}>YOUR WAY IN · ENTRY TICKET</Text>
         {poster && (
           <PdfImage
             src={{ data: poster, format: "jpg" }}
@@ -85,9 +90,10 @@ export async function ticketPdf(ticketId: string) {
         <Text style={{ fontSize: 24, marginBottom: 12 }}>{event.title}</Text>
         <Text style={{ marginBottom: 8 }}>{date}</Text>
         <Text>
-          {event.venueName || "Online event"}
+          {event.venueName || (event.mode === "ONLINE" ? "Online event" : "Venue to be announced")}
           {event.city ? `, ${event.city}` : ""}
         </Text>
+        {event.address && <Text style={{ marginTop: 5 }}>{event.address}</Text>}
         <View
           style={{
             borderTopWidth: 1,

@@ -1,0 +1,293 @@
+.tk-editor {
+  margin-top: 28px;
+  max-width: 1000px;
+}
+.tk-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.tk-heading h2,
+.booking-tickets h2 {
+  font-size: 20px;
+}
+.tk-heading small,
+.booking-tickets small {
+  color: var(--muted);
+  font-size: 13px;
+  margin-left: 6px;
+}
+.tk-heading p,
+.tk-details p,
+.tk-details small,
+.tk-empty p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+.tk-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+}
+.tk-list > li {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  align-items: center;
+}
+.tk-price {
+  font-family: var(--font-display);
+  font-size: 30px;
+  min-width: 100px;
+  color: var(--accent);
+}
+.tk-details {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tk-details h3 {
+  font-size: 18px;
+}
+.tk-actions {
+  display: flex;
+  gap: 8px;
+}
+.tk-status {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.tk-status.is-open {
+  color: var(--ink);
+  background: var(--surface);
+}
+.tk-empty {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+.tk-feedback {
+  font-size: 13px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+.booking-page {
+  max-width: 1120px;
+  margin: auto;
+  padding: 32px 24px 64px;
+}
+.booking-heading {
+  padding: 28px 0;
+}
+.booking-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green);
+  color: #fffdf7;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 24px;
+  margin-bottom: 18px;
+}
+.booking-heading h1 {
+  font-size: clamp(34px, 5vw, 58px);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 12px 0;
+}
+.booking-heading > p:last-child {
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 580px;
+}
+.booking-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+}
+.booking-event {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 16px;
+}
+.booking-poster {
+  width: 110px;
+  height: 140px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.booking-event h2 {
+  font-size: 24px;
+}
+.booking-event p {
+  font-size: 14px;
+  margin-top: 10px;
+}
+.booking-event small,
+.booking-reference,
+.booking-help,
+.booking-private {
+  color: var(--muted);
+  font-size: 12px;
+}
+.booking-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  margin-top: 18px;
+  color: var(--accent);
+}
+.booking-summary {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  height: fit-content;
+  overflow-wrap: anywhere;
+}
+.booking-summary h2 {
+  font-size: 18px;
+}
+.booking-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  margin-top: 20px;
+}
+.booking-total {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.booking-reference {
+  margin: 16px 0;
+}
+.booking-delivery {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.booking-delivery h3 {
+  font-size: 15px;
+}
+.booking-delivery p,
+.booking-delivery small {
+  font-size: 13px;
+  color: var(--muted);
+  display: block;
+  margin: 10px 0;
+}
+.booking-delivery button {
+  margin-top: 8px;
+}
+.booking-help {
+  margin-top: 18px;
+}
+.booking-tickets {
+  margin-top: 26px;
+}
+.booking-pass {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 12px;
+}
+.booking-pass h3 {
+  font-size: 18px;
+  margin: 8px 0;
+}
+.booking-pass p {
+  font-size: 14px;
+}
+.booking-pass small {
+  margin-left: 0;
+  overflow-wrap: anywhere;
+}
+.booking-pass-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.booking-private {
+  margin-top: 16px;
+}
+.booking-notice {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.booking-refresh {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+@media (max-width: 800px) {
+  .booking-grid {
+    grid-template-columns: 1fr;
+  }
+  .tk-list > li {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .tk-price {
+    min-width: 70px;
+  }
+  .tk-actions {
+    margin-left: auto;
+  }
+  .booking-pass {
+    flex-wrap: wrap;
+  }
+  .booking-event {
+    gap: 14px;
+    padding: 16px;
+  }
+  .booking-poster {
+    width: 80px;
+    height: 110px;
+  }
+  .booking-event h2 {
+    font-size: 20px;
+  }
+  .booking-page {
+    padding: 24px 16px 48px;
+  }
+  .tk-heading {
+    align-items: flex-start;
+  }
+  .tk-heading .m-button {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .booking-refresh {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
