@@ -1,0 +1,1 @@
+ALTER TABLE "EventImage" ADD COLUMN "crop" JSONB;

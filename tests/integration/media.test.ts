@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
 import { processMedia } from "../../worker/jobs/process-media";
-import { presignImage, confirmImage } from "@/server/media/service";
+import { presignImage, confirmImage, updateImage, deleteImage } from "@/server/media/service";
 import { createPerson, updatePerson, deletePerson } from "@/server/media/people";
 import { mediaQueue, mediaConnection } from "../../worker/queues";
 
@@ -42,6 +42,22 @@ async function upload(input: Buffer, mime: string) {
 }
 
 describe("media processor", () => {
+  it("saves reversible crops and reports measured processing progress", async () => {
+    const bytes=await sharp({create:{width:1600,height:900,channels:3,background:"#ff5635"}}).png().toBuffer();
+    const image=await upload(bytes,"image/png");
+    const edited=await updateImage(userId,eventId,image.id,{crop:{aspect:"square",x:1,y:.5}});
+    const values:number[]=[];
+    await processMedia(image.id,async value=>{values.push(value);});
+    const saved=await db.eventImage.findUniqueOrThrow({where:{id:image.id}});
+    const url=(saved.variants as Record<string,Record<string,string>>).card.jpeg;
+    const metadata=await sharp(Buffer.from(await (await fetch(url)).arrayBuffer())).metadata();
+    expect(metadata.width).toBe(metadata.height);
+    expect(values).toHaveLength(12);expect(values.at(-1)).toBe(100);
+    expect(await storage.read(image.storageKey,10*1024*1024)).toEqual(bytes);
+    const revision=(edited.crop as {revision:string}).revision;
+    await (await mediaQueue.getJob(`${image.id}-${revision}`))?.remove();
+    await deleteImage(userId,eventId,image.id);
+  },30000);
   it("builds variants for JPG, PNG, WebP, AVIF, GIF, and HEIC", async () => {
     const source = await readFile("tests/fixtures/source.png");
     const formats = [

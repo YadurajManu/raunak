@@ -2,6 +2,7 @@ import { Instrument_Serif, Geist_Mono } from "next/font/google";
 import "./marketing.css";
 import "./workspace.css";
 import "./discover.css";
+import "./media.css";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
 
 const display = Instrument_Serif({

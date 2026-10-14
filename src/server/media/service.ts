@@ -3,6 +3,8 @@ import { z } from "zod";
 import { db } from "@/server/db/client";
 import { requireEventAccessForUser } from "@/server/rbac/access";
 import { storage } from "@/server/providers/storage/s3";
+import { Prisma } from "@/generated/prisma/client";
+import { cropSchema } from "@/lib/image-crop";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_EVENT_IMAGES = 20;
@@ -63,15 +65,22 @@ export async function confirmImage(userId: string, input: unknown) {
 
 export async function updateImage(userId: string, eventId: string, imageId: string, input: unknown) {
   await requireEventAccessForUser(userId, eventId, ["OWNER", "ADMIN", "MANAGER"]);
-  const data = z.object({ alt: z.string().trim().min(1).max(300).optional(), kind: kind.optional() }).parse(input);
-  return db.$transaction(async (tx) => {
+  const data = z.object({ alt: z.string().trim().min(1).max(300).optional(), kind: kind.optional(), crop:cropSchema.optional(), retry:z.boolean().optional() }).parse(input);
+  const saved = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${eventId}::uuid FOR UPDATE`;
     const image = await tx.eventImage.findFirst({ where: { id: imageId, eventId } });
     if (!image) throw new Error("Image not found.");
     if (data.kind === "POSTER" || data.kind === "COVER") await tx.eventImage.updateMany({ where: { eventId, kind: data.kind, id: { not: imageId } }, data: { kind: "GALLERY" } });
     if (image.kind === "PERSON" && data.kind && data.kind !== "PERSON") await tx.eventPerson.updateMany({ where: { eventId, photoKey: image.storageKey }, data: { photoKey: null } });
-    return tx.eventImage.update({ where: { id: imageId }, data });
+    const previous = image.crop as {revision?:string;previous?:string[]} | null;
+    return tx.eventImage.update({ where: { id: imageId }, data: {alt:data.alt,kind:data.kind,...(data.crop || data.retry ? {crop:{...(data.crop || cropSchema.parse(image.crop || {aspect:"original",x:.5,y:.5})),revision:randomUUID(),previous:[...(previous?.previous || []),...(previous?.revision ? [previous.revision] : [])]},variants:Prisma.DbNull,processingError:null} : {})} });
   });
+  if (data.crop || data.retry) {
+    const {mediaQueue} = await import("../../../worker/queues");
+    const revision = (saved.crop as {revision:string}).revision;
+    await mediaQueue.add("process",{imageId},{jobId:`${imageId}-${revision}`,attempts:5,backoff:{type:"exponential",delay:1000},removeOnComplete:true});
+  }
+  return saved;
 }
 
 export async function reorderImages(userId: string, eventId: string, input: unknown) {
@@ -92,7 +101,9 @@ export async function deleteImage(userId: string, eventId: string, imageId: stri
   if (!image) throw new Error("Image not found.");
   await db.eventImage.update({ where: { id: imageId }, data: { processingError: "Deleting" } });
   // shortcut: an already-running conversion may finish after deletion; add a durable deletion outbox if this occurs in production.
-  for (const key of [image.storageKey, ...Object.keys({ thumb: 1, card: 1, hero: 1, og: 1 }).flatMap(size => ["avif", "webp", "jpg"].map(ext => `${image.storageKey.replace("/original/", "/variants/")}/${size}.${ext}`))]) await storage.delete(key);
+  const crop = image.crop as {revision?:string;previous?:string[]} | null;
+  const versions = ["",...(crop?.previous || []),...(crop?.revision ? [crop.revision] : [])];
+  for (const key of [image.storageKey, ...versions.flatMap(version=>Object.keys({ thumb: 1, card: 1, hero: 1, og: 1 }).flatMap(size => ["avif", "webp", "jpg"].map(ext => `${image.storageKey.replace("/original/", "/variants/")}${version ? `/${version}` : ""}/${size}.${ext}`)))]) await storage.delete(key);
   await db.$transaction(async (tx) => {
     await tx.eventPerson.updateMany({ where: { eventId, photoKey: image.storageKey }, data: { photoKey: null } });
     await tx.eventImage.delete({ where: { id: imageId } });

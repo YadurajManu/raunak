@@ -2,7 +2,7 @@ import { presignMediaRead } from "@/server/providers/storage/s3";
 
 // Only processed event artwork is public; originals and ticket files stay private.
 const publicVariant =
-  /^orgs\/[0-9a-f-]{36}\/events\/[0-9a-f-]{36}\/variants\/[0-9a-f-]{36}\/(thumb|card|hero|og)\.(avif|webp|jpg)$/;
+  /^orgs\/[0-9a-f-]{36}\/events\/[0-9a-f-]{36}\/variants\/[0-9a-f-]{36}\/(?:[0-9a-f-]{36}\/)?(thumb|card|hero|og)\.(avif|webp|jpg)$/;
 
 export async function GET(
   _request: Request,

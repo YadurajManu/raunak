@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Images use pre-generated S3 variants. */
 
 import { useState } from "react";
+import { ImageEditor, ProcessingStatus } from "./media-tools";
 import { useRouter } from "next/navigation";
 import { personRoles } from "@/config/event-options";
 
@@ -14,6 +15,7 @@ type Image = {
   sortOrder: number;
   variants: unknown;
   processingError: string | null;
+  crop?: unknown;
 };
 type Person = {
   id: string;
@@ -43,12 +45,21 @@ function Upload({
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  async function upload(files: FileList | null) {
+  const [current, setCurrent] = useState("");
+  const [detail, setDetail] = useState("");
+  const [remaining, setRemaining] = useState<File[]>([]);
+  const [processing, setProcessing] = useState<{id:string;name:string}[]>([]);
+  async function upload(files: FileList | File[] | null) {
     if (!files?.length) return;
     setBusy(true);
     setError("");
     try {
-      for (const file of Array.from(files)) {
+      const pending = Array.from(files);
+      setRemaining(pending);
+      while (pending.length) {
+        const file = pending[0];
+        setCurrent(file.name); setProgress(0); setDetail("Preparing upload…");
+        const started = performance.now();
         const mime =
           file.type || (/\.hei[cf]$/i.test(file.name) ? "image/heic" : "");
         const presigned = await fetch("/api/uploads/presign", {
@@ -63,16 +74,23 @@ function Upload({
           xhr.open("PUT", signed.url);
           xhr.setRequestHeader("Content-Type", mime);
           xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable)
+            if (event.lengthComputable) {
               setProgress(Math.round((event.loaded / event.total) * 100));
+              const seconds = (performance.now()-started)/1000;
+              const eta = event.loaded && seconds > 1 ? Math.ceil((event.total-event.loaded)/(event.loaded/seconds)) : null;
+              setDetail(`${(event.loaded/1048576).toFixed(1)} / ${(event.total/1048576).toFixed(1)} MB · ${((event.total-event.loaded)/1048576).toFixed(1)} MB left${eta !== null ? ` · about ${eta}s left` : ""}`);
+            }
           };
           xhr.onload = () =>
             xhr.status >= 200 && xhr.status < 300
               ? resolve()
               : reject(new Error("Upload failed."));
           xhr.onerror = () => reject(new Error("Upload failed."));
+          xhr.timeout = 300000;
+          xhr.ontimeout = () => reject(new Error("Upload timed out. Please retry."));
           xhr.send(file);
         });
+        setDetail("Upload complete · verifying file…");
         const confirmed = await fetch("/api/uploads/confirm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -85,17 +103,19 @@ function Upload({
           throw new Error(
             (await confirmed.json()).error || "Could not confirm image.",
           );
+        const image = await confirmed.json();
+        setProcessing(ids => [...ids,{id:image.id,name:file.name}]);
+        pending.shift();
+        setRemaining([...pending]);
       }
-      done();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Upload failed.");
     } finally {
       setBusy(false);
-      setProgress(0);
     }
   }
   return (
-    <div className="space-y-2">
+    <div className="r-upload-box space-y-2">
       <label className="block text-sm font-medium" htmlFor={`upload-${kind}`}>
         Add {kind.toLowerCase()} images
       </label>
@@ -109,18 +129,21 @@ function Upload({
         className="block max-w-full text-sm"
       />
       {busy && (
+        <div role="status"><strong>{current}</strong><p>Uploading {progress}% · {remaining.length} file(s) left</p><small>{detail}</small>
         <progress
           value={progress}
           max={100}
           aria-label="Upload progress"
           className="w-full"
-        />
+        /></div>
       )}
       {error && (
         <p role="alert" className="text-sm text-red-600">
           {error}
         </p>
       )}
+      {error && remaining.length > 0 && <button type="button" className="r-media-button" onClick={() => void upload(remaining)}>Retry remaining uploads</button>}
+      {processing.map(image => <div key={image.id}><strong>{image.name}</strong><ProcessingStatus eventId={eventId} imageId={image.id} onReady={done}/></div>)}
     </div>
   );
 }
@@ -136,6 +159,8 @@ export function MediaManager({
 }) {
   const router = useRouter();
   const [images, setImages] = useState(initialImages);
+  const [lastImages, setLastImages] = useState(initialImages);
+  if (lastImages !== initialImages) { setLastImages(initialImages); setImages(initialImages); }
   const [message, setMessage] = useState("");
   const [dragged, setDragged] = useState<string | null>(null);
   function refresh() {
@@ -176,7 +201,7 @@ export function MediaManager({
   }
   const photoImages = images.filter((image) => image.kind === "PERSON");
   return (
-    <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="r-media-manager mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <section>
         <h2 className="text-xl font-semibold">Event images</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
@@ -231,14 +256,8 @@ export function MediaManager({
                         className="h-full w-full object-cover"
                       />
                     </picture>
-                  ) : image.processingError ? (
-                    <span className="p-4 text-sm text-red-600">
-                      {image.processingError}
-                    </span>
                   ) : (
-                    <span className="text-sm text-[var(--muted)]">
-                      Processing image…
-                    </span>
+                    <ProcessingStatus eventId={eventId} imageId={image.id} onReady={refresh}/>
                   )}
                 </div>
                 <div className="space-y-3 p-4">
@@ -252,7 +271,7 @@ export function MediaManager({
                   >
                     {kinds.map((kind) => (
                       <option key={kind} value={kind}>
-                        {kind}
+                        {({POSTER:"Poster · Discover card",COVER:"Cover · Event header",GALLERY:"Gallery",PERSON:"Lineup photo"})[kind]}
                       </option>
                     ))}
                   </select>
@@ -268,6 +287,7 @@ export function MediaManager({
                     />
                   </label>
                   <div className="flex gap-3 text-sm">
+                    <ImageEditor eventId={eventId} image={image} done={refresh}/>
                     <button
                       disabled={index === 0}
                       onClick={() => {

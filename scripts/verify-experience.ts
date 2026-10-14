@@ -174,6 +174,11 @@ async function main() {
     console.log("Uploaded event PDF through the organizer UI.");
     const { readFile } = await import("node:fs/promises");
     const bytes = await readFile("tests/fixtures/source.png");
+    await page.getByLabel("Add gallery images").setInputFiles([{name:"First gallery.png",mimeType:"image/png",buffer:bytes},{name:"Second gallery.png",mimeType:"image/png",buffer:bytes}]);
+    await page.locator(".r-upload-box .r-processing").nth(1).waitFor();
+    const gallery = await db.eventImage.findMany({where:{eventId,kind:"GALLERY"}});
+    assert.equal(gallery.length,2,"Every selected file must upload.");
+    for(const image of gallery) {await processMedia(image.id);await (await mediaQueue.getJob(image.id))?.remove();}
     const signed = await context.request.post("/api/uploads/presign", {
       headers: { origin: base },
       data: {
@@ -205,6 +210,21 @@ async function main() {
     console.log("Uploaded and processed event poster.");
     const job = await mediaQueue.getJob(imageId);
     if (job) await job.remove();
+    await page.getByRole("button",{name:"Refresh processing status"}).click();
+    const card=page.locator("li").filter({has:page.getByRole("img",{name:"Event poster",exact:true})});
+    await card.getByRole("button",{name:"Crop / resize"}).click();
+    await page.getByRole("radio",{name:"Square 1:1"}).check();
+    await page.getByRole("button",{name:"Save crop"}).waitFor({state:"visible"});
+    await page.getByRole("img",{name:"Crop preview: Event poster"}).waitFor();
+    await page.screenshot({path:"artifacts/experience/crop-editor.png"});
+    const editedResponse=page.waitForResponse(r=>r.url().endsWith(`/images/${imageId}`)&&r.request().method()==="PATCH");
+    await page.getByRole("button",{name:"Save crop"}).click();
+    const edited=await (await editedResponse).json();
+    assert.equal(edited.crop.aspect,"square");
+    await processMedia(imageId);
+    await (await mediaQueue.getJob(`${imageId}-${edited.crop.revision}`))?.remove();
+    await page.getByRole("button",{name:"Refresh processing status"}).click();
+    await page.screenshot({path:"artifacts/experience/media.png",fullPage:true});
     await page.getByRole("link", { name: "Next: set up tickets" }).click();
     await page.waitForURL("**/tickets");
     await page.waitForLoadState("networkidle");
@@ -233,6 +253,13 @@ async function main() {
       .waitFor();
     const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
     assert.equal(event.status, "PUBLISHED");
+    await page.goto(`/dashboard/events/${eventId}/check-in`);
+    await page.getByRole("heading",{name:"Ready to scan"}).waitFor();
+    await page.screenshot({path:"artifacts/experience/scanner.png",fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await page.screenshot({path:"artifacts/experience/scanner-mobile.png",fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});
     await page.goto("/discover?city=Pune");
     await page
       .getByRole("heading", {
@@ -305,6 +332,7 @@ async function main() {
         for (const document of documentsSchema.parse(event.documents))
           await storage.delete(document.key);
         for (const image of event.images) {
+          if(record) { const {deleteImage}=await import("../src/server/media/service");await deleteImage(record.id,eventId,image.id);continue; }
           await storage.delete(image.storageKey);
           if (image.variants)
             for (const value of Object.values(

@@ -4,12 +4,14 @@ import { fileTypeFromBuffer } from "file-type";
 import heicConvert from "heic-convert";
 import { db } from "../../src/server/db/client";
 import { storage } from "../../src/server/providers/storage/s3";
+import { cropRegion, cropSchema } from "../../src/lib/image-crop";
+import { Prisma } from "../../src/generated/prisma/client";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const allowed = new Set(["jpg", "png", "webp", "avif", "gif", "heic", "heif"]);
 const sizes = { thumb: 320, card: 640, hero: 1280, og: 1200 } as const;
 
-export async function processMedia(imageId: string) {
+export async function processMedia(imageId: string, progress: (value:number) => Promise<unknown> = async () => {}) {
   const image = await db.eventImage.findUnique({ where: { id: imageId } });
   if (!image || image.variants) return;
   try {
@@ -17,7 +19,7 @@ export async function processMedia(imageId: string) {
     const detected = await fileTypeFromBuffer(original);
     if (!detected || !allowed.has(detected.ext))
       throw new Error("The upload is not a supported image.");
-    const input =
+    let input =
       detected.ext === "heic" || detected.ext === "heif"
         ? Buffer.from(
             await heicConvert({
@@ -34,6 +36,10 @@ export async function processMedia(imageId: string) {
       metadata.width * metadata.height > 80_000_000
     )
       throw new Error("Image dimensions are invalid or too large.");
+    if (image.crop) {
+      const rotated = await sharp(input).rotate().toBuffer({resolveWithObject:true});
+      input = await sharp(rotated.data).extract(cropRegion(rotated.info.width,rotated.info.height,cropSchema.parse(image.crop))).toBuffer();
+    }
     const { data: raw, info } = await sharp(input)
       .rotate()
       .resize(32, 32, { fit: "inside" })
@@ -48,7 +54,9 @@ export async function processMedia(imageId: string) {
       3,
     );
     const variants: Record<string, Record<string, string>> = {};
-    const base = image.storageKey.replace("/original/", "/variants/");
+    const revision = (image.crop as {revision?:string} | null)?.revision;
+    const base = image.storageKey.replace("/original/", "/variants/") + (revision ? `/${revision}` : "");
+    let completed = 0;
     for (const [size, width] of Object.entries(sizes)) {
       variants[size] = {};
       for (const format of ["avif", "webp", "jpeg"] as const) {
@@ -64,10 +72,11 @@ export async function processMedia(imageId: string) {
         const key = `${base}/${size}.${format === "jpeg" ? "jpg" : format}`;
         await storage.write(key, output, `image/${format}`);
         variants[size][format] = storage.publicUrl(key);
+        await progress(Math.round(++completed / 12 * 100));
       }
     }
-    await db.eventImage.update({
-      where: { id: imageId },
+    await db.eventImage.updateMany({
+      where: { id: imageId, crop:{equals:image.crop ?? Prisma.DbNull} },
       data: {
         variants,
         width: metadata.width,
@@ -78,8 +87,8 @@ export async function processMedia(imageId: string) {
       },
     });
   } catch (error) {
-    await db.eventImage.update({
-      where: { id: imageId },
+    await db.eventImage.updateMany({
+      where: { id: imageId, crop:{equals:image.crop ?? Prisma.DbNull} },
       data: {
         processingError:
           error instanceof Error ? error.message : "Image processing failed.",

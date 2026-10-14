@@ -15,14 +15,14 @@ import { expireOrders } from "../src/server/checkout/service";
 async function main() {
   const pending = await db.eventImage.findMany({
     where: { variants: { equals: Prisma.DbNull }, processingError: null },
-    select: { id: true },
+    select: { id: true, crop:true },
   });
   for (const image of pending)
     await mediaQueue.add(
       "process",
       { imageId: image.id },
       {
-        jobId: image.id,
+        jobId: (image.crop as {revision?:string} | null)?.revision ? `${image.id}-${(image.crop as {revision:string}).revision}` : image.id,
         attempts: 5,
         backoff: { type: "exponential", delay: 1000 },
         removeOnComplete: true,
@@ -30,7 +30,7 @@ async function main() {
     );
   const worker = new Worker<{ imageId: string }>(
     "media",
-    (job) => processMedia(job.data.imageId),
+    (job) => processMedia(job.data.imageId, value => job.updateProgress(value)),
     { connection: mediaConnection, concurrency: 2 },
   );
   await orderQueue.upsertJobScheduler(

@@ -8,7 +8,7 @@ export interface EmailProvider {
     text: string;
     html?: string;
     idempotencyKey?: string;
-    attachments?: { filename: string; content: Buffer }[];
+    attachments?: { filename: string; content: Buffer; contentId?:string }[];
   }): Promise<void>;
 }
 
@@ -38,7 +38,7 @@ const provider: EmailProvider = {
         subject,
         text,
         html,
-        attachments,
+        attachments:attachments?.map(({contentId,...attachment})=>({...attachment,...(contentId?{cid:contentId}:{})})),
         ...(idempotencyKey
           ? { messageId: `<${idempotencyKey}@raunak.yaduraj.me>` }
           : {}),

@@ -215,6 +215,7 @@ model EventImage {
   kind ImageKind
   storageKey String @unique
   variants Json?
+  crop Json?
   width Int?
   height Int?
   blurhash String?

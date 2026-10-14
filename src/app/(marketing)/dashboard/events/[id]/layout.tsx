@@ -1,4 +1,3 @@
-import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
@@ -51,19 +50,19 @@ export default async function EventLayout({
           ["Settings", "/settings"],
         ];
   return (
-    <div className="mx-auto min-h-screen max-w-6xl px-6 py-8">
-      <header className="flex items-center justify-between border-b border-[var(--line)] pb-6 dark:border-[var(--line)]">
+    <div className="r-event-workspace mx-auto min-h-screen max-w-6xl">
+      <header className="flex items-center justify-between gap-4 border-b border-[var(--line)] pb-3">
         <Link
           href={`/dashboard/events?org=${event.orgId}`}
-          className="text-xl font-semibold"
+          className="text-sm text-[var(--muted)] whitespace-nowrap"
         >
-          {APP_NAME}
+          ← Workspace events
         </Link>
         <span className="truncate text-sm">{event.title}</span>
       </header>
       <nav
         aria-label="Event sections"
-        className="mt-8 flex gap-2 overflow-x-auto border-b border-[var(--line)] pb-3 dark:border-[var(--line)]"
+        className="mt-3 flex gap-2 overflow-x-auto border-b border-[var(--line)] pb-3"
       >
         {tabs.map(([label, suffix]) => (
           <Link

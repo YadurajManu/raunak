@@ -22,11 +22,12 @@ import {
 import {
   defaultBodies,
   renderTemplate,
-  escapeHtml,
   triggerSchema,
   whatsappTemplate,
 } from "./templates";
 import { formatInr } from "@/lib/money";
+import QRCode from "qrcode";
+import {emailMarkup} from "./email-markup";
 
 export async function resolvedTemplate(
   orgId: string,
@@ -269,7 +270,7 @@ export async function processNotification(
       quantity: String(log.order.tickets.length),
       order_id: log.orderId,
       amount_paid: formatInr(log.order.totalPaise),
-      ticket_url: ticket
+      ticket_url: ticket && log.trigger !== "ORDER_CONFIRMED"
         ? ticketUrl(ticket.id, ticket.eventId)
         : `${process.env.APP_URL}/orders/${log.orderId}`,
       organizer_name: log.event.org.name,
@@ -292,7 +293,7 @@ export async function processNotification(
           `${log.event.title} · ${log.trigger.toLowerCase().replaceAll("_", " ")}`,
         values,
       );
-      const attachments: { filename: string; content: Buffer }[] = [];
+      const attachments: { filename: string; content: Buffer; contentId?:string }[] = [];
       if (log.trigger === "TICKET_ISSUED" && ticket) {
         if (!ticket.pdfKey)
           throw new Error("Ticket PDF is still being prepared.");
@@ -300,12 +301,13 @@ export async function processNotification(
           filename: `raunak-${ticket.code}.pdf`,
           content: await storage.read(ticket.pdfKey, 10 * 1024 * 1024),
         });
+        attachments.push({filename:`raunak-${ticket.code}-qr.png`,content:await QRCode.toBuffer(ticketUrl(ticket.id,ticket.eventId),{width:440,margin:3,errorCorrectionLevel:"M"}),contentId:"ticket-qr"});
       }
       await providers.email.send({
         to: log.toAddress,
         subject,
         text,
-        html: `<div style="font-family:Arial,sans-serif;padding:28px;background:#f4f1eb;color:#25241f"><h2 style="color:#bd452c">raunak.</h2><p style="white-space:pre-line">${escapeHtml(text)}</p></div>`,
+        html: emailMarkup(text,values,log.trigger === "TICKET_ISSUED" && !!ticket),
         attachments,
         idempotencyKey: id,
       });

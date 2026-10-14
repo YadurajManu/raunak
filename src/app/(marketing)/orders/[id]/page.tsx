@@ -22,6 +22,7 @@ export default async function OrderPage({
       event: true,
       items: { include: { ticketType: true } },
       tickets: true,
+      notificationLogs:{where:{channel:"EMAIL",trigger:{in:["ORDER_CONFIRMED","TICKET_ISSUED"]}},select:{status:true}},
     },
   });
   if (!found) notFound();
@@ -55,6 +56,7 @@ export default async function OrderPage({
       )}
       {order.status === "PAID" && (
         <div className="mt-8 space-y-3">
+          <section className="r-booking-delivery"><h2>Receipt & tickets</h2><p>{found.notificationLogs.some(log=>log.status === "FAILED") ? "Email delivery needs another try. You can resend below or download your tickets." : found.notificationLogs.length && found.notificationLogs.every(log=>["SENT","DELIVERED","READ"].includes(log.status)) ? "Your confirmation and tickets have been sent." : "Your confirmation and QR tickets are being prepared for email."}</p><small>Delivery address: {found.buyerEmail}. Your tickets are also available in My tickets.</small></section>
           {found.items.map((item) => (
             <div
               key={item.ticketTypeId}

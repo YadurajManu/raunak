@@ -335,7 +335,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
       const isSeedImage = image.storageKey.startsWith("/seed/");
       const newKey = isSeedImage
         ? `${image.storageKey}#${duplicate.id}`
-        : `orgs/${source.orgId}/events/${duplicate.id}/original/${randomBytes(16).toString("hex")}`;
+        : `orgs/${source.orgId}/events/${duplicate.id}/original/${randomUUID()}`;
       if (!isSeedImage) {
         await storage.copy(image.storageKey, newKey);
         copiedKeys.push(newKey);
@@ -348,6 +348,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
           variants: isSeedImage
             ? (image.variants ?? Prisma.DbNull)
             : Prisma.DbNull,
+          crop:image.crop ?? Prisma.DbNull,
           width: isSeedImage ? image.width : null,
           height: isSeedImage ? image.height : null,
           blurhash: isSeedImage ? image.blurhash : null,

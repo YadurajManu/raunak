@@ -14,6 +14,11 @@ it("signs processed artwork without exposing original uploads", async () => {
   expect(r.status).toBe(307);
   expect(sign).toHaveBeenCalledWith(key);
 });
+it("serves versioned cropped variants while keeping originals private",async()=>{
+  sign.mockResolvedValue("https://storage.example/signed");
+  const key=`${prefix}/variants/33333333-3333-4333-8333-333333333333/44444444-4444-4444-8444-444444444444/card.webp`;
+  expect((await GET(new Request("https://raunak.example"),{params:Promise.resolve({key:key.split("/")})})).status).toBe(307);
+});
 it.each([
   `${prefix}/original/33333333-3333-4333-8333-333333333333`,
   "tickets/private.pdf",

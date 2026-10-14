@@ -36,7 +36,6 @@ export default async function EventMediaPage({
         Add images and introduce the people behind this event.
       </p>
       <MediaManager
-        key={`${images.map((image) => image.updatedAt.getTime()).join(",")}:${people.map((person) => person.updatedAt.getTime()).join(",")}`}
         eventId={id}
         initialImages={images.map((image) => ({
           id: image.id,
@@ -46,6 +45,7 @@ export default async function EventMediaPage({
           sortOrder: image.sortOrder,
           variants: image.variants,
           processingError: image.processingError,
+          crop: image.crop,
         }))}
         initialPeople={people.map((person) => ({
           id: person.id,

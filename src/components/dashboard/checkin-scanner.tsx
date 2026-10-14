@@ -12,7 +12,7 @@ type Attendee = {
   ticketType: { name: string };
 };
 type Outcome = {
-  result: "VALID" | "ALREADY_USED" | "INVALID";
+  result: "VALID" | "ALREADY_USED" | "INVALID" | "ERROR";
   ticket: {
     holderName: string;
     code: string;
@@ -39,6 +39,9 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Attendee[]>([]);
   const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const resultHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(()=>{if(outcome)resultHeading.current?.focus();},[outcome]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -79,7 +82,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
       router.refresh();
     } catch (error) {
       if (mounted.current) {
-        setOutcome({ result: "INVALID", ticket: null });
+        setOutcome({ result: "ERROR", ticket: null });
         setError(
           error instanceof Error ? error.message : "Could not check in.",
         );
@@ -121,9 +124,11 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
     }
   }
   return (
-    <section className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--line)] p-5">
+    <section className="r-scanner space-y-5">
+      <div className="r-scan-intro"><div><h2>Welcome them in.</h2><p>Scan a ticket QR or find a guest below.</p></div><span>{camera ? "● Camera live" : "Camera off"}</span></div>
+      <div className="r-scan-grid">
+        <div className="r-camera-panel">
+          <div className="r-camera-frame">
           <video
             ref={video}
             className="aspect-[4/3] w-full rounded-xl bg-zinc-950 object-cover"
@@ -131,11 +136,15 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
             playsInline
             aria-label="QR camera preview"
           />
+          <div className="r-scan-target" aria-hidden="true"/>
+          {!camera && <div className="r-camera-placeholder"><span aria-hidden="true">▣</span><p>{starting ? "Opening camera…" : "Ready when you are"}</p><small>Use your rear camera for the clearest scan.</small></div>}
+          {camera && <span className="r-camera-caption">{busy ? "Checking ticket…" : outcome ? "Paused · review result" : "Place the QR inside the frame"}</span>}
+          </div>
           <div className="mt-4 flex flex-wrap gap-3">
             {!camera ? (
               <button
                 className="rounded-xl bg-[var(--accent)] px-5 py-3 text-white"
-                disabled={starting}
+                disabled={starting || busy}
                 onClick={startCamera}
               >
                 {starting ? "Starting camera…" : "Start camera"}
@@ -148,6 +157,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
                   controls.current = null;
                   setCamera(false);
                   setTorchAvailable(false);
+                  setTorch(false);
                 }}
               >
                 Stop camera
@@ -187,25 +197,28 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
             </label>
           </div>
           <p className="mt-3 text-sm">
-            Only staff check-in changes ticket status. Opening a ticket page
-            never admits entry.
+            Each valid scan admits one guest. Keep this screen open for the next ticket.
           </p>
         </div>
         <div
-          className={`rounded-2xl border p-6 ${outcome?.result === "VALID" ? "border-green-700 bg-green-50 text-green-950" : outcome ? "border-red-700 bg-red-50 text-red-950" : "border-[var(--line)]"}`}
+          className="r-scan-result"
+          data-result={outcome?.result || "READY"}
           role="status"
           aria-live="polite"
         >
           <p className="text-sm uppercase tracking-widest">Entry check</p>
-          <h2 className="mt-6 text-4xl font-semibold">
+          <div className="r-scan-symbol" aria-hidden="true">{busy ? "…" : outcome?.result === "VALID" ? "✓" : outcome?.result === "ALREADY_USED" ? "!" : outcome ? "×" : "▣"}</div>
+          <h2 ref={resultHeading} tabIndex={-1} className="mt-3 text-2xl font-semibold">
             {busy
               ? "Checking…"
               : outcome?.result === "VALID"
                 ? "Welcome in."
                 : outcome?.result === "ALREADY_USED"
                   ? "Already checked in"
+                  : outcome?.result === "ERROR"
+                    ? "Could not check ticket"
                   : outcome
-                    ? "Not valid"
+                    ? "Invalid ticket"
                     : "Ready to scan"}
           </h2>
           {outcome?.ticket && (
@@ -238,7 +251,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
                 setError("");
               }}
             >
-              Scan next
+              {outcome.result === "ERROR" ? "Try again / scan next" : "Scan next guest"}
             </button>
           )}
         </div>
@@ -248,6 +261,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
         onSubmit={async (e) => {
           e.preventDefault();
           setError("");
+          setSearching(true);
           try {
             const response = await fetch(
               `/api/checkin?${new URLSearchParams({ eventId, q: query })}`,
@@ -258,7 +272,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
             setSearched(true);
           } catch (error) {
             setError(error instanceof Error ? error.message : "Search failed.");
-          }
+          } finally {setSearching(false);}
         }}
       >
         <label htmlFor="gate-search" className="block font-semibold">
@@ -275,7 +289,7 @@ export function CheckinScanner({ eventId }: { eventId: string }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Name, email, phone, or ticket code"
           />
-          <button className="rounded-xl border px-5 py-3">Search</button>
+          <button disabled={searching} className="rounded-xl border px-5 py-3">{searching ? "Searching…" : "Find guest"}</button>
         </div>
         {searched && !results.length && (
           <p className="mt-4">No paid tickets match this search.</p>
