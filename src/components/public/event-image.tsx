@@ -15,7 +15,7 @@ export function EventImage({
   if (!jpeg)
     return (
       <div
-        className={`flex items-center justify-center bg-indigo-100 text-5xl text-indigo-300 dark:bg-zinc-800 ${className}`}
+        className={`flex items-center justify-center r-image-placeholder text-5xl ${className}`}
         aria-hidden="true"
       >
         ✦

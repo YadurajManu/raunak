@@ -1,6 +1,6 @@
 export function authNextPath(next?: string) {
   return next &&
-    /^\/(?:accept-invite\/[A-Za-z0-9_-]{20,100}|checkout\/[a-z0-9-]{1,150}|my-tickets|account(?:\/profile)?|dashboard|organizer\/setup)$/.test(
+    /^\/(?:orders\/[0-9a-f-]{36}|accept-invite\/[A-Za-z0-9_-]{20,100}|checkout\/[a-z0-9-]{1,150}|my-tickets|account(?:\/profile)?|dashboard|organizer\/setup)$/.test(
       next,
     )
     ? next

@@ -30,11 +30,11 @@ async function main() {
     assert.equal(response.status, 200, result.error?.message);
     return result.idToken as string;
   }
-  async function session(idToken: string) {
+  async function session(idToken: string, rememberMe = true) {
     return fetch(`${origin}/api/auth/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json", origin },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify({ idToken, rememberMe }),
     });
   }
   try {
@@ -48,6 +48,7 @@ async function main() {
       (await first.json()).redirectTo,
       "/onboarding?next=%2Faccount",
     );
+    assert.ok(first.headers.get("set-cookie")?.includes("Max-Age=1209600"));
     const cookie = first.headers.get("set-cookie")?.split(";")[0];
     assert.ok(cookie);
     const profile = await fetch(`${origin}/api/profile`, {
@@ -75,6 +76,24 @@ async function main() {
     });
     assert.equal(account.status, 200);
     assert.ok((await account.text()).includes("Smoke profile saved"));
+    for (const path of ["/", "/login", "/signup"]) {
+      const response: Response = await fetch(`${origin}${path}`, {
+        headers: { cookie },
+        redirect: "manual",
+      });
+      if (response.status === 307)
+        assert.equal(response.headers.get("location"), "/account");
+      else {
+        assert.equal(response.status, 200);
+        assert.ok(
+          (await response.text()).includes("/account"),
+          "Streamed redirect must lead to account",
+        );
+      }
+    }
+    const temporary = await session(await signIn(), false);
+    assert.equal(temporary.status, 200);
+    assert.ok(!temporary.headers.get("set-cookie")?.includes("Max-Age="));
     const logout = await fetch(`${origin}/api/auth/logout`, {
       method: "POST",
       headers: { origin, cookie },

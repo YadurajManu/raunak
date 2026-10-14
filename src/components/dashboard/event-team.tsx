@@ -38,7 +38,7 @@ export function EventTeam({
   }
   return (
     <>
-      <ul className="mt-8 divide-y divide-zinc-200 rounded-2xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+      <ul className="mt-8 divide-y divide-zinc-200 rounded-2xl border border-[var(--line)] dark:divide-zinc-800 dark:border-[var(--line)]">
         {assigned.length ? (
           assigned.map((person) => (
             <li
@@ -47,7 +47,7 @@ export function EventTeam({
             >
               <span>
                 {person.name || person.email}
-                <span className="block text-sm text-zinc-500">
+                <span className="block text-sm text-[var(--muted)]">
                   {person.role}
                 </span>
               </span>
@@ -62,7 +62,7 @@ export function EventTeam({
             </li>
           ))
         ) : (
-          <li className="p-6 text-zinc-500">
+          <li className="p-6 text-[var(--muted)]">
             No one is assigned to this event yet.
           </li>
         )}
@@ -77,7 +77,7 @@ export function EventTeam({
               id="staff-user"
               name="userId"
               required
-              className="mt-2 rounded-xl border border-zinc-300 bg-transparent px-4 py-2 dark:border-zinc-700"
+              className="mt-2 rounded-xl border border-[var(--line)] bg-transparent px-4 py-2 dark:border-[var(--line)]"
             >
               <option value="">Select member</option>
               {members
@@ -92,7 +92,7 @@ export function EventTeam({
                 ))}
             </select>
           </div>
-          <button className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white">
+          <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
             Assign
           </button>
         </form>

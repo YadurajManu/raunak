@@ -7,15 +7,18 @@ type Point = { latitude: number; longitude: number };
 export default function LocationMap({
   point,
   onPick,
+  readOnly = false,
 }: {
   point: Point | null;
   onPick: (point: Point) => void;
+  readOnly?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<LibreMap | null>(null);
   const marker = useRef<Marker | null>(null);
   const callback = useRef(onPick);
   const initialPoint = useRef(point);
+  const editable = useRef(!readOnly);
   const [error, setError] = useState("");
   useEffect(() => {
     callback.current = onPick;
@@ -64,7 +67,10 @@ export default function LocationMap({
             new NavigationControl({ showCompass: false }),
             "top-right",
           );
-          const pin = new Marker({ color: "#FF4B2B", draggable: true });
+          const pin = new Marker({
+            color: "#FF4B2B",
+            draggable: editable.current,
+          });
           marker.current = pin;
           pin
             .getElement()
@@ -77,6 +83,7 @@ export default function LocationMap({
             callback.current({ latitude: value.lat, longitude: value.lng });
           });
           instance.on("click", (event) => {
+            if (!editable.current) return;
             pin.setLngLat(event.lngLat).addTo(instance);
             callback.current({
               latitude: event.lngLat.lat,
@@ -142,7 +149,9 @@ export default function LocationMap({
         </p>
       )}
       <span className="r-map-hint">
-        Tap the map or drag the pin. Use + / − to zoom.
+        {readOnly
+          ? "Venue entrance. Use + / − to zoom."
+          : "Tap the map or drag the pin. Use + / − to zoom."}
       </span>
     </div>
   );

@@ -46,9 +46,49 @@ also be checked interactively with a real Google account.
 ## Current limits
 
 This deploys the implemented application. Checkout/payments, issued QR tickets,
-notifications, scanning, and reporting remain separate development work. Location
+notifications and scanning are implemented. Live payment and notification provider activation and reporting verification remain outstanding. Location
 search/reverse lookup requires a Geoapify key; manual location entry still works.
 
 Database and object storage currently live on one server. Configure off-server
 backups before accepting important customer data. Rotate the Firebase key shared
 in chat, replacing only the ignored server credentials. Railway is no longer used.
+
+## Profile and event experience release
+
+Remembered sessions use a secure HTTP-only cookie for fourteen days. Unchecking
+Remember me leaves a browser-session cookie. Passwords and session tokens are not
+stored in localStorage. Returning users visiting `/`, `/login`, or `/signup` go to
+their dashboard, or onboarding if their profile is incomplete. Existing five-day
+sessions retain their original expiry until the next sign-in.
+
+The dedicated profile editor supports private profile photos (JPEG/PNG/WebP,
+2 MB, cropped and resized to 512 px with metadata stripped) and optional precise
+location storage. Custom photos are preserved on subsequent sign-in.
+
+Event PDFs are private S3 objects, bounded to 10 MB and ten files per event. The
+application permits public downloads only while the event is published; drafts
+require an authorized organizer. PDF downloads are attachments with nosniff.
+Published brochures should not contain private information. Venue pins are public;
+profile pins are private. Discovery, event pages and organizer pages share the
+landing page theme, fonts and light/dark preference.
+
+Migration `20261014100000_event_documents` only adds an Event JSONB column with an
+empty-array default. Run migrations before restarting the new web and worker.
+Because organizer/discovery/event routes moved into the marketing route group,
+remove the obsolete server source folders `src/app/dashboard`, `src/app/discover`
+and `src/app/e` before extracting this release archive; archive extraction alone
+does not remove old files.
+
+Before deploying, tag the currently running image `raunak:previous-experience`
+and take a mode-600 PostgreSQL dump. If login, profile saving or event publishing
+fails after release, retag that image to `raunak:latest` and recreate web/worker;
+the additive migration is compatible with the prior version. Do not drop the new
+column or restore a database dump over subsequent customer writes.
+
+Local checks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`.
+`scripts/verify-experience.ts` exercises a disposable account, remembered return,
+profile/photo saving, event creation, PDF/image uploads, tickets, publishing and
+public discovery on desktop/mobile. It uses the local database and storage and
+must run against the matching local application, not the production server.
+The production authentication smoke script also checks remembered and browser-only
+cookie modes and redirects. No live customer or organizer records are used.

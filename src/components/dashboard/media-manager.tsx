@@ -178,18 +178,18 @@ export function MediaManager({
     <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px]">
       <section>
         <h2 className="text-xl font-semibold">Event images</h2>
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Up to 20 images, 10 MB each. Drag cards or use the arrow buttons to
           reorder.
         </p>
-        <div className="mt-6 grid gap-5 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800 sm:grid-cols-2">
+        <div className="mt-6 grid gap-5 rounded-2xl border border-[var(--line)] p-5 dark:border-[var(--line)] sm:grid-cols-2">
           <Upload eventId={eventId} kind="POSTER" done={refresh} />
           <Upload eventId={eventId} kind="COVER" done={refresh} />
           <Upload eventId={eventId} kind="GALLERY" done={refresh} />
           <Upload eventId={eventId} kind="PERSON" done={refresh} />
         </div>
         {images.length === 0 ? (
-          <p className="mt-8 rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
+          <p className="mt-8 rounded-2xl border border-dashed border-[var(--line)] p-8 text-center text-[var(--muted)] dark:border-[var(--line)]">
             No images yet. Add a poster to start.
           </p>
         ) : (
@@ -211,9 +211,9 @@ export function MediaManager({
                   reorder(next);
                   setDragged(null);
                 }}
-                className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800"
+                className="overflow-hidden rounded-2xl border border-[var(--line)] dark:border-[var(--line)]"
               >
-                <div className="flex h-44 items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+                <div className="flex h-44 items-center justify-center bg-[var(--paper-2)] dark:bg-[var(--paper)]">
                   {variant(image, "card", "jpeg") ? (
                     <picture>
                       <source
@@ -235,7 +235,7 @@ export function MediaManager({
                       {image.processingError}
                     </span>
                   ) : (
-                    <span className="text-sm text-zinc-500">
+                    <span className="text-sm text-[var(--muted)]">
                       Processing image…
                     </span>
                   )}
@@ -247,7 +247,7 @@ export function MediaManager({
                     onChange={(event) =>
                       patchImage(image.id, { kind: event.target.value })
                     }
-                    className="rounded-lg border border-zinc-300 bg-transparent px-2 py-1 text-sm dark:border-zinc-700"
+                    className="rounded-lg border border-[var(--line)] bg-transparent px-2 py-1 text-sm dark:border-[var(--line)]"
                   >
                     {kinds.map((kind) => (
                       <option key={kind} value={kind}>
@@ -263,7 +263,7 @@ export function MediaManager({
                         if (event.target.value !== image.alt)
                           patchImage(image.id, { alt: event.target.value });
                       }}
-                      className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-2 py-1 dark:border-zinc-700"
+                      className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-2 py-1 dark:border-[var(--line)]"
                     />
                   </label>
                   <div className="flex gap-3 text-sm">
@@ -307,7 +307,7 @@ export function MediaManager({
         )}
         <button
           onClick={refresh}
-          className="mt-5 text-sm text-indigo-600 dark:text-indigo-400"
+          className="mt-5 text-sm text-[var(--accent)] dark:text-[var(--accent)]"
         >
           Refresh processing status
         </button>
@@ -387,12 +387,12 @@ function PeopleEditor({
   return (
     <section>
       <h2 className="text-xl font-semibold">Lineup and people</h2>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-[var(--muted)]">
         Speakers, performers, guests, and team members.
       </p>
       <form
         onSubmit={create}
-        className="mt-6 space-y-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800"
+        className="mt-6 space-y-4 rounded-2xl border border-[var(--line)] p-5 dark:border-[var(--line)]"
       >
         <label className="block text-sm">
           Name
@@ -400,7 +400,7 @@ function PeopleEditor({
             name="name"
             required
             maxLength={100}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+            className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
           />
         </label>
         <label className="block text-sm">
@@ -408,7 +408,7 @@ function PeopleEditor({
           <input
             name="title"
             maxLength={100}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+            className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
           />
         </label>
         <label className="block text-sm">
@@ -416,14 +416,14 @@ function PeopleEditor({
           <textarea
             name="bio"
             maxLength={2000}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+            className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
           />
         </label>
         <label className="block text-sm">
           Photo
           <select
             name="photoImageId"
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+            className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
           >
             <option value="">No photo</option>
             {images.map((image) => (
@@ -433,18 +433,18 @@ function PeopleEditor({
             ))}
           </select>
         </label>
-        <button className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white">
+        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
           Add person
         </button>
       </form>
       {people.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-500">No people added yet.</p>
+        <p className="mt-6 text-sm text-[var(--muted)]">No people added yet.</p>
       ) : (
         <ul className="mt-6 space-y-3">
           {people.map((person) => (
             <li
               key={person.id}
-              className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+              className="rounded-xl border border-[var(--line)] p-3 dark:border-[var(--line)]"
             >
               {editing === person.id ? (
                 <form
@@ -457,7 +457,7 @@ function PeopleEditor({
                       name="name"
                       required
                       defaultValue={person.name}
-                      className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+                      className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
                     />
                   </label>
                   <label className="block text-sm">
@@ -465,7 +465,7 @@ function PeopleEditor({
                     <input
                       name="title"
                       defaultValue={person.title || ""}
-                      className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+                      className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
                     />
                   </label>
                   <label className="block text-sm">
@@ -473,7 +473,7 @@ function PeopleEditor({
                     <textarea
                       name="bio"
                       defaultValue={person.bio || ""}
-                      className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+                      className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
                     />
                   </label>
                   <label className="block text-sm">
@@ -485,7 +485,7 @@ function PeopleEditor({
                           (image) => image.storageKey === person.photoKey,
                         )?.id || ""
                       }
-                      className="mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+                      className="mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]"
                     >
                       <option value="">No photo</option>
                       {images.map((image) => (
@@ -496,7 +496,7 @@ function PeopleEditor({
                     </select>
                   </label>
                   <div className="flex gap-3">
-                    <button className="rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white">
+                    <button className="rounded-lg bg-[var(--accent)] px-3 py-2 text-sm text-white">
                       Save
                     </button>
                     <button
@@ -515,7 +515,7 @@ function PeopleEditor({
                       image.storageKey === person.photoKey &&
                       variant(image, "thumb", "jpeg"),
                   ) && (
-<img
+                    <img
                       src={variant(
                         images.find(
                           (image) => image.storageKey === person.photoKey,
@@ -529,12 +529,14 @@ function PeopleEditor({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{person.name}</p>
-                    <p className="text-sm text-zinc-500">{person.title}</p>
+                    <p className="text-sm text-[var(--muted)]">
+                      {person.title}
+                    </p>
                     <p className="mt-2 text-sm">{person.bio}</p>
                   </div>
                   <button
                     onClick={() => setEditing(person.id)}
-                    className="text-sm text-indigo-600"
+                    className="text-sm text-[var(--accent)]"
                   >
                     Edit
                   </button>

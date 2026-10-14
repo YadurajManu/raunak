@@ -6,13 +6,14 @@ import { requireSameOrigin } from "@/server/auth/origin";
 export async function POST(request: Request) {
   try {
     requireSameOrigin(request);
-    const { idToken, next } = z
+    const { idToken, next, rememberMe } = z
       .object({
         idToken: z.string().min(1),
         next: z.string().max(300).optional(),
+        rememberMe: z.boolean().default(true),
       })
       .parse(await request.json());
-    const user = await createSession(idToken);
+    const user = await createSession(idToken, rememberMe);
     return Response.json({ ok: true, redirectTo: postLoginPath(user, next) });
   } catch (error) {
     return Response.json(

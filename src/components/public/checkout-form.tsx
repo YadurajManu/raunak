@@ -145,11 +145,11 @@ export function CheckoutForm({
   }
   if (!items.length)
     return (
-      <div className="mt-8 rounded-2xl border border-zinc-200 p-8 dark:border-zinc-800">
+      <div className="mt-8 rounded-2xl border border-[var(--line)] p-8 dark:border-[var(--line)]">
         Your selection is empty.{" "}
         <a
           href={`/e/${eventSlug}#tickets`}
-          className="text-orange-700 underline"
+          className="text-[var(--accent)] underline"
         >
           Choose tickets
         </a>
@@ -178,7 +178,7 @@ export function CheckoutForm({
             minLength={2}
             maxLength={100}
             autoComplete="name"
-            className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
+            className="mt-2 w-full rounded-xl border border-[var(--line)] bg-transparent px-4 py-3 dark:border-[var(--line)]"
           />
         </label>
         <label className="block text-sm font-medium">
@@ -186,7 +186,7 @@ export function CheckoutForm({
           <input
             value={buyerEmail}
             readOnly
-            className="mt-2 w-full rounded-xl border border-zinc-300 bg-zinc-100 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900"
+            className="mt-2 w-full rounded-xl border border-[var(--line)] bg-[var(--paper-2)] px-4 py-3 dark:border-[var(--line)] dark:bg-[var(--paper-2)]"
           />
         </label>
         <label className="block text-sm font-medium">
@@ -198,7 +198,7 @@ export function CheckoutForm({
             inputMode="numeric"
             required
             placeholder="9876543210"
-            className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
+            className="mt-2 w-full rounded-xl border border-[var(--line)] bg-transparent px-4 py-3 dark:border-[var(--line)]"
           />
         </label>
         <label className="flex items-start gap-3 text-sm">
@@ -208,7 +208,7 @@ export function CheckoutForm({
         </label>
         <button
           disabled={busy || (total > 0 && !ready)}
-          className="w-full rounded-xl bg-orange-700 px-5 py-3 font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[#14120f] disabled:opacity-50"
         >
           {busy
             ? "Please wait…"
@@ -222,7 +222,7 @@ export function CheckoutForm({
           </p>
         )}
       </form>
-      <aside className="h-fit rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+      <aside className="h-fit rounded-2xl border border-[var(--line)] p-5 dark:border-[var(--line)]">
         <h2 className="font-semibold">Order summary</h2>
         {items.map((item) => (
           <div
@@ -235,7 +235,7 @@ export function CheckoutForm({
             <span>{formatInr(item.pricePaise * item.quantity)}</span>
           </div>
         ))}
-        <div className="mt-5 border-t border-zinc-200 pt-4 text-sm dark:border-zinc-800">
+        <div className="mt-5 border-t border-[var(--line)] pt-4 text-sm dark:border-[var(--line)]">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>{formatInr(subtotal)}</span>

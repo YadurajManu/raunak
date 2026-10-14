@@ -2,24 +2,312 @@
 import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
 import { useRouter } from "next/navigation";
-type Attendee = { id: string; holderName: string; holderEmail: string; holderPhone: string | null; code: string; status: string; ticketType: { name: string } };
-type Outcome = { result: "VALID" | "ALREADY_USED" | "INVALID"; ticket: { holderName: string; code: string; ticketType: { name: string }; checkedInAt: string | null; checkedInBy: { name: string | null } | null } | null };
+type Attendee = {
+  id: string;
+  holderName: string;
+  holderEmail: string;
+  holderPhone: string | null;
+  code: string;
+  status: string;
+  ticketType: { name: string };
+};
+type Outcome = {
+  result: "VALID" | "ALREADY_USED" | "INVALID";
+  ticket: {
+    holderName: string;
+    code: string;
+    ticketType: { name: string };
+    checkedInAt: string | null;
+    checkedInBy: { name: string | null } | null;
+  } | null;
+};
 export function CheckinScanner({ eventId }: { eventId: string }) {
-  const router = useRouter(); const video = useRef<HTMLVideoElement>(null); const controls = useRef<IScannerControls | null>(null); const paused = useRef(false); const mounted = useRef(true); const audio = useRef<AudioContext | null>(null);
-  const [camera, setCamera] = useState(false); const [starting, setStarting] = useState(false); const [torchAvailable, setTorchAvailable] = useState(false); const [torch, setTorch] = useState(false); const [sound, setSound] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [outcome, setOutcome] = useState<Outcome | null>(null); const [query, setQuery] = useState(""); const [results, setResults] = useState<Attendee[]>([]); const [searched, setSearched] = useState(false);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; controls.current?.stop(); void audio.current?.close(); }; }, []);
-  function feedback(valid: boolean) { navigator.vibrate?.(valid ? 80 : [80, 50, 80]); if (audio.current?.state === "running") { const oscillator = audio.current.createOscillator(); const gain = audio.current.createGain(); gain.gain.value = 0.08; oscillator.frequency.value = valid ? 880 : 220; oscillator.connect(gain); gain.connect(audio.current.destination); oscillator.start(); oscillator.stop(audio.current.currentTime + 0.12); } }
+  const router = useRouter();
+  const video = useRef<HTMLVideoElement>(null);
+  const controls = useRef<IScannerControls | null>(null);
+  const paused = useRef(false);
+  const mounted = useRef(true);
+  const audio = useRef<AudioContext | null>(null);
+  const [camera, setCamera] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [torchAvailable, setTorchAvailable] = useState(false);
+  const [torch, setTorch] = useState(false);
+  const [sound, setSound] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Attendee[]>([]);
+  const [searched, setSearched] = useState(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      controls.current?.stop();
+      void audio.current?.close();
+    };
+  }, []);
+  function feedback(valid: boolean) {
+    navigator.vibrate?.(valid ? 80 : [80, 50, 80]);
+    if (audio.current?.state === "running") {
+      const oscillator = audio.current.createOscillator();
+      const gain = audio.current.createGain();
+      gain.gain.value = 0.08;
+      oscillator.frequency.value = valid ? 880 : 220;
+      oscillator.connect(gain);
+      gain.connect(audio.current.destination);
+      oscillator.start();
+      oscillator.stop(audio.current.currentTime + 0.12);
+    }
+  }
   async function submit(input: { token: string } | { ticketId: string }) {
-    if (paused.current) return; paused.current = true; setBusy(true); setError("");
-    try { const response = await fetch("/api/checkin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId, ...input }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error); if (!mounted.current) return; setOutcome(data); feedback(data.result === "VALID"); router.refresh(); }
-    catch (error) { if (mounted.current) { setOutcome({ result: "INVALID", ticket: null }); setError(error instanceof Error ? error.message : "Could not check in."); feedback(false); } }
-    finally { if (mounted.current) setBusy(false); }
+    if (paused.current) return;
+    paused.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, ...input }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      if (!mounted.current) return;
+      setOutcome(data);
+      feedback(data.result === "VALID");
+      router.refresh();
+    } catch (error) {
+      if (mounted.current) {
+        setOutcome({ result: "INVALID", ticket: null });
+        setError(
+          error instanceof Error ? error.message : "Could not check in.",
+        );
+        feedback(false);
+      }
+    } finally {
+      if (mounted.current) setBusy(false);
+    }
   }
   async function startCamera() {
-    setStarting(true); setError(""); paused.current = false; setOutcome(null);
-    try { const { BrowserQRCodeReader } = await import("@zxing/browser"); const reader = new BrowserQRCodeReader(); const control = await reader.decodeFromConstraints({ video: { facingMode: { ideal: "environment" } } }, video.current!, result => { if (result && !paused.current) void submit({ token: result.getText() }); }); if (!mounted.current) { control.stop(); return; } controls.current = control; setCamera(true); setTorchAvailable(Boolean(control.switchTorch)); }
-    catch { setError("Camera could not start. Allow camera access, or use manual search below."); }
-    finally { if (mounted.current) setStarting(false); }
+    setStarting(true);
+    setError("");
+    paused.current = false;
+    setOutcome(null);
+    try {
+      const { BrowserQRCodeReader } = await import("@zxing/browser");
+      const reader = new BrowserQRCodeReader();
+      const control = await reader.decodeFromConstraints(
+        { video: { facingMode: { ideal: "environment" } } },
+        video.current!,
+        (result) => {
+          if (result && !paused.current)
+            void submit({ token: result.getText() });
+        },
+      );
+      if (!mounted.current) {
+        control.stop();
+        return;
+      }
+      controls.current = control;
+      setCamera(true);
+      setTorchAvailable(Boolean(control.switchTorch));
+    } catch {
+      setError(
+        "Camera could not start. Allow camera access, or use manual search below.",
+      );
+    } finally {
+      if (mounted.current) setStarting(false);
+    }
   }
-  return <section className="space-y-6"><div className="grid gap-6 md:grid-cols-2"><div className="rounded-2xl border border-zinc-300 p-5"><video ref={video} className="aspect-[4/3] w-full rounded-xl bg-zinc-950 object-cover" muted playsInline aria-label="QR camera preview" /><div className="mt-4 flex flex-wrap gap-3">{!camera ? <button className="rounded-xl bg-orange-700 px-5 py-3 text-white" disabled={starting} onClick={startCamera}>{starting ? "Starting camera…" : "Start camera"}</button> : <button className="rounded-xl border px-5 py-3" onClick={() => { controls.current?.stop(); controls.current = null; setCamera(false); setTorchAvailable(false); }}>Stop camera</button>}{torchAvailable && <button className="rounded-xl border px-5 py-3" onClick={async () => { try { await controls.current?.switchTorch?.(!torch); setTorch(!torch); } catch { setError("Torch is unavailable on this camera."); } }}>Torch {torch ? "off" : "on"}</button>}<label className="flex items-center gap-2"><input type="checkbox" checked={sound} onChange={async e => { const enabled = e.target.checked; setSound(enabled); if (enabled) { audio.current ||= new AudioContext(); await audio.current.resume(); } else { await audio.current?.suspend(); } }} />Sound</label></div><p className="mt-3 text-sm">Only staff check-in changes ticket status. Opening a ticket page never admits entry.</p></div><div className={`rounded-2xl border p-6 ${outcome?.result === "VALID" ? "border-green-700 bg-green-50 text-green-950" : outcome ? "border-red-700 bg-red-50 text-red-950" : "border-zinc-300"}`} role="status" aria-live="polite"><p className="text-sm uppercase tracking-widest">Entry check</p><h2 className="mt-6 text-4xl font-semibold">{busy ? "Checking…" : outcome?.result === "VALID" ? "Welcome in." : outcome?.result === "ALREADY_USED" ? "Already checked in" : outcome ? "Not valid" : "Ready to scan"}</h2>{outcome?.ticket && <div className="mt-5"><p className="text-xl">{outcome.ticket.holderName}</p><p>{outcome.ticket.ticketType.name} · {outcome.ticket.code}</p>{outcome.result === "ALREADY_USED" && <p className="mt-3">{outcome.ticket.checkedInAt ? new Date(outcome.ticket.checkedInAt).toLocaleString() : "Already used"} · {outcome.ticket.checkedInBy?.name || "Entry staff"}</p>}</div>}{error && <p role="alert" className="mt-4">{error}</p>}{outcome && <button className="mt-6 rounded-xl border border-current px-5 py-3" onClick={() => { paused.current = false; setOutcome(null); setError(""); }}>Scan next</button>}</div></div><form className="rounded-2xl border border-zinc-300 p-5" onSubmit={async e => { e.preventDefault(); setError(""); try { const response = await fetch(`/api/checkin?${new URLSearchParams({ eventId, q: query })}`); const data = await response.json(); if (!response.ok) throw new Error(data.error); setResults(data); setSearched(true); } catch (error) { setError(error instanceof Error ? error.message : "Search failed."); } }}><label htmlFor="gate-search" className="block font-semibold">Find an attendee manually</label><div className="mt-3 flex gap-3"><input id="gate-search" className="min-w-0 flex-1 rounded-xl border bg-transparent p-3" value={query} minLength={2} maxLength={100} required onChange={e => setQuery(e.target.value)} placeholder="Name, email, phone, or ticket code" /><button className="rounded-xl border px-5 py-3">Search</button></div>{searched && !results.length && <p className="mt-4">No paid tickets match this search.</p>}<div className="mt-4 space-y-3">{results.map(ticket => <div key={ticket.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"><div><b>{ticket.holderName}</b><p className="text-sm">{ticket.ticketType.name} · {ticket.code} · {ticket.status}</p><p className="text-sm">{ticket.holderEmail}</p></div><button type="button" className="rounded-xl border px-4 py-2" disabled={busy || ticket.status !== "VALID"} onClick={() => { paused.current = false; void submit({ ticketId: ticket.id }); }}>Check in</button></div>)}</div></form></section>;
+  return (
+    <section className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-2xl border border-[var(--line)] p-5">
+          <video
+            ref={video}
+            className="aspect-[4/3] w-full rounded-xl bg-zinc-950 object-cover"
+            muted
+            playsInline
+            aria-label="QR camera preview"
+          />
+          <div className="mt-4 flex flex-wrap gap-3">
+            {!camera ? (
+              <button
+                className="rounded-xl bg-[var(--accent)] px-5 py-3 text-white"
+                disabled={starting}
+                onClick={startCamera}
+              >
+                {starting ? "Starting camera…" : "Start camera"}
+              </button>
+            ) : (
+              <button
+                className="rounded-xl border px-5 py-3"
+                onClick={() => {
+                  controls.current?.stop();
+                  controls.current = null;
+                  setCamera(false);
+                  setTorchAvailable(false);
+                }}
+              >
+                Stop camera
+              </button>
+            )}
+            {torchAvailable && (
+              <button
+                className="rounded-xl border px-5 py-3"
+                onClick={async () => {
+                  try {
+                    await controls.current?.switchTorch?.(!torch);
+                    setTorch(!torch);
+                  } catch {
+                    setError("Torch is unavailable on this camera.");
+                  }
+                }}
+              >
+                Torch {torch ? "off" : "on"}
+              </button>
+            )}
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={sound}
+                onChange={async (e) => {
+                  const enabled = e.target.checked;
+                  setSound(enabled);
+                  if (enabled) {
+                    audio.current ||= new AudioContext();
+                    await audio.current.resume();
+                  } else {
+                    await audio.current?.suspend();
+                  }
+                }}
+              />
+              Sound
+            </label>
+          </div>
+          <p className="mt-3 text-sm">
+            Only staff check-in changes ticket status. Opening a ticket page
+            never admits entry.
+          </p>
+        </div>
+        <div
+          className={`rounded-2xl border p-6 ${outcome?.result === "VALID" ? "border-green-700 bg-green-50 text-green-950" : outcome ? "border-red-700 bg-red-50 text-red-950" : "border-[var(--line)]"}`}
+          role="status"
+          aria-live="polite"
+        >
+          <p className="text-sm uppercase tracking-widest">Entry check</p>
+          <h2 className="mt-6 text-4xl font-semibold">
+            {busy
+              ? "Checking…"
+              : outcome?.result === "VALID"
+                ? "Welcome in."
+                : outcome?.result === "ALREADY_USED"
+                  ? "Already checked in"
+                  : outcome
+                    ? "Not valid"
+                    : "Ready to scan"}
+          </h2>
+          {outcome?.ticket && (
+            <div className="mt-5">
+              <p className="text-xl">{outcome.ticket.holderName}</p>
+              <p>
+                {outcome.ticket.ticketType.name} · {outcome.ticket.code}
+              </p>
+              {outcome.result === "ALREADY_USED" && (
+                <p className="mt-3">
+                  {outcome.ticket.checkedInAt
+                    ? new Date(outcome.ticket.checkedInAt).toLocaleString()
+                    : "Already used"}{" "}
+                  · {outcome.ticket.checkedInBy?.name || "Entry staff"}
+                </p>
+              )}
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="mt-4">
+              {error}
+            </p>
+          )}
+          {outcome && (
+            <button
+              className="mt-6 rounded-xl border border-current px-5 py-3"
+              onClick={() => {
+                paused.current = false;
+                setOutcome(null);
+                setError("");
+              }}
+            >
+              Scan next
+            </button>
+          )}
+        </div>
+      </div>
+      <form
+        className="rounded-2xl border border-[var(--line)] p-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setError("");
+          try {
+            const response = await fetch(
+              `/api/checkin?${new URLSearchParams({ eventId, q: query })}`,
+            );
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            setResults(data);
+            setSearched(true);
+          } catch (error) {
+            setError(error instanceof Error ? error.message : "Search failed.");
+          }
+        }}
+      >
+        <label htmlFor="gate-search" className="block font-semibold">
+          Find an attendee manually
+        </label>
+        <div className="mt-3 flex gap-3">
+          <input
+            id="gate-search"
+            className="min-w-0 flex-1 rounded-xl border bg-transparent p-3"
+            value={query}
+            minLength={2}
+            maxLength={100}
+            required
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Name, email, phone, or ticket code"
+          />
+          <button className="rounded-xl border px-5 py-3">Search</button>
+        </div>
+        {searched && !results.length && (
+          <p className="mt-4">No paid tickets match this search.</p>
+        )}
+        <div className="mt-4 space-y-3">
+          {results.map((ticket) => (
+            <div
+              key={ticket.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+            >
+              <div>
+                <b>{ticket.holderName}</b>
+                <p className="text-sm">
+                  {ticket.ticketType.name} · {ticket.code} · {ticket.status}
+                </p>
+                <p className="text-sm">{ticket.holderEmail}</p>
+              </div>
+              <button
+                type="button"
+                className="rounded-xl border px-4 py-2"
+                disabled={busy || ticket.status !== "VALID"}
+                onClick={() => {
+                  paused.current = false;
+                  void submit({ ticketId: ticket.id });
+                }}
+              >
+                Check in
+              </button>
+            </div>
+          ))}
+        </div>
+      </form>
+    </section>
+  );
 }

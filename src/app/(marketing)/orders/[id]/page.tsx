@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ResendTickets } from "@/components/public/resend-tickets";
-import { notFound } from "next/navigation";
-import { requireUser } from "@/server/auth/session";
+import { z } from "zod";
+import { notFound, redirect } from "next/navigation";
+import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { reconcileOrder } from "@/server/checkout/service";
 import { formatInr } from "@/lib/money";
@@ -11,8 +12,10 @@ export default async function OrderPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireUser();
   const id = (await params).id;
+  if (!z.uuid().safeParse(id).success) notFound();
+  const user = await currentUser();
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/orders/${id}`)}`);
   const found = await db.order.findFirst({
     where: { id, buyerId: user.id },
     include: {
@@ -30,7 +33,7 @@ export default async function OrderPage({
     <main className="mx-auto min-h-screen max-w-2xl px-6 py-12">
       <Link
         href="/my-tickets"
-        className="text-sm text-orange-700 dark:text-orange-400"
+        className="text-sm text-[var(--accent)] dark:text-[var(--accent)]"
       >
         My tickets
       </Link>
@@ -41,7 +44,7 @@ export default async function OrderPage({
             ? "Payment pending"
             : "Order not completed"}
       </h1>
-      <p className="mt-3 text-zinc-600 dark:text-zinc-400">
+      <p className="mt-3 text-[var(--muted)] dark:text-[var(--muted)]">
         {found.event.title} · {formatInr(found.totalPaise)}
       </p>
       <p className="mt-2 text-sm text-zinc-500">Order {found.id}</p>
@@ -55,14 +58,14 @@ export default async function OrderPage({
           {found.items.map((item) => (
             <div
               key={item.ticketTypeId}
-              className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+              className="rounded-xl border border-[var(--line)] p-4 dark:border-[var(--line)]"
             >
               {item.quantity} × {item.ticketType.name}
             </div>
           ))}
           <Link
             href="/my-tickets"
-            className="inline-block rounded-xl bg-orange-700 px-5 py-3 font-medium text-white"
+            className="inline-block rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-[#14120f]"
           >
             View tickets
           </Link>

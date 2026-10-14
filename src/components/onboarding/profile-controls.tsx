@@ -39,11 +39,17 @@ export function ProfileControls({
     <details className="r-profile-menu">
       <summary aria-label="Open profile menu">
         <span>
-          {avatarUrl?.startsWith("https://") && !imageFailed ? (
+          {(avatarUrl?.startsWith("https://") ||
+            avatarUrl?.startsWith("avatars/")) &&
+          !imageFailed ? (
             // Firebase supplies remote profile images; a failed image falls back to initials.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={avatarUrl}
+              src={
+                avatarUrl?.startsWith("avatars/")
+                  ? "/api/profile/avatar"
+                  : avatarUrl
+              }
               alt=""
               referrerPolicy="no-referrer"
               onError={() => setImageFailed(true)}

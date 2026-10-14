@@ -196,6 +196,7 @@ model Event {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
   org Organization @relation(fields: [orgId], references: [id])
+  documents Json @default("[]")
   images EventImage[]
   people EventPerson[]
   staff EventStaff[]

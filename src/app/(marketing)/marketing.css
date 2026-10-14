@@ -1,6 +1,9 @@
 .marketing {
   --paper: #f5f0e6;
   --paper-2: #ede6d8;
+  --surface: var(--paper-2);
+  --yellow: var(--sun);
+  --green: #244e3d;
   --ink: #14120f;
   --muted: #6f695f;
   --accent: #ff4b2b;
@@ -2912,7 +2915,10 @@
   box-shadow: 1.5px 1.5px 0 rgba(0, 0, 0, 0.2);
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease;
 }
 .marketing .m-auth-alert-link:hover,
 .marketing .m-auth-alert-btn:hover {
@@ -4072,6 +4078,290 @@
   font-size: 0.8rem;
 }
 
-.marketing .r-real-ticket { max-width: 540px; padding: 2rem; border: 1px solid var(--m-line); border-radius: 24px; background: var(--m-paper); display: grid; gap: 1rem; }
-.marketing .r-real-ticket img { max-width: 100%; height: auto; border-radius: 12px; }
-.marketing .m-wallet article { display: grid; gap: 1rem; }
+.marketing .r-real-ticket {
+  max-width: 540px;
+  padding: 2rem;
+  border: 1px solid var(--m-line);
+  border-radius: 24px;
+  background: var(--m-paper);
+  display: grid;
+  gap: 1rem;
+}
+.marketing .r-real-ticket img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.marketing .m-wallet article {
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing .r-settings h1,
+.marketing .r-discover h1 {
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+  margin: 20px 0 28px;
+}
+.marketing .r-settings > p,
+.marketing .r-discover-hero > p:last-child {
+  color: var(--muted);
+  max-width: 600px;
+  line-height: 1.7;
+}
+.marketing .r-settings-card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(20px, 3vw, 36px);
+  margin-top: 28px;
+  background: var(--surface);
+}
+.marketing .r-settings-card h2,
+.marketing .r-discover-heading h2 {
+  font-size: 1.6rem;
+  letter-spacing: -0.045em;
+  margin: 8px 0 16px;
+}
+.marketing .r-settings-card p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.marketing .r-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.marketing .r-avatar-large {
+  height: 120px;
+  width: 120px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  overflow: hidden;
+}
+.marketing .r-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.marketing .r-settings-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+.marketing .r-settings-fields label,
+.marketing .r-search label {
+  display: grid;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.marketing .r-settings-fields input,
+.marketing .r-settings-fields select,
+.marketing .r-search input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  min-width: 0;
+}
+.marketing .r-settings-fields small {
+  color: var(--muted);
+}
+.marketing .r-settings-save {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.marketing .m-text-link {
+  display: inline-block;
+  margin: 12px 18px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.marketing .r-discover {
+  max-width: 1240px;
+  margin: auto;
+  padding: 64px 32px 100px;
+}
+.marketing .r-discover-hero {
+  padding: 16px 0 44px;
+}
+.marketing .r-search {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--surface);
+}
+.marketing .r-search .m-button {
+  grid-column: 1/-1;
+  justify-self: start;
+}
+.marketing .r-discover-heading {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 56px 0 20px;
+}
+.marketing .r-discover-heading h2 {
+  margin: 0;
+  flex: 1;
+}
+.marketing .r-event-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  list-style: none;
+  padding: 0;
+}
+.marketing .r-event-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface);
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+.marketing .r-event-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+.marketing .r-event-card > div {
+  padding: 24px;
+}
+.marketing .r-event-card h2 {
+  font-size: 1.6rem;
+  letter-spacing: -0.04em;
+  margin: 12px 0;
+  line-height: 1.15;
+}
+.marketing .r-event-card p {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.marketing .r-event-card strong {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.marketing .r-event-poster {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+.marketing .r-image-placeholder {
+  background: var(--green);
+  color: var(--yellow);
+}
+.marketing .r-event-title {
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  letter-spacing: -0.06em;
+  line-height: 1.05;
+  margin-top: 16px;
+}
+.marketing .r-event-detail article h2 {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 400;
+}
+.marketing .r-event-detail .prose {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.marketing .r-event-detail .prose p {
+  margin: 16px 0;
+}
+.marketing .r-event-detail .prose a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.marketing .r-organizer h1 {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  letter-spacing: -0.055em;
+}
+.marketing .r-organizer input,
+.marketing .r-organizer select,
+.marketing .r-organizer textarea {
+  color: var(--ink);
+  background: var(--paper);
+}
+.marketing .r-organizer button[class*="bg-[var(--accent)]"],
+.marketing .r-event-detail button[class*="bg-[var(--accent)]"] {
+  border: 1px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: #14120f;
+}
+@media (max-width: 900px) {
+  .marketing .r-event-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .marketing .r-search {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .marketing .r-settings-fields,
+  .marketing .r-search,
+  .marketing .r-event-grid {
+    grid-template-columns: 1fr;
+  }
+  .marketing .r-discover {
+    padding: 32px 20px 64px;
+  }
+  .marketing .r-account-header > div {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .marketing .r-account-header {
+    gap: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing .r-event-card {
+    transition: none;
+  }
+  .marketing .r-event-card:hover {
+    transform: none;
+  }
+}
+.marketing .r-document-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.marketing .r-document-row a {
+  color: var(--accent);
+}
+.marketing .r-event-detail .r-map-wrap {
+  margin-top: 24px;
+}
+/* Event browsing keeps all cards above an ordinary document footer. */
+.marketing .r-discover + .m-footer,
+.marketing .r-event-detail > .m-footer {
+  position: relative;
+}

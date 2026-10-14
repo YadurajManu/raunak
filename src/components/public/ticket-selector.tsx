@@ -42,9 +42,11 @@ export function TicketSelector({
     0,
   );
   return (
-    <div className="sticky top-6 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="sticky top-6 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5 shadow-sm dark:border-[var(--line)] dark:bg-[var(--paper)]">
       <h2 className="text-xl font-semibold">Get tickets</h2>
-      <p className="mt-1 text-sm text-zinc-500">Choose your tickets below.</p>
+      <p className="mt-1 text-sm text-[var(--muted)]">
+        Choose your tickets below.
+      </p>
       {visible.length ? (
         <div className="mt-5 space-y-4">
           {visible.map((type) => {
@@ -60,13 +62,13 @@ export function TicketSelector({
             return (
               <div
                 key={type.id}
-                className="border-t border-zinc-200 pt-4 dark:border-zinc-800"
+                className="border-t border-[var(--line)] pt-4 dark:border-[var(--line)]"
               >
                 <div className="flex justify-between gap-3">
                   <div>
                     <p className="font-medium">{type.name}</p>
                     {type.description && (
-                      <p className="mt-1 text-sm text-zinc-500">
+                      <p className="mt-1 text-sm text-[var(--muted)]">
                         {type.description}
                       </p>
                     )}
@@ -79,7 +81,7 @@ export function TicketSelector({
                       </p>
                     )}
                   </div>
-                  <div className="flex h-9 shrink-0 items-center rounded-lg border border-zinc-300 dark:border-zinc-700">
+                  <div className="flex h-9 shrink-0 items-center rounded-lg border border-[var(--line)] dark:border-[var(--line)]">
                     <button
                       type="button"
                       aria-label={`Remove ${type.name}`}
@@ -123,16 +125,18 @@ export function TicketSelector({
           })}
         </div>
       ) : (
-        <p className="mt-5 text-sm text-zinc-500">Tickets are unavailable.</p>
+        <p className="mt-5 text-sm text-[var(--muted)]">
+          Tickets are unavailable.
+        </p>
       )}
-      <div className="mt-6 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+      <div className="mt-6 border-t border-[var(--line)] pt-5 dark:border-[var(--line)]">
         <div className="flex justify-between font-medium">
           <span>
             {count} {count === 1 ? "ticket" : "tickets"}
           </span>
           <span>{formatInr(total)}</span>
         </div>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Any applicable platform fee appears before payment.
         </p>
         <button
@@ -144,7 +148,7 @@ export function TicketSelector({
             );
             router.push(`/checkout/${eventSlug}`);
           }}
-          className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white disabled:opacity-40"
+          className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-40"
         >
           Continue
         </button>

@@ -1,4 +1,5 @@
-import { randomBytes } from "node:crypto";
+import { documentsSchema } from "./documents";
+import { randomUUID, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
@@ -35,10 +36,16 @@ const inputSchema = z
     address: z.string().trim().max(500).optional(),
     mapUrl: z.url().optional(),
     city: z.string().trim().max(100).optional(),
+    lat: z.number().finite().min(-90).max(90).nullable().optional(),
+    lng: z.number().finite().min(-180).max(180).nullable().optional(),
     onlineUrl: z.url().optional(),
     capacity: z.number().int().positive().optional(),
     refundPolicy: z.string().max(5000).optional(),
   })
+  .refine(
+    (data) => (data.lat == null) === (data.lng == null),
+    "Choose both venue coordinates.",
+  )
   .refine((data) => new Date(data.endsAt) > new Date(data.startsAt), {
     message: "End time must be after start time.",
     path: ["endsAt"],
@@ -115,6 +122,8 @@ export async function createEvent(
       address: data.address,
       mapUrl: data.mapUrl,
       city: data.city,
+      lat: data.lat,
+      lng: data.lng,
       onlineUrl: data.onlineUrl,
       capacity: data.capacity,
       refundPolicy: data.refundPolicy,
@@ -161,6 +170,8 @@ export async function updateEvent(
         address: data.address ?? null,
         mapUrl: data.mapUrl ?? null,
         city: data.city ?? null,
+        lat: data.lat ?? null,
+        lng: data.lng ?? null,
         onlineUrl: data.onlineUrl ?? null,
         capacity: data.capacity ?? null,
         refundPolicy: data.refundPolicy ?? null,
@@ -279,6 +290,8 @@ export async function duplicateEvent(userId: string, eventId: string) {
       address: source.address,
       mapUrl: source.mapUrl,
       city: source.city,
+      lat: source.lat,
+      lng: source.lng,
       onlineUrl: source.onlineUrl,
       capacity: source.capacity,
       refundPolicy: source.refundPolicy,
@@ -305,6 +318,19 @@ export async function duplicateEvent(userId: string, eventId: string) {
   const photoKeys = new Map<string, string>();
   const pending: string[] = [];
   try {
+    const documents = [];
+    for (const document of documentsSchema.parse(source.documents)) {
+      const id = randomUUID();
+      const key = `documents/${duplicate.id}/${id}.pdf`;
+      await storage.copy(document.key, key);
+      copiedKeys.push(key);
+      documents.push({ ...document, id, key });
+    }
+    if (documents.length)
+      await db.event.update({
+        where: { id: duplicate.id },
+        data: { documents },
+      });
     for (const image of source.images) {
       const isSeedImage = image.storageKey.startsWith("/seed/");
       const newKey = isSeedImage

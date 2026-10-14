@@ -37,12 +37,20 @@ function normalizeAuthError(
   mode: "login" | "signup",
   emailInput?: string,
   nextPath: string = "/account",
-): { banner: AuthBanner; fieldError?: { field: "email" | "password"; message: string } } {
+): {
+  banner: AuthBanner;
+  fieldError?: { field: "email" | "password"; message: string };
+} {
   const code = (error as { code?: string })?.code || "";
   const raw = error instanceof Error ? error.message : String(error || "");
 
-  if (code === "auth/email-already-in-use" || raw.includes("auth/email-already-in-use")) {
-    const emailParam = emailInput ? `email=${encodeURIComponent(emailInput)}&` : "";
+  if (
+    code === "auth/email-already-in-use" ||
+    raw.includes("auth/email-already-in-use")
+  ) {
+    const emailParam = emailInput
+      ? `email=${encodeURIComponent(emailInput)}&`
+      : "";
     return {
       banner: {
         type: "error",
@@ -92,7 +100,8 @@ function normalizeAuthError(
       banner: {
         type: "error",
         title: "Sign Up Failed",
-        message: "Could not create account with the provided details. Please try again.",
+        message:
+          "Could not create account with the provided details. Please try again.",
       },
     };
   }
@@ -102,7 +111,8 @@ function normalizeAuthError(
       banner: {
         type: "error",
         title: "Password Too Weak",
-        message: "Firebase requires a stronger password. Please use at least 8 characters.",
+        message:
+          "Firebase requires a stronger password. Please use at least 8 characters.",
       },
       fieldError: {
         field: "password",
@@ -125,7 +135,10 @@ function normalizeAuthError(
     };
   }
 
-  if (code === "auth/too-many-requests" || raw.includes("auth/too-many-requests")) {
+  if (
+    code === "auth/too-many-requests" ||
+    raw.includes("auth/too-many-requests")
+  ) {
     return {
       banner: {
         type: "error",
@@ -146,22 +159,30 @@ function normalizeAuthError(
     };
   }
 
-  if (code === "auth/popup-closed-by-user" || raw.includes("auth/popup-closed-by-user")) {
+  if (
+    code === "auth/popup-closed-by-user" ||
+    raw.includes("auth/popup-closed-by-user")
+  ) {
     return {
       banner: {
         type: "info",
         title: "Sign-In Dismissed",
-        message: "The Google sign-in window was closed before completing authentication.",
+        message:
+          "The Google sign-in window was closed before completing authentication.",
       },
     };
   }
 
-  if (code === "auth/network-request-failed" || raw.includes("auth/network-request-failed")) {
+  if (
+    code === "auth/network-request-failed" ||
+    raw.includes("auth/network-request-failed")
+  ) {
     return {
       banner: {
         type: "error",
         title: "Network Connection Error",
-        message: "Could not connect to authentication services. Please verify your internet connection.",
+        message:
+          "Could not connect to authentication services. Please verify your internet connection.",
       },
     };
   }
@@ -175,7 +196,9 @@ function normalizeAuthError(
     banner: {
       type: "error",
       title: "Authentication Failed",
-      message: cleaned || "Something went wrong while processing your request. Please try again.",
+      message:
+        cleaned ||
+        "Something went wrong while processing your request. Please try again.",
     },
   };
 }
@@ -192,6 +215,7 @@ export function AuthForm({
   const router = useRouter();
   const [banner, setBanner] = useState<AuthBanner | null>(null);
   const [busy, setBusy] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
@@ -214,12 +238,13 @@ export function AuthForm({
       body: JSON.stringify({
         idToken: await user.getIdToken(),
         next: nextPath,
+        rememberMe,
       }),
     });
     const result = await response.json();
     if (!response.ok)
       throw new Error(result.error || "Could not start session.");
-    router.push(result.redirectTo || nextPath);
+    router.replace(result.redirectTo || nextPath);
     router.refresh();
   }
 
@@ -270,7 +295,12 @@ export function AuthForm({
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
       await openSession(result.user);
     } catch (error) {
-      const { banner: errBanner } = normalizeAuthError(error, mode, undefined, nextPath);
+      const { banner: errBanner } = normalizeAuthError(
+        error,
+        mode,
+        undefined,
+        nextPath,
+      );
       setBanner(errBanner);
     } finally {
       setBusy(false);
@@ -283,7 +313,8 @@ export function AuthForm({
       setBanner({
         type: "error",
         title: "Email Required",
-        message: "Please enter your email address first so we know where to send the reset link.",
+        message:
+          "Please enter your email address first so we know where to send the reset link.",
       });
       setError("email", {
         type: "manual",
@@ -300,7 +331,12 @@ export function AuthForm({
         message: `We've sent a password reset link to ${email}. Check your inbox and spam folder.`,
       });
     } catch (error) {
-      const { banner: errBanner, fieldError } = normalizeAuthError(error, mode, email, nextPath);
+      const { banner: errBanner, fieldError } = normalizeAuthError(
+        error,
+        mode,
+        email,
+        nextPath,
+      );
       setBanner(errBanner);
       if (fieldError) {
         setError(fieldError.field, {
@@ -393,6 +429,15 @@ export function AuthForm({
               ? "Sign in to your events, your crew, and your tickets."
               : "Your first event is free to host. No card needed."}
           </p>
+          <label className="m-auth-consent">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+              disabled={busy}
+            />
+            <span>Remember me on this device for 14 days</span>
+          </label>
           <button
             type="button"
             disabled={busy}
@@ -512,7 +557,12 @@ export function AuthForm({
             >
               <div className="m-auth-alert-icon" aria-hidden="true">
                 {banner.type === "success" && (
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    width="18"
+                    height="18"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
@@ -521,7 +571,12 @@ export function AuthForm({
                   </svg>
                 )}
                 {banner.type === "error" && (
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    width="18"
+                    height="18"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
@@ -530,7 +585,12 @@ export function AuthForm({
                   </svg>
                 )}
                 {banner.type === "info" && (
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    width="18"
+                    height="18"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"

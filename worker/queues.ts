@@ -5,7 +5,7 @@ export const mediaConnection = new IORedis(
   process.env.REDIS_URL || "redis://localhost:6379",
   { maxRetriesPerRequest: null },
 );
-const producerConnection = new IORedis(
+export const producerConnection = new IORedis(
   process.env.REDIS_URL || "redis://localhost:6379",
   { maxRetriesPerRequest: 1, connectTimeout: 3000 },
 );

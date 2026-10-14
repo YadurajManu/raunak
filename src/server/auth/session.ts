@@ -3,9 +3,9 @@ import { adminAuth } from "@/server/auth/firebase-admin";
 import { db } from "@/server/db/client";
 
 const SESSION_COOKIE = "eventra_session";
-const SESSION_AGE_MS = 5 * 24 * 60 * 60 * 1000;
+const SESSION_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 
-export async function createSession(idToken: string) {
+export async function createSession(idToken: string, rememberMe = true) {
   const decoded = await adminAuth().verifyIdToken(idToken);
   if (!decoded.email)
     throw new Error("An email address is required to sign in.");
@@ -14,9 +14,17 @@ export async function createSession(idToken: string) {
   const session = await adminAuth().createSessionCookie(idToken, {
     expiresIn: SESSION_AGE_MS,
   });
+  const existing = await db.user.findUnique({
+    where: { firebaseUid: decoded.uid },
+  });
   const user = await db.user.upsert({
     where: { firebaseUid: decoded.uid },
-    update: { email: decoded.email, avatarKey: decoded.picture ?? null },
+    update: {
+      email: decoded.email,
+      avatarKey: existing?.avatarKey?.startsWith("avatars/")
+        ? existing.avatarKey
+        : (decoded.picture ?? existing?.avatarKey ?? null),
+    },
     create: {
       firebaseUid: decoded.uid,
       email: decoded.email,
@@ -29,7 +37,7 @@ export async function createSession(idToken: string) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_AGE_MS / 1000,
+    ...(rememberMe ? { maxAge: SESSION_AGE_MS / 1000 } : {}),
   });
   return user;
 }

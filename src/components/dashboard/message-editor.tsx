@@ -98,7 +98,7 @@ export function MessageEditor({
     <section className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-2">
         <form
-          className="space-y-4 rounded-2xl border border-zinc-300 p-6"
+          className="space-y-4 rounded-2xl border border-[var(--line)] p-6"
           onSubmit={(e) => {
             e.preventDefault();
             void act("save", {
@@ -194,7 +194,7 @@ export function MessageEditor({
           <div className="flex flex-wrap gap-3">
             <button
               disabled={busy}
-              className="rounded-xl bg-orange-700 px-5 py-3 text-white"
+              className="rounded-xl bg-[var(--accent)] px-5 py-3 text-white"
             >
               Save settings
             </button>
@@ -217,7 +217,7 @@ export function MessageEditor({
           </div>
           <p role="status">{message}</p>
         </form>
-        <aside className="rounded-2xl border border-zinc-300 p-6">
+        <aside className="rounded-2xl border border-[var(--line)] p-6">
           <p className="text-sm uppercase tracking-wider">
             Preview · does not grant entry
           </p>

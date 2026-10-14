@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+import { currentUser } from "@/server/auth/session";
+import { postLoginPath } from "@/lib/auth-next";
 import type { Metadata } from "next";
 import { faqSchema, marketing } from "@/config/marketing";
 import { pricing, standardFeeLabel } from "@/config/pricing";
@@ -41,7 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", images: ["/opengraph-image"] },
 };
-export default function MarketingPage() {
+export default async function MarketingPage() {
+  const user = await currentUser();
+  if (user) redirect(postLoginPath(user));
   const base = process.env.APP_URL || "http://localhost:3000";
   const schema = [
     {

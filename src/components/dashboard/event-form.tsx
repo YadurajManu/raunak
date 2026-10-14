@@ -1,10 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { localEventTimeToUtc } from "@/lib/dates";
 
+const LocationMap = dynamic(
+  () => import("@/components/onboarding/location-map"),
+  { ssr: false },
+);
 type EventValues = {
+  lat?: number | null;
+  lng?: number | null;
   id: string;
   title: string;
   summary: string | null;
@@ -32,6 +39,36 @@ export function EventForm({
   event?: EventValues;
 }) {
   const router = useRouter();
+  const [point, setPoint] = useState(
+    event?.lat != null && event.lng != null
+      ? { latitude: event.lat, longitude: event.lng }
+      : null,
+  );
+  const [address, setAddress] = useState(event?.address || "");
+  const [city, setCity] = useState(event?.city || "");
+  const [mapMessage, setMapMessage] = useState("");
+  async function pick(value: { latitude: number; longitude: number }) {
+    setPoint(value);
+    setMapMessage("");
+    try {
+      const response = await fetch("/api/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "reverse", ...value }),
+      });
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(
+          "Pin selected. Enter the venue address and city below.",
+        );
+      if (result.places?.[0]) {
+        setAddress(result.places[0].label);
+        setCity(result.places[0].city);
+      }
+    } catch {
+      setMapMessage("Pin selected. Enter the venue address and city below.");
+    }
+  }
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -43,6 +80,8 @@ export function EventForm({
       const timezone = String(form.get("timezone"));
       const body = {
         orgId,
+        lat: point?.latitude ?? null,
+        lng: point?.longitude ?? null,
         title: String(form.get("title")),
         summary: String(form.get("summary")),
         description: String(form.get("description")),
@@ -86,7 +125,7 @@ export function EventForm({
     }
   }
   const input =
-    "mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700";
+    "mt-2 w-full rounded-xl border border-[var(--line)] bg-transparent px-4 py-3 dark:border-[var(--line)]";
   return (
     <form onSubmit={submit} className="mt-8 space-y-8">
       <section className="grid gap-5 sm:grid-cols-2">
@@ -141,7 +180,21 @@ export function EventForm({
           </select>
         </label>
       </section>
-      <section className="grid gap-5 border-t border-zinc-200 pt-7 dark:border-zinc-800 sm:grid-cols-2">
+      <section className="r-settings-card">
+        <h2>Put your venue on the map.</h2>
+        <p>
+          Choose the entrance guests should use. This pin is public on your
+          published event.
+        </p>
+        <LocationMap point={point} onPick={pick} />
+        {point && (
+          <button type="button" onClick={() => setPoint(null)}>
+            Remove pin
+          </button>
+        )}
+        <p role="status">{mapMessage}</p>
+      </section>
+      <section className="grid gap-5 border-t border-[var(--line)] pt-7 dark:border-[var(--line)] sm:grid-cols-2">
         <h2 className="sm:col-span-2 text-xl font-semibold">When and where</h2>
         <label className="text-sm font-medium">
           Starts
@@ -205,7 +258,8 @@ export function EventForm({
           <input
             name="city"
             maxLength={100}
-            defaultValue={event?.city || ""}
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
             className={input}
           />
         </label>
@@ -214,13 +268,19 @@ export function EventForm({
           <input
             name="address"
             maxLength={500}
-            defaultValue={event?.address || ""}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
             className={input}
           />
         </label>
         <label className="sm:col-span-2 text-sm font-medium">
-          Map link
-          <input name="mapUrl" type="url" defaultValue={event?.mapUrl || ""} className={input} />
+          Map link · optional
+          <input
+            name="mapUrl"
+            type="url"
+            defaultValue={event?.mapUrl || ""}
+            className={input}
+          />
         </label>
         <label className="sm:col-span-2 text-sm font-medium">
           Online event link
@@ -232,7 +292,7 @@ export function EventForm({
           />
         </label>
       </section>
-      <section className="grid gap-5 border-t border-zinc-200 pt-7 dark:border-zinc-800 sm:grid-cols-2">
+      <section className="grid gap-5 border-t border-[var(--line)] pt-7 dark:border-[var(--line)] sm:grid-cols-2">
         <h2 className="sm:col-span-2 text-xl font-semibold">Policies</h2>
         <label className="text-sm font-medium">
           Event capacity
@@ -257,7 +317,7 @@ export function EventForm({
       </section>
       <button
         disabled={busy}
-        className="rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white disabled:opacity-50"
+        className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white disabled:opacity-50"
       >
         {event ? "Save details" : "Create draft and continue"}
       </button>

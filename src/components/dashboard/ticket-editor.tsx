@@ -91,7 +91,7 @@ export function TicketEditor({
       <section>
         <h2 className="text-xl font-semibold">Ticket types</h2>
         {types.length === 0 ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
+          <p className="mt-6 rounded-2xl border border-dashed border-[var(--line)] p-8 text-center text-[var(--muted)] dark:border-[var(--line)]">
             No ticket types yet. Add one to get ready for publishing.
           </p>
         ) : (
@@ -99,7 +99,7 @@ export function TicketEditor({
             {types.map((type) => (
               <li
                 key={type.id}
-                className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800"
+                className="rounded-2xl border border-[var(--line)] p-5 dark:border-[var(--line)]"
               >
                 {editing === type.id ? (
                   <TicketForm
@@ -112,7 +112,7 @@ export function TicketEditor({
                     <div className="flex justify-between gap-4">
                       <div>
                         <h3 className="text-lg font-semibold">{type.name}</h3>
-                        <p className="mt-1 text-sm text-zinc-500">
+                        <p className="mt-1 text-sm text-[var(--muted)]">
                           {type.description}
                         </p>
                       </div>
@@ -120,7 +120,7 @@ export function TicketEditor({
                         {formatInr(type.pricePaise)}
                       </span>
                     </div>
-                    <p className="mt-4 text-sm text-zinc-500">
+                    <p className="mt-4 text-sm text-[var(--muted)]">
                       {type.quantitySold} sold · {type.quantityHeld} held ·{" "}
                       {type.quantityTotal -
                         type.quantitySold -
@@ -130,7 +130,7 @@ export function TicketEditor({
                     <div className="mt-5 flex gap-4 text-sm">
                       <button
                         onClick={() => setEditing(type.id)}
-                        className="text-indigo-600 dark:text-indigo-400"
+                        className="text-[var(--accent)] dark:text-[var(--accent)]"
                       >
                         Edit
                       </button>
@@ -150,7 +150,7 @@ export function TicketEditor({
       </section>
       <section>
         <h2 className="text-xl font-semibold">Add ticket type</h2>
-        <div className="mt-5 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+        <div className="mt-5 rounded-2xl border border-[var(--line)] p-5 dark:border-[var(--line)]">
           <TicketForm save={(event) => save(event)} />
         </div>
       </section>
@@ -173,7 +173,7 @@ function TicketForm({
   cancel?(): void;
 }) {
   const input =
-    "mt-1 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700";
+    "mt-1 w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 dark:border-[var(--line)]";
   return (
     <form onSubmit={save} className="space-y-4">
       <label className="block text-sm font-medium">
@@ -273,7 +273,7 @@ function TicketForm({
         Hide from public ticket list
       </label>
       <div className="flex gap-3">
-        <button className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white">
+        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
           {type ? "Save" : "Add ticket"}
         </button>
         {cancel && (

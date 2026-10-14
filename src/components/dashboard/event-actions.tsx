@@ -34,7 +34,7 @@ export function EventActions({
       {status === "DRAFT" && (
         <button
           onClick={() => setStatus("PUBLISHED")}
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-white"
+          className="rounded-xl bg-[var(--accent)] px-4 py-2 text-white"
         >
           Publish
         </button>
@@ -43,7 +43,7 @@ export function EventActions({
         <>
           <button
             onClick={() => setStatus("DRAFT")}
-            className="rounded-xl border border-zinc-300 px-4 py-2 dark:border-zinc-700"
+            className="rounded-xl border border-[var(--line)] px-4 py-2 dark:border-[var(--line)]"
           >
             Unpublish
           </button>
@@ -59,7 +59,7 @@ export function EventActions({
       )}
       <button
         onClick={duplicate}
-        className="rounded-xl border border-zinc-300 px-4 py-2 dark:border-zinc-700"
+        className="rounded-xl border border-[var(--line)] px-4 py-2 dark:border-[var(--line)]"
       >
         Duplicate
       </button>

@@ -4,7 +4,6 @@ export const metadata = { robots: { index: false, follow: false } };
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
-import { AccountShell } from "@/components/onboarding/account-shell";
 export default async function DashboardPage() {
   const user = await currentUser();
   if (!user) redirect("/login?intent=organizer");
@@ -16,13 +15,7 @@ export default async function DashboardPage() {
   });
   if (!memberships.length) redirect("/organizer/setup");
   return (
-    <AccountShell
-      name={user.name || "Your account"}
-      email={user.email}
-      avatarUrl={user.avatarKey}
-      organizer
-      active="Workspaces"
-    >
+    <>
       <p className="m-eyebrow">YOUR IDEAS LIVE HERE</p>
       <h1>
         Let’s make
@@ -48,6 +41,6 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
-    </AccountShell>
+    </>
   );
 }
