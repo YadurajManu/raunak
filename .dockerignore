@@ -8,3 +8,6 @@ test-results
 playwright-report
 src/generated
 *.tsbuildinfo
+*.pem
+garage.toml
+*.log
