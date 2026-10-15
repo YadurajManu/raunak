@@ -14,6 +14,7 @@ export function AccountShell({
             <p className="m-mono">ORGANIZER WORKSPACE</p>
             <NavigationLink href="/dashboard">Workspaces</NavigationLink>
             <NavigationLink href="/dashboard/settings/whatsapp">WhatsApp integration</NavigationLink>
+            <NavigationLink href="/dashboard/settings/messages">Message defaults</NavigationLink>
             <NavigationLink href="/organizer/setup">
               Create a workspace
             </NavigationLink>

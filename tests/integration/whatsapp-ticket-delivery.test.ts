@@ -4,7 +4,7 @@ import { once } from "node:events";
 import Redis from "ioredis";
 import { expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
-import { processNotification } from "@/server/notifications/service";
+import { processNotification, saveMessageTemplate } from "@/server/notifications/service";
 import { whatsapp } from "@/server/providers/whatsapp/provider";
 import { prepareTicketPdfs } from "@/server/tickets/pdf";
 import { storage } from "@/server/providers/storage/s3";
@@ -47,6 +47,10 @@ it("delivers two paid ticket cards through the actual notification handler and k
     expect(engine.sent).toHaveLength(2); expect(engine.sent.every(item => item.kind === "image" && item.bytes > 1000)).toBe(true);
     expect(engine.sent.filter(item => item.text.includes("Test buyer"))).toHaveLength(1);
     expect(send).toHaveBeenCalledTimes(2);
+    await saveMessageTemplate(buyer.id, event.id, { channel: "WHATSAPP", trigger: "ORDER_CONFIRMED", isEnabled: true, body: "Changed message for {{attendee_name}}" });
+    const edited = await db.notificationLog.create({ data: { orgId: org.id, eventId: event.id, orderId: order.id, channel: "WHATSAPP", trigger: "ORDER_CONFIRMED", toAddress: "+919876543210" } });
+    await processNotification(edited.id, { email: { send }, whatsapp });
+    expect(engine.sent.some(item => item.text.includes("Changed message for Test buyer"))).toBe(true);
     const reply = await ticketReply(session.id, "+919876543210");
     expect(reply.match(/\/t\/v1\./g)).toHaveLength(2);
     expect(await ticketReply(session.id, "+919876543219")).not.toContain("/t/v1.");
@@ -71,6 +75,7 @@ it("delivers two paid ticket cards through the actual notification handler and k
     for (const ticket of await db.ticket.findMany({ where: { orderId: order.id } })) if (ticket.pdfKey) await storage.delete(ticket.pdfKey);
     await db.auditLog.deleteMany({ where: { orgId: org.id } });
     await db.organizationMember.deleteMany({ where: { orgId: org.id } });
+    await db.messageTemplate.deleteMany({ where: { orgId: org.id } });
     await db.webhookEvent.deleteMany({ where: { provider: "baileys-inbound", payload: { path: ["sessionId"], equals: session.id } } });
     await db.notificationLog.deleteMany({ where: { orderId: order.id } }); await db.ticket.deleteMany({ where: { orderId: order.id } }); await db.order.delete({ where: { id: order.id } }); await db.ticketType.delete({ where: { id: type.id } }); await db.event.delete({ where: { id: event.id } }); await db.whatsAppSession.delete({ where: { id: session.id } }); await db.organization.delete({ where: { id: org.id } }); await db.user.delete({ where: { id: buyer.id } }); vi.unstubAllEnvs();
   }

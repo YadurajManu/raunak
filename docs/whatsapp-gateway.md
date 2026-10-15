@@ -9,7 +9,7 @@ The requested Baileys extension is under active implementation. Completion is tr
 - [x] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries (policy and routing integration tests pass).
 - [x] W5: signed ticket-card images, PDF and multi-ticket delivery (two real test cards decoded and accepted by check-in; email delivery tested independently).
 - [x] W6: opt-in timestamps, inbound STOP/TICKET and monotonic receipts (STOP blocks a later worker job, duplicate STOP sends one acknowledgement).
-- [ ] W7: full-body template editing, attachment controls, modes and retry UI.
+- [x] W7: full-body template editing, attachment controls, workspace/event defaults, modes and retry UI (saved edits change the next actual mock delivery).
 - [ ] W8: alerts, container/runbook, mock load tests and acceptance checks.
 
 ## Verified upstream references

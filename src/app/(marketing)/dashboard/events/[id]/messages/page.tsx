@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/server/db/client";
 import { defaultBodies } from "@/server/notifications/templates";
 import { MessageEditor } from "@/components/dashboard/message-editor";
+import { attachmentSettingsSchema } from "@/lib/whatsapp";
 export default async function MessagesPage({
   params,
 }: {
@@ -15,7 +16,7 @@ export default async function MessagesPage({
   await requireEventAccessForUser(user.id, id, ["OWNER", "ADMIN", "MANAGER"]);
   const event = await db.event.findUniqueOrThrow({
     where: { id },
-    include: { org: true, messageTemplates: true },
+    include: { org: true },
   });
   const logs = await db.notificationLog.findMany({
     where: { eventId: id },
@@ -27,16 +28,20 @@ export default async function MessagesPage({
       channel: true,
       status: true,
       error: true,
+      errorCode: true,
       toAddress: true,
       attempts: true,
     },
   });
-  const templates = event.messageTemplates.map((t) => ({
+  const effective = await db.messageTemplate.findMany({ where: { orgId: event.orgId, OR: [{ eventId: id }, { eventId: null }] } });
+  effective.sort((a, b) => Number(b.eventId === id) - Number(a.eventId === id));
+  const templates = effective.map((t) => ({
     channel: t.channel,
     trigger: t.trigger,
     body: t.body,
     subject: t.subject,
     isEnabled: t.isEnabled,
+    attachments: attachmentSettingsSchema.parse(t.attachments),
     slots: (t.slots as { custom_note?: string; custom_footer?: string }) || {},
   }));
   return (
@@ -47,6 +52,8 @@ export default async function MessagesPage({
       </p>
       <MessageEditor
         eventId={id}
+        orgId={event.orgId}
+        whatsappMode={event.org.whatsappMode}
         templates={templates}
         defaults={defaultBodies}
         logs={logs}
@@ -64,6 +71,7 @@ export default async function MessagesPage({
           organizer_name: event.org.name,
           support_contact: event.org.supportEmail || "Organizer contact",
           ticket_type: "Ticket preview",
+          ticket_code: "SAMPLE",
           quantity: "1",
           order_id: "PREVIEW",
           amount_paid: "Preview",

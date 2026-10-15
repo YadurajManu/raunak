@@ -8,6 +8,7 @@ export const variables = [
   "venue",
   "city",
   "ticket_type",
+  "ticket_code",
   "quantity",
   "order_id",
   "amount_paid",

@@ -7,7 +7,6 @@ import {
   type Channel,
   type MessageTrigger,
 } from "@/generated/prisma/client";
-import { requireEventAccessForUser } from "@/server/rbac/access";
 import { notificationQueue } from "../../../worker/queues";
 import { ticketUrl } from "@/server/tickets/qr";
 import { storage } from "@/server/providers/storage/s3";
@@ -33,10 +32,12 @@ import { resolveWhatsApp } from "@/server/whatsapp/routing";
 import { ticketCard, eventPoster } from "@/server/tickets/card";
 import type { GatewayMessage } from "@raunak/wa-contracts";
 import sharp from "sharp";
+import { messageAccess } from "./access";
+import { attachmentSettingsSchema } from "@/lib/whatsapp";
 
 export async function resolvedTemplate(
   orgId: string,
-  eventId: string,
+  eventId: string | null,
   trigger: MessageTrigger,
   channel: Channel,
 ) {
@@ -323,7 +324,7 @@ export async function processNotification(
       const route = providers.whatsapp !== whatsapp ? { kind: "official" as const, provider: providers.whatsapp } : await resolveWhatsApp(log.orgId);
       if (route.kind === "gateway") {
         const attachments: GatewayMessage["attachments"] = [];
-        const options = z.object({ ticketCard: z.boolean().default(true), ticketPdf: z.boolean().default(false), poster: z.boolean().default(false) }).parse(template?.attachments || {});
+        const options = attachmentSettingsSchema.parse(template?.attachments || {});
         const largeOrder = log.trigger === "TICKET_ISSUED" && log.order.tickets.length > 10;
         if (largeOrder && ticket?.id !== log.order.tickets[0]?.id) {
           await db.notificationLog.update({ where: { id }, data: { status: "SKIPPED", error: "Large booking delivered in one WhatsApp message with its order link." } });
@@ -399,28 +400,27 @@ export async function processNotification(
 }
 export async function saveMessageTemplate(
   userId: string,
-  eventId: string,
+  eventId: string | null,
   input: unknown,
+  orgId?: string,
 ) {
-  const event = await requireEventAccessForUser(userId, eventId, [
-    "OWNER",
-    "ADMIN",
-    "MANAGER",
-  ]);
+  const event = await messageAccess(userId, eventId, orgId);
+  const organization = await db.organization.findUniqueOrThrow({ where: { id: event.orgId }, select: { whatsappMode: true } });
   const data = z
     .object({
       channel: z.enum(["EMAIL", "WHATSAPP"]),
       trigger: triggerSchema,
       isEnabled: z.boolean(),
-      body: z.string().max(10000),
+      body: z.string().trim().min(1).max(10000),
       subject: z.string().max(200).optional(),
       custom_note: z.string().max(500).default(""),
       custom_footer: z.string().max(200).default(""),
+      attachments: attachmentSettingsSchema.default({ ticketCard: true, ticketPdf: false, poster: false }),
     })
     .parse(input);
   renderTemplate(data.body, {});
   return db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${eventId}::uuid FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "Organization" WHERE id = ${event.orgId}::uuid FOR UPDATE`;
     const current = await tx.messageTemplate.findFirst({
       where: {
         orgId: event.orgId,
@@ -436,7 +436,8 @@ export async function saveMessageTemplate(
       trigger: data.trigger,
       isEnabled: data.isEnabled,
       body:
-        data.channel === "WHATSAPP" ? defaultBodies[data.trigger] : data.body,
+        data.channel === "WHATSAPP" && !["ORG_NUMBER", "PLATFORM_NUMBER"].includes(organization.whatsappMode) ? defaultBodies[data.trigger] : data.body,
+      attachments: data.attachments,
       subject: data.subject,
       slots: {
         custom_note: data.custom_note,
@@ -463,23 +464,20 @@ export async function saveMessageTemplate(
 }
 export async function retryNotification(
   userId: string,
-  eventId: string,
+  eventId: string | null,
   id: string,
+  orgId?: string,
 ) {
-  await requireEventAccessForUser(userId, eventId, [
-    "OWNER",
-    "ADMIN",
-    "MANAGER",
-  ]);
+  const scope = await messageAccess(userId, eventId, orgId);
   z.uuid().parse(id);
   const log = await db.notificationLog.findFirst({
-    where: { id, eventId, status: "FAILED" },
+    where: { id, orgId: scope.orgId, ...(eventId ? { eventId } : {}), status: "FAILED" },
   });
   if (!log) throw new Error("Failed delivery not found.");
   const job = await notificationQueue.getJob(id);
   await db.notificationLog.update({
     where: { id },
-    data: { status: "QUEUED", attempts: 0, error: null },
+    data: { status: "QUEUED", attempts: 0, error: null, errorCode: null },
   });
   if (job && (await job.getState()) === "failed")
     await job.retry("failed", { resetAttemptsMade: true });
