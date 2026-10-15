@@ -1,5 +1,6 @@
 import { gatewayMessageSchema, WaError, type GatewayMessage, type SendResult, waErrorCodes } from "@raunak/wa-contracts";
 import { z } from "zod";
+import type { WhatsAppMediaProvider } from "./provider";
 
 export async function gatewayRequest<T>(path: string, body?: unknown): Promise<T> {
   const config = z.object({ WA_GATEWAY_URL: z.url(), WA_GATEWAY_API_KEY: z.string().min(32) }).parse(process.env);
@@ -16,9 +17,15 @@ export async function gatewayRequest<T>(path: string, body?: unknown): Promise<T
   }
   return result as T;
 }
-export class BaileysGatewayProvider {
+export class BaileysGatewayProvider implements WhatsAppMediaProvider {
   async send(sessionId: string, message: GatewayMessage): Promise<SendResult> {
     if (process.env.WA_UNOFFICIAL_ENABLED !== "true") throw new WaError("KILL_SWITCH");
     return gatewayRequest(`/v1/sessions/${sessionId}/messages`, gatewayMessageSchema.parse(message));
+  }
+  async sendImage(sessionId: string, message: GatewayMessage, image: Buffer) {
+    return this.send(sessionId, { ...message, attachments: [{ kind: "image", mimetype: "image/png", content: image.toString("base64") }] });
+  }
+  async sendDocument(sessionId: string, message: GatewayMessage, document: Buffer, filename: string) {
+    return this.send(sessionId, { ...message, attachments: [{ kind: "document", mimetype: "application/pdf", content: document.toString("base64"), filename }] });
   }
 }

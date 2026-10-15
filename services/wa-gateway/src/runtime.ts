@@ -6,6 +6,7 @@ import { db } from "@/server/db/client";
 import { SessionQueue } from "./queue";
 import { alertSession } from "./alerts";
 import { PolicyEngine } from "./policy";
+import { decodeMedia } from "./media";
 
 const ownLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE', KEYS[1], ARGV[2]) else return 0 end`;
 const releaseLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end`;
@@ -86,6 +87,7 @@ export class GatewayRuntime {
   }
   async send(id: string, input: GatewayMessage): Promise<SendResult> {
     const message = gatewayMessageSchema.parse(input);
+    const media = decodeMedia(message.attachments);
     const session = await db.whatsAppSession.findUnique({ where: { id } });
     const org = await db.organization.findUnique({ where: { id: message.orgId }, select: { whatsappMode: true } });
     if (!session || (org?.whatsappMode === "ORG_NUMBER" ? session.orgId !== message.orgId : org?.whatsappMode !== "PLATFORM_NUMBER" || session.orgId !== null)) throw new WaError("SESSION_DISCONNECTED");
@@ -102,7 +104,7 @@ export class GatewayRuntime {
       if (!message.consent) throw new WaError("NO_CONSENT");
       const current = await this.scoped(id, session.orgId);
       if (current.status !== "CONNECTED") throw new WaError(current.status === "PAUSED" || current.status === "BANNED_SUSPECTED" ? "SESSION_PAUSED" : "SESSION_DISCONNECTED");
-      await this.policy.check(current, message);
+      await this.policy.check(current, message, Math.max(1, media.length));
       if (!await this.redis.set(key, "pending", "EX", 86400, "NX")) {
         const saved = await this.redis.get(key);
         if (saved && saved !== "pending") return resultSchema.parse(JSON.parse(saved));
@@ -119,7 +121,20 @@ export class GatewayRuntime {
         await this.assertOwned(id);
         if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
         if (await db.whatsAppSuppression.findFirst({ where: { phoneE164: message.to, OR: [{ orgId: message.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
-        result = await this.engine.sendText(id, message.to, message.text);
+        if (!media.length) result = await this.engine.sendText(id, message.to, message.text);
+        else {
+          const messageIds: string[] = [];
+          for (let i = 0; i < media.length; i++) {
+            if (i) await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000));
+            await this.assertOwned(id);
+            if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
+            if (await db.whatsAppSuppression.findFirst({ where: { phoneE164: message.to, OR: [{ orgId: message.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
+            const item = media[i], caption = i === 0 ? message.text : "";
+            const sent = item.kind === "image" ? await this.engine.sendImage(id, message.to, item.buffer, caption) : await this.engine.sendDocument(id, message.to, item.buffer, item.filename || "ticket.pdf", item.mimetype, caption);
+            messageIds.push(sent.providerMessageId);
+          }
+          result = { providerMessageId: messageIds[0], messageIds };
+        }
         await this.policy.sent(id);
       } catch (error) {
         if (!(error instanceof WaError) || error.code === "ENGINE_ERROR") {
@@ -129,7 +144,7 @@ export class GatewayRuntime {
       } finally { await this.engine.presence(id, message.to, "paused").catch(() => {}); }
       await this.redis.eval(replaceLock, 1, key, "pending", JSON.stringify(result), 86400);
       if (message.notificationId) {
-        await db.notificationLog.updateMany({ where: { id: message.notificationId, orgId: message.orgId, channel: "WHATSAPP" }, data: { sessionId: id, providerMessageId: result.providerMessageId } });
+        await db.notificationLog.updateMany({ where: { id: message.notificationId, orgId: message.orgId, channel: "WHATSAPP" }, data: { sessionId: id, providerMessageId: result.providerMessageId, attachmentsSent: { items: media.map(({ kind, filename, mimetype }) => ({ kind, filename: filename || null, mimetype })), messageIds: result.messageIds || [result.providerMessageId] } } });
         await this.reconcile(id, result.providerMessageId);
       }
       return result;
@@ -140,7 +155,7 @@ export class GatewayRuntime {
     if (!value) return;
     const status = z.enum(["SENT", "DELIVERED", "READ"]).parse(value);
     const predecessors = status === "READ" ? ["SENDING", "SENT", "DELIVERED"] as const : status === "DELIVERED" ? ["SENDING", "SENT"] as const : ["SENDING"] as const;
-    await db.notificationLog.updateMany({ where: { sessionId, providerMessageId: messageId, status: { in: [...predecessors] } }, data: { status, sentAt: new Date(), error: null } });
+    await db.notificationLog.updateMany({ where: { sessionId, OR: [{ providerMessageId: messageId }, { attachmentsSent: { path: ["messageIds"], array_contains: [messageId] } }], status: { in: [...predecessors] } }, data: { status, sentAt: new Date(), error: null } });
   }
   private async handle(event: EngineEvent) {
     await this.assertOwned(event.sessionId);

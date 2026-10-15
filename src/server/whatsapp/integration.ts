@@ -6,6 +6,7 @@ import { gatewayRequest, BaileysGatewayProvider } from "@/server/providers/whats
 import { producerConnection } from "../../../worker/queues";
 import { APP_NAME } from "@/lib/constants";
 import { WaError } from "@raunak/wa-contracts";
+import { renderTicketCard } from "@/server/tickets/card";
 import { warmupCap } from "./limits";
 export { warmupCap } from "./limits";
 
@@ -58,8 +59,12 @@ export async function integrationAction(userId: string, orgId: string, input: un
     if (!phone?.isValid()) throw new Error("Enter a valid mobile number with country code.");
     const org = await db.organization.findUniqueOrThrow({ where: { id: orgId } });
     if (org.whatsappMode !== "ORG_NUMBER") throw new Error("Select My own number before sending a test.");
-    if (data.sampleTicket) throw new Error("Sample ticket rendering is not available yet.");
-    await new BaileysGatewayProvider().send(session.id, { orgId, clientMessageId: `test:${crypto.randomUUID()}`, trigger: "ORDER_CONFIRMED", consent: true, to: phone.number, timezone: "Asia/Kolkata", text: `${APP_NAME}: your WhatsApp connection is working. This is a test message requested by your workspace administrator.`, attachments: [] });
+    const message = { orgId, clientMessageId: `test:${crypto.randomUUID()}`, trigger: "ORDER_CONFIRMED" as const, consent: true, to: phone.number, timezone: "Asia/Kolkata", text: `${APP_NAME}: your WhatsApp connection is working. This is a test message requested by your workspace administrator.`, attachments: [] };
+    const provider = new BaileysGatewayProvider();
+    if (data.sampleTicket) {
+      const sample = await renderTicketCard({ title: "Your next great event", date: "Sample connection test", venue: org.name, holder: "Test recipient", type: "Sample ticket · no admission", code: "SAMPLE", url: z.url().parse(process.env.APP_URL), sample: true });
+      await provider.sendImage(session.id, message, sample);
+    } else await provider.send(session.id, message);
     return { ok: true };
   }
   return gatewayRequest(`/v1/sessions/${session.id}/${data.action === "pairing" ? "pairing-code" : data.action}`, {

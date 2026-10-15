@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";
-export interface WhatsAppProvider {
+import type { GatewayMessage, SendResult } from "@raunak/wa-contracts";
+export interface WhatsAppMediaProvider {
+  send(sessionId: string, message: GatewayMessage): Promise<SendResult>;
+  sendImage(sessionId: string, message: GatewayMessage, image: Buffer): Promise<SendResult>;
+  sendDocument(sessionId: string, message: GatewayMessage, document: Buffer, filename: string): Promise<SendResult>;
+}
+export interface WhatsAppProvider extends Partial<WhatsAppMediaProvider> {
   sendTemplate(input: {
     to: string;
     templateName: string;

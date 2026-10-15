@@ -30,6 +30,9 @@ import QRCode from "qrcode";
 import {emailMarkup} from "./email-markup";
 import { WaError, transactionalTriggers } from "@raunak/wa-contracts";
 import { resolveWhatsApp } from "@/server/whatsapp/routing";
+import { ticketCard, eventPoster } from "@/server/tickets/card";
+import type { GatewayMessage } from "@raunak/wa-contracts";
+import sharp from "sharp";
 
 export async function resolvedTemplate(
   orgId: string,
@@ -217,7 +220,7 @@ export async function processNotification(
     where: { id },
     include: {
       event: { include: { org: true } },
-      order: { include: { tickets: { include: { ticketType: true } } } },
+      order: { include: { tickets: { include: { ticketType: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] } } },
     },
   });
   if (log.status !== "QUEUED") return;
@@ -319,10 +322,29 @@ export async function processNotification(
       if (!log.order.whatsappOptIn) throw new WaError("NO_CONSENT");
       const route = providers.whatsapp !== whatsapp ? { kind: "official" as const, provider: providers.whatsapp } : await resolveWhatsApp(log.orgId);
       if (route.kind === "gateway") {
-        const text = renderTemplate(template?.body || defaultBodies[log.trigger], values);
+        const attachments: GatewayMessage["attachments"] = [];
+        const options = z.object({ ticketCard: z.boolean().default(true), ticketPdf: z.boolean().default(false), poster: z.boolean().default(false) }).parse(template?.attachments || {});
+        const largeOrder = log.trigger === "TICKET_ISSUED" && log.order.tickets.length > 10;
+        if (largeOrder && ticket?.id !== log.order.tickets[0]?.id) {
+          await db.notificationLog.update({ where: { id }, data: { status: "SKIPPED", error: "Large booking delivered in one WhatsApp message with its order link." } });
+          return;
+        }
+        if (log.trigger === "TICKET_ISSUED" && ticket && !largeOrder) {
+          if (options.ticketCard) attachments.push({ kind: "image", mimetype: "image/png", content: (await ticketCard(ticket.id)).toString("base64") });
+          if (options.ticketPdf) {
+            if (!ticket.pdfKey) throw new Error("Ticket PDF is still being prepared.");
+            attachments.push({ kind: "document", mimetype: "application/pdf", filename: `ticket-${ticket.code}.pdf`, content: (await storage.read(ticket.pdfKey, 10 * 1024 * 1024)).toString("base64") });
+          }
+        } else if (options.poster) {
+          const poster = await eventPoster(log.eventId);
+          if (poster) attachments.push({ kind: "image", mimetype: "image/jpeg", content: (await sharp(poster).resize(1080, 1080, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 75 }).toBuffer()).toString("base64") });
+        }
+        const firstTicket = log.trigger !== "TICKET_ISSUED" || ticket?.id === log.order.tickets[0]?.id;
+        const text = firstTicket ? renderTemplate(template?.body || defaultBodies[log.trigger], values) : "";
+        const fallback = largeOrder ? `${process.env.APP_URL}/orders/${log.orderId}` : values.ticket_url;
         const result = await route.provider.send(route.sessionId, {
           clientMessageId: id, notificationId: id, orgId: log.orgId, to: log.toAddress, trigger: log.trigger, timezone: log.event.timezone,
-          consent: log.order.whatsappOptIn, text: `${text}\n\n${values.ticket_url}`, attachments: [],
+          consent: log.order.whatsappOptIn, text: `${text}\n\n${fallback}`.trim(), attachments,
         });
         await db.notificationLog.update({ where: { id }, data: { sessionId: route.sessionId, providerMessageId: result.providerMessageId, errorCode: null } });
       } else {
