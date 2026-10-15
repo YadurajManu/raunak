@@ -4,7 +4,7 @@ The requested Baileys extension is under active implementation. Completion is tr
 
 - [x] W0: schema, shared contracts, environment, workspace foundations (local migration and typecheck verified).
 - [x] W1: internal HTTP service, mock engine, locks, serialization and deduplication (private HTTP provider integration verified).
-- [ ] W2: real Baileys engine, encrypted PostgreSQL state, lifecycle and addressing.
+- [x] W2 code: real Baileys engine, encrypted PostgreSQL state, lifecycle and addressing (state restore and disconnect mapping tested; phone reconnect/logout acceptance pending).
 - [ ] W3: authorized linking UI, QR/pairing and usage.
 - [ ] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries.
 - [ ] W5: signed ticket-card images, PDF and multi-ticket delivery.
@@ -21,6 +21,8 @@ The requested Baileys extension is under active implementation. Completion is tr
 - [Sending messages](https://baileys.wiki/messaging/sending-messages).
 
 Pinned engine: `baileys@7.0.0-rc14` (ESM). The registry's latest is a release candidate; it is pinned rather than floating. The v7 adapter must persist all Signal key categories including LID mappings, device lists and tokens. Incoming LIDs are not phone numbers; use alternative PN addresses or a known mapping, and never guess a phone number from a LID. The adapter must use BufferJSON and persist key changes before resolving. Pairing waits for socket readiness. No filesystem auth store is used.
+
+The gateway must start as ESM (`pnpm --filter @raunak/wa-gateway start`), because v7 and its Rust bridge do not support the CommonJS import path. `ENCRYPTION_KEY` must be a 32-byte key encoded as 64 hex characters or base64. Keep the key backed up separately from the database. A key change without decrypting and re-encrypting existing rows requires re-linking; rotate under a maintenance window with sockets stopped.
 
 ## Deployment boundary
 

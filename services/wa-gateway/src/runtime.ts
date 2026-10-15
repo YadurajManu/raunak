@@ -4,6 +4,7 @@ import { z } from "zod";
 import { gatewayMessageSchema, transactionalTriggers, WaError, type EngineEvent, type WhatsAppEngine, type GatewayMessage, type SendResult } from "@raunak/wa-contracts";
 import { db } from "@/server/db/client";
 import { SessionQueue } from "./queue";
+import { alertSession } from "./alerts";
 
 const ownLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE', KEYS[1], ARGV[2]) else return 0 end`;
 const releaseLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end`;
@@ -120,8 +121,11 @@ export class GatewayRuntime {
       const now = new Date(), session = await db.whatsAppSession.findUniqueOrThrow({ where: { id: event.sessionId } });
       await db.whatsAppSession.update({ where: { id: event.sessionId }, data: { status: event.status, lastError: event.reason || null,
         ...(event.status === "CONNECTED" ? { phoneE164: event.phoneE164, pushName: event.pushName, lastSeenAt: now, connectedAt: now, warmupStartedAt: session.warmupStartedAt || now } : {}),
-        ...(event.status === "LOGGED_OUT" ? { authStateEnc: null, authVersion: { increment: 1 } } : {}) } });
+        ...(event.status === "LOGGED_OUT" || event.reason === "BAD_SESSION" ? { authStateEnc: null, authVersion: { increment: 1 } } : {}) } });
       if (event.status === "CONNECTED") await this.redis.del(`wa:session:${event.sessionId}:qr`);
+      if (["LOGGED_OUT", "BANNED_SUSPECTED", "PAUSED"].includes(event.status) && session.status !== event.status) {
+        await alertSession(event.sessionId, event.reason || event.status);
+      }
     } else if (event.type === "receipt") {
       const key = `wa:receipt:${event.sessionId}:${event.messageId}`;
       await this.redis.eval(`local old = redis.call('GET',KEYS[1]); local rank={SENT=1,DELIVERED=2,READ=3}; if not old or rank[ARGV[1]]>rank[old] then redis.call('SET',KEYS[1],ARGV[1],'EX',86400) end; return 1`, 1, key, event.status);
