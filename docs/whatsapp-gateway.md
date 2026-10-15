@@ -8,7 +8,7 @@ The requested Baileys extension is under active implementation. Completion is tr
 - [x] W3 code: authorized linking UI, QR/pairing and usage (API authorization tested; real-phone linking acceptance pending).
 - [x] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries (policy and routing integration tests pass).
 - [x] W5: signed ticket-card images, PDF and multi-ticket delivery (two real test cards decoded and accepted by check-in; email delivery tested independently).
-- [ ] W6: opt-in timestamps, inbound STOP/TICKET and receipts.
+- [x] W6: opt-in timestamps, inbound STOP/TICKET and monotonic receipts (STOP blocks a later worker job, duplicate STOP sends one acknowledgement).
 - [ ] W7: full-body template editing, attachment controls, modes and retry UI.
 - [ ] W8: alerts, container/runbook, mock load tests and acceptance checks.
 
@@ -43,5 +43,7 @@ For an immediate runtime stop, set Redis key `wa:kill-switch` to `1`; remove it 
 Gateway retries return the original cached result for 24 hours. A send that crashes after network acceptance but before recording its result remains ambiguous and is not automatically resent. This avoids blind duplicates; email is the backup and an operator must investigate. Exactly-once delivery cannot be guaranteed across a network and process crash. The private gateway must not be exposed through the public application tunnel.
 
 Ticket cards use Sharp PNG composition, a 470-pixel black/white QR with a four-module quiet zone, and the existing signed per-ticket URL. QR decoding is tested at full resolution and at 390-pixel card width. No ticket cards are published in public storage. Above ten tickets, the first WhatsApp ticket job links to the existing authenticated `/orders/[id]` page and the remaining jobs are marked grouped/skipped; this project has no signed order `/t/[token]` route. Email still delivers individual tickets.
+
+Inbound commands are accepted only from new direct messages with an actual PN address or a known v7 LID-to-PN mapping. STOP suppression and the deduplicated inbound outbox are one database transaction; replies survive restarts and cap deferrals. Reply recipients are encrypted in the outbox. Unknown text is recorded only as OTHER, with no message body or raw phone. The sole suppression exception is the one requested STOP acknowledgement; TICKET respects suppression. Platform STOP applies globally, organization STOP applies to that organization.
 
 Link a dedicated spare number, make a two-ticket sandbox booking, scan both delivered QR cards, edit the template and retest, restart the gateway, unlink from the phone, test STOP/TICKET, exercise the kill switch and retry a message. Record the actual results; mock assertions do not substitute for these checks.

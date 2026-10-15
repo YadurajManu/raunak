@@ -5,6 +5,7 @@ import { currentUser } from "@/server/auth/session";
 import { CheckoutForm } from "@/components/public/checkout-form";
 import { whatsappTemplate } from "@/server/notifications/templates";
 import { resolvedTemplate } from "@/server/notifications/service";
+import { resolveWhatsApp } from "@/server/whatsapp/routing";
 
 export default async function CheckoutPage({
   params,
@@ -18,7 +19,8 @@ export default async function CheckoutPage({
   const delivery = await Promise.all(
     (["ORDER_CONFIRMED", "TICKET_ISSUED"] as const).map(async (trigger) => {
       try {
-        whatsappTemplate(trigger);
+        const route = await resolveWhatsApp(event.orgId);
+        if (route.kind === "official") whatsappTemplate(trigger);
         const setting = await resolvedTemplate(
           event.orgId,
           event.id,
@@ -26,8 +28,7 @@ export default async function CheckoutPage({
           "WHATSAPP",
         );
         return Boolean(
-          process.env.WHATSAPP_CLOUD_TOKEN &&
-          process.env.WHATSAPP_PHONE_NUMBER_ID &&
+          (route.kind === "gateway" || process.env.WHATSAPP_CLOUD_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) &&
           setting?.isEnabled !== false,
         );
       } catch {

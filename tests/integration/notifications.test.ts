@@ -78,6 +78,7 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
     idempotencyKey: randomUUID(),
   });
   await prepareTicketPdfs(order.id);
+  expect(order.whatsappOptInAt).toBeInstanceOf(Date);
   await enqueueOrderNotifications(order.id);
   await enqueueOrderNotifications(order.id);
   expect(await db.notificationLog.count({ where: { orderId: order.id } })).toBe(

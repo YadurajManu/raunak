@@ -10,7 +10,8 @@ const roleSchema = z.enum(["ADMIN", "MANAGER", "CHECKIN", "FINANCE"]);
 
 export async function createOrganization(userId: string, input: unknown) {
   const { name, slug } = z.object({ name: nameSchema, slug: slugSchema }).parse(input);
-  return db.organization.create({ data: { name, slug, members: { create: { userId, role: "OWNER" } }, auditLogs: { create: { actorId: userId, action: "organization.created", entityType: "Organization", entityId: slug } } } });
+  const platform = await db.whatsAppSession.findFirst({ where: { orgId: null, label: "default", status: "CONNECTED" }, select: { id: true } });
+  return db.organization.create({ data: { name, slug, whatsappMode: platform ? "PLATFORM_NUMBER" : "DISABLED", members: { create: { userId, role: "OWNER" } }, auditLogs: { create: { actorId: userId, action: "organization.created", entityType: "Organization", entityId: slug } } } });
 }
 
 export async function inviteMember(userId: string, orgId: string, input: unknown) {

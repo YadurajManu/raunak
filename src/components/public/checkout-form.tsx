@@ -204,7 +204,7 @@ export function CheckoutForm({
           />
         </label>
         {whatsappAvailable && <label className="flex items-start gap-3 text-sm">
-          <input type="checkbox" name="whatsappOptIn" className="mt-1" />
+          <input type="checkbox" name="whatsappOptIn" defaultChecked className="mt-1" />
           Send my tickets and event updates to this number on WhatsApp
           (optional).
         </label>}

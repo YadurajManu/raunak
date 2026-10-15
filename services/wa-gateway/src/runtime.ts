@@ -7,6 +7,8 @@ import { SessionQueue } from "./queue";
 import { alertSession } from "./alerts";
 import { PolicyEngine } from "./policy";
 import { decodeMedia } from "./media";
+import { acceptInbound, inboundPayload, replyPhone, ticketReply } from "./inbound";
+import { APP_NAME } from "@/lib/constants";
 
 const ownLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE', KEYS[1], ARGV[2]) else return 0 end`;
 const releaseLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end`;
@@ -18,6 +20,7 @@ export class GatewayRuntime {
   private queue = new SessionQueue();
   private events = new Map<string, Promise<void>>();
   private policy: PolicyEngine;
+  private inboundBusy = false;
   constructor(readonly redis: Redis, readonly engine: WhatsAppEngine) {
     this.policy = new PolicyEngine(redis, engine);
     for (const type of ["status", "qr", "receipt", "inbound"] as const) engine.on(type, event => {
@@ -175,7 +178,51 @@ export class GatewayRuntime {
       const key = `wa:receipt:${event.sessionId}:${event.messageId}`;
       await this.redis.eval(`local old = redis.call('GET',KEYS[1]); local rank={SENT=1,DELIVERED=2,READ=3}; if not old or rank[ARGV[1]]>rank[old] then redis.call('SET',KEYS[1],ARGV[1],'EX',86400) end; return 1`, 1, key, event.status);
       await this.reconcile(event.sessionId, event.messageId);
+    } else if (event.type === "inbound") {
+      await acceptInbound(event);
+      void this.drainInbound().catch(() => console.error(JSON.stringify({ event: "wa.inbound.failed", code: "ENGINE_ERROR" })));
     }
+  }
+  async drainInbound() {
+    if (this.inboundBusy || !this.locks.size) return;
+    this.inboundBusy = true;
+    try {
+      const rows = await db.webhookEvent.findMany({ where: { provider: "baileys-inbound", status: "RECEIVED", AND: [{ OR: [...this.locks.keys()].map(id => ({ payload: { path: ["sessionId"], equals: id } })) }, { payload: { path: ["retryAt"], lte: Date.now() } }] }, take: 20, orderBy: { createdAt: "asc" } });
+      for (const row of rows) {
+        const payload = inboundPayload.parse(row.payload);
+        try {
+          const phone = replyPhone(payload), session = await db.whatsAppSession.findUniqueOrThrow({ where: { id: payload.sessionId } });
+          const text = payload.command === "STOP" ? `${APP_NAME}: WhatsApp updates are now stopped. Your ticket emails will continue.` : await ticketReply(session.id, phone);
+          await this.queue.enqueue(session.id, 0, async () => {
+            await this.assertOwned(session.id);
+            const key = `wa:reply:${row.id}`, previous = await this.redis.get(key);
+            if (previous && previous !== "pending") return;
+            if (previous) throw new WaError("ENGINE_ERROR");
+            await this.policy.check(session, { orgId: session.orgId, clientMessageId: row.id, to: phone, trigger: "ORDER_CONFIRMED", timezone: "Asia/Kolkata", text, consent: true, attachments: [] }, 1, { knownSender: true, stopAcknowledgement: payload.command === "STOP" });
+            const delay = await this.policy.pace(session.id, text);
+            await this.engine.presence(session.id, phone, "composing");
+            try {
+              await new Promise(resolve => setTimeout(resolve, delay));
+              await this.assertOwned(session.id);
+              if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
+              if (payload.command !== "STOP" && await db.whatsAppSuppression.findFirst({ where: { phoneE164: phone, OR: [{ orgId: session.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
+              if (!await this.redis.set(key, "pending", "EX", 86400, "NX")) throw new WaError("ENGINE_ERROR");
+              let result: SendResult;
+              try { result = await this.engine.sendText(session.id, phone, text); }
+              catch {
+                if (await this.policy.failed(session.id)) await alertSession(session.id, "CIRCUIT_BREAKER").catch(() => {});
+                throw new WaError("ENGINE_ERROR");
+              }
+              await this.redis.set(key, JSON.stringify(result), "EX", 86400); await this.policy.sent(session.id);
+            } finally { await this.engine.presence(session.id, phone, "paused").catch(() => {}); }
+          });
+          await db.webhookEvent.update({ where: { id: row.id }, data: { status: "PROCESSED", processedAt: new Date() } });
+        } catch (error) {
+          const retry = error instanceof WaError && error.retryable && (payload.attempts < 5 || ["WA_CAP_REACHED", "QUIET_HOURS"].includes(error.code));
+          await db.webhookEvent.update({ where: { id: row.id }, data: { status: retry ? "RECEIVED" : "FAILED", payload: { ...payload, attempts: payload.attempts + 1, retryAt: Date.now() + (error instanceof WaError ? Math.max(5000, error.retryAfterMs) : 60000) } } });
+        }
+      }
+    } finally { this.inboundBusy = false; }
   }
   async boot() {
     if (process.env.WA_UNOFFICIAL_ENABLED !== "true") return;

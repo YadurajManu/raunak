@@ -9,6 +9,7 @@ import {
 } from "@/server/providers/payments/cashfree";
 
 import { queueTicketDelivery } from "@/server/tickets/delivery";
+import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 
 const cartSchema = z.object({
   eventId: z.uuid(),
@@ -24,7 +25,8 @@ const cartSchema = z.object({
   buyerName: z.string().trim().min(2).max(100),
   buyerPhone: z
     .string()
-    .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number."),
+    .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number.")
+    .refine(phone => parsePhoneNumberFromString(phone, "IN")?.isValid(), "Enter a valid Indian mobile number."),
   whatsappOptIn: z.boolean().default(false),
   idempotencyKey: z.uuid(),
 });
@@ -168,6 +170,7 @@ export async function createCheckout(
             buyerEmail: buyer.email,
             buyerPhone: data.buyerPhone,
             whatsappOptIn: data.whatsappOptIn,
+            whatsappOptInAt: data.whatsappOptIn ? now : null,
             idempotencyKey: data.idempotencyKey,
             subtotalPaise,
             feePaise,

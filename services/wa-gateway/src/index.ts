@@ -13,6 +13,8 @@ const runtime: GatewayRuntime = new GatewayRuntime(redis, config.WA_GATEWAY_ENGI
 const server = gatewayServer(runtime, config.WA_GATEWAY_API_KEY);
 server.listen(config.WA_GATEWAY_PORT, config.WA_GATEWAY_HOST, () => console.info(JSON.stringify({ event: "wa.gateway.started", engine: config.WA_GATEWAY_ENGINE })));
 await runtime.boot();
-async function shutdown() { server.close(); await runtime.close(); await redis.quit(); await db.$disconnect(); }
+const inboundTimer = setInterval(() => { void runtime.drainInbound().catch(() => console.error(JSON.stringify({ event: "wa.inbound.failed", code: "ENGINE_ERROR" }))); }, 15000);
+inboundTimer.unref();
+async function shutdown() { clearInterval(inboundTimer); server.close(); await runtime.close(); await redis.quit(); await db.$disconnect(); }
 process.once("SIGTERM", () => { void shutdown(); });
 process.once("SIGINT", () => { void shutdown(); });

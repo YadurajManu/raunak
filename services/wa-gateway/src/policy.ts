@@ -29,7 +29,7 @@ return 0`;
 export class PolicyEngine {
   readonly config;
   constructor(private redis: Redis, private engine: WhatsAppEngine, private now = () => Date.now()) { this.config = policyConfigSchema.parse(process.env); }
-  async check(session: WhatsAppSession, message: GatewayMessage, count = 1) {
+  async check(session: WhatsAppSession, message: Omit<GatewayMessage, "orgId"> & { orgId: string | null }, count = 1, reply?: { knownSender: boolean; stopAcknowledgement: boolean }) {
     const now = this.now();
     if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
     if (session.status === "PAUSED" || session.status === "BANNED_SUSPECTED") throw new WaError("SESSION_PAUSED");
@@ -38,18 +38,19 @@ export class PolicyEngine {
     const phone = parsePhoneNumberFromString(message.to, "IN");
     if (!phone?.isValid() || phone.number !== message.to) throw new WaError("NOT_ON_WHATSAPP");
     if (message.notificationId) {
+      if (!message.orgId) throw new WaError("NO_CONSENT");
       const log = await db.notificationLog.findFirst({ where: { id: message.notificationId, orgId: message.orgId, channel: "WHATSAPP", toAddress: phone.number, trigger: message.trigger }, include: { order: true } });
       if (!log || !log.order.whatsappOptIn || parsePhoneNumberFromString(log.order.buyerPhone || "", "IN")?.number !== phone.number) throw new WaError("NO_CONSENT");
     }
-    if (await db.whatsAppSuppression.findFirst({ where: { phoneE164: phone.number, OR: [{ orgId: message.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
+    if (!reply?.stopAcknowledgement && await db.whatsAppSuppression.findFirst({ where: { phoneE164: phone.number, OR: [{ orgId: message.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
     const quiet = quietDelay(message.trigger, message.timezone, now);
     if (quiet) throw new WaError("QUIET_HOURS", true, quiet);
     const recipient = createHash("sha256").update(phone.number).digest("hex");
     const numberKey = `wa:verified:${session.id}:${recipient}`;
     const cached = await this.redis.get(numberKey);
-    if (cached !== "1") {
+    if (cached !== "1" && !reply?.knownSender) {
       if (!await this.engine.isOnWhatsApp(session.id, phone.number)) {
-        await db.whatsAppSuppression.upsert({ where: { orgId_phoneE164: { orgId: message.orgId, phoneE164: phone.number } }, update: {}, create: { orgId: message.orgId, phoneE164: phone.number, reason: "NOT_ON_WHATSAPP" } });
+        await db.whatsAppSuppression.createMany({ data: { orgId: message.orgId, phoneE164: phone.number, reason: "NOT_ON_WHATSAPP" }, skipDuplicates: true });
         throw new WaError("NOT_ON_WHATSAPP");
       }
       await this.redis.set(numberKey, "1", "EX", 7 * 86400);
