@@ -67,6 +67,36 @@ it("rejects malformed, mismatched and oversized media at the gateway boundary", 
     ]),
   ).toThrow("MEDIA_TOO_LARGE");
 });
+it("keeps the signed QR readable with artwork, long labels and an unavailable poster", async () => {
+  const url = ticketUrl(randomUUID(), randomUUID());
+  const poster = await sharp(
+    Buffer.from(
+      '<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="400" fill="#ff593a"/><circle cx="300" cy="200" r="150" fill="#ffcc4d"/></svg>',
+    ),
+  )
+    .png()
+    .toBuffer();
+  for (const artwork of [poster, Buffer.from("unavailable artwork")]) {
+    const image = await renderTicketCard({
+      title:
+        "An exceptionally long event title that should wrap safely without obscuring any important ticket details",
+      date: "24 Oct 2026 · 6:00 pm IST",
+      venue:
+        "A long venue address with neighbourhood and city information, Mumbai, Maharashtra",
+      holder: "Aditi Sharma",
+      organizer: "Independent Arts & Culture Collective",
+      type: "General admission",
+      code: "PREVIEW123",
+      url,
+      poster: artwork,
+    });
+    expect(image.length).toBeLessThan(1024 * 1024);
+    expect(await decodeCard(image)).toBe(url);
+    expect(
+      await decodeCard(await sharp(image).resize(390).png().toBuffer()),
+    ).toBe(url);
+  }
+});
 it("decodes different signed payloads reliably across integer module sizes", async () => {
   for (let index = 1; index <= 12; index++) {
     const url = ticketUrl(

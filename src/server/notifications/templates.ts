@@ -38,9 +38,9 @@ export function escapeHtml(value: string) {
 }
 export const defaultBodies: Record<MessageTrigger, string> = {
   ORDER_CONFIRMED:
-    "Hi {{attendee_name}}, your booking for {{event_title}} is confirmed. {{quantity}} ticket(s), total {{amount_paid}}. Order {{order_id}}.\n{{ticket_url}}\n{{custom_note}}\n{{custom_footer}}",
+    "Raunak · Booking confirmed\n\nHi {{attendee_name}}, you’re on the list!\n\n{{event_title}}\n{{event_date}} · {{event_time}}\n{{venue}} · {{city}}\nHosted by {{organizer_name}}\n\n{{quantity}} ticket(s) · Paid {{amount_paid}}\nBooking reference: {{order_id}}\n\nYour booking & tickets:\n{{ticket_url}}\n\n{{custom_note}}\n{{custom_footer}}\nNeed a hand? {{support_contact}}",
   TICKET_ISSUED:
-    "Hi {{attendee_name}}, here is your {{ticket_type}} ticket for {{event_title}}.\n{{event_date}} at {{event_time}} · {{venue}}\nYour entry ticket: {{ticket_url}}\n{{custom_note}}\n{{custom_footer}}",
+    "Raunak · Your way in\n\nHi {{attendee_name}}, your ticket is ready.\n\n{{event_title}}\n{{event_date}} · {{event_time}}\n{{venue}} · {{city}}\nHosted by {{organizer_name}}\n\n{{ticket_type}} · {{ticket_code}}\nShow your ticket’s QR at entry. Each admission ticket has its own QR; keep it private.\n\nOpen your ticket:\n{{ticket_url}}\n\n{{custom_note}}\n{{custom_footer}}\nNeed a hand? {{support_contact}}",
   PAYMENT_FAILED:
     "Your payment for {{event_title}} was not completed. No tickets have been issued. You can try a new booking. Order {{order_id}}.\n{{custom_note}}\n{{support_contact}}",
   REMINDER_24H:

@@ -14,7 +14,7 @@ import { resolveWhatsApp } from "@/server/whatsapp/routing";
 import { producerConnection } from "../../../worker/queues";
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 import { APP_NAME } from "@/lib/constants";
-import { renderTicketCard } from "@/server/tickets/card";
+import { renderTicketCard, eventPoster } from "@/server/tickets/card";
 import { attachmentSettingsSchema } from "@/lib/whatsapp";
 export async function resetMessageTemplate(
   userId: string,
@@ -97,10 +97,21 @@ export async function sendMessageTest(
       timeZone: event.timezone,
     }).format(event.startsAt),
     event_time: new Intl.DateTimeFormat("en-IN", {
-      timeStyle: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
       timeZone: event.timezone,
     }).format(event.startsAt),
-    venue: event.venueName || "Online event",
+    venue:
+      [
+        event.venueName,
+        event.address && event.address !== event.venueName
+          ? event.address
+          : null,
+      ]
+        .filter(Boolean)
+        .join(", ") ||
+      (event.mode === "ONLINE" ? "Online event" : "Venue to be announced"),
     city: event.city || "",
     ticket_type: "TEST PREVIEW",
     ticket_code: "SAMPLE",
@@ -153,6 +164,8 @@ export async function sendMessageTest(
           date: `${values.event_date} · ${values.event_time}`,
           venue: values.venue,
           holder: values.attendee_name,
+          organizer: event.org.name,
+          poster: await eventPoster(event.id),
           type: "Sample ticket",
           code: "SAMPLE",
           url: values.ticket_url,

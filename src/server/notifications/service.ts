@@ -275,14 +275,23 @@ export async function processNotification(
         timeZone: log.event.timezone,
       }).format(log.event.startsAt),
       event_time: new Intl.DateTimeFormat("en-IN", {
-        timeStyle: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
         timeZone: log.event.timezone,
       }).format(log.event.startsAt),
       venue:
-        log.event.venueName ||
+        [
+          log.event.venueName,
+          log.event.address && log.event.address !== log.event.venueName
+            ? log.event.address
+            : null,
+        ]
+          .filter(Boolean)
+          .join(", ") ||
         (log.event.mode === "ONLINE"
           ? "Online event"
-          : log.event.address || "Venue to be announced"),
+          : "Venue to be announced"),
       city: log.event.city || "",
       ticket_type: ticket?.ticketType.name || "",
       ticket_code: ticket?.code || "",
@@ -414,9 +423,14 @@ export async function processNotification(
         const firstTicket =
           log.trigger !== "TICKET_ISSUED" ||
           ticket?.id === log.order.tickets[0]?.id;
-        const text = firstTicket
+        const rendered = firstTicket
           ? renderTemplate(template?.body || defaultBodies[log.trigger], values)
           : "";
+        const text =
+          rendered +
+          (firstTicket && !template?.body
+            ? "\n\nReply STOP to stop WhatsApp updates."
+            : "");
         const fallback = largeOrder
           ? `${process.env.APP_URL}/orders/${log.orderId}`
           : values.ticket_url;
@@ -428,7 +442,9 @@ export async function processNotification(
           trigger: log.trigger,
           timezone: log.event.timezone,
           consent: log.order.whatsappOptIn,
-          text: `${text}\n\n${fallback}`.trim(),
+          text: (text.includes(fallback) ? text : `${text}\n\n${fallback}`)
+            .replace(/\n{3,}/g, "\n\n")
+            .trim(),
           attachments,
         });
         await db.notificationLog.update({

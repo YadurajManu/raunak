@@ -7,8 +7,12 @@ import { ticketUrl } from "./qr";
 
 export async function eventPoster(eventId: string) {
   const image = await db.eventImage.findFirst({
-    where: { eventId, kind: "POSTER", processingError: null },
-    orderBy: { sortOrder: "asc" },
+    where: {
+      eventId,
+      kind: { in: ["POSTER", "COVER"] },
+      processingError: null,
+    },
+    orderBy: [{ kind: "asc" }, { sortOrder: "asc" }],
   });
   if (!image?.variants) return undefined;
   const url = variantUrl(image.variants, "card"),
@@ -25,7 +29,11 @@ export async function eventPoster(eventId: string) {
 export async function ticketCard(ticketId: string) {
   const ticket = await db.ticket.findUniqueOrThrow({
     where: { id: ticketId },
-    include: { event: true, ticketType: true, order: true },
+    include: {
+      event: { include: { org: true } },
+      ticketType: true,
+      order: true,
+    },
   });
   if (
     ticket.order.status !== "PAID" ||
@@ -37,21 +45,27 @@ export async function ticketCard(ticketId: string) {
   const event = ticket.event;
   return renderTicketCard({
     title: event.title,
-    date: new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: event.timezone,
-    }).format(event.startsAt),
+    date:
+      new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: event.timezone,
+      }).format(event.startsAt) +
+      (event.timezone === "Asia/Kolkata" ? " IST" : ` (${event.timezone})`),
     venue: [
       event.venueName ||
         (event.mode === "ONLINE"
           ? "Online event"
           : event.address || "Venue to be announced"),
+      event.venueName && event.address !== event.venueName
+        ? event.address
+        : null,
       event.city,
     ]
       .filter(Boolean)
       .join(", "),
     holder: ticket.holderName,
+    organizer: event.org.name,
     type: ticket.ticketType.name,
     code: ticket.code,
     url: ticketUrl(ticket.id, event.id),

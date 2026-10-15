@@ -13,7 +13,7 @@ import {
   gatewaySessionSchema as connectionSchema,
 } from "@raunak/wa-contracts";
 export { gatewaySessionSchema as connectionSchema } from "@raunak/wa-contracts";
-import { renderTicketCard } from "@/server/tickets/card";
+import { renderTicketCard, eventPoster } from "@/server/tickets/card";
 import { warmupCap } from "./limits";
 export { warmupCap } from "./limits";
 
@@ -174,16 +174,41 @@ export async function integrationAction(
     };
     const provider = new BaileysGatewayProvider();
     if (data.sampleTicket) {
+      const event = await db.event.findFirst({
+        where: { orgId, deletedAt: null },
+        orderBy: { createdAt: "desc" },
+      });
       const sample = await renderTicketCard({
-        title: "Your next great event",
-        date: "Sample connection test",
-        venue: org.name,
+        title: event?.title || "Your next great event",
+        date: event
+          ? new Intl.DateTimeFormat("en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+              timeZone: event.timezone,
+            }).format(event.startsAt)
+          : "Sample connection test",
+        venue: event
+          ? [
+              event.venueName ||
+                (event.mode === "ONLINE"
+                  ? "Online event"
+                  : event.address || "Venue to be announced"),
+              event.city,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          : org.name,
+        organizer: org.name,
+        poster: event ? await eventPoster(event.id) : undefined,
         holder: "Test recipient",
         type: "Sample ticket · no admission",
         code: "SAMPLE",
-        url: z.url().parse(process.env.APP_URL),
+        url: event
+          ? `${z.url().parse(process.env.APP_URL).replace(/\/$/, "")}/e/${event.slug}`
+          : z.url().parse(process.env.APP_URL),
         sample: true,
       });
+      message.text = `${APP_NAME} · Ticket preview\n\n${event?.title || "Your next great event"}\nHosted by ${org.name}\n\nYour WhatsApp connection is working. This sample shows the ticket design; it is not valid for entry. Real booking tickets include the event details and a private entry QR.`;
       await provider.sendImage(session.id, message, sample);
     } else await provider.send(session.id, message);
     return { ok: true };

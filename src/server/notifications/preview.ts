@@ -25,6 +25,7 @@ export async function messagePreviewResponse(
         deletedAt: null,
       },
       orderBy: { createdAt: "desc" },
+      include: { org: true },
     });
     if (!event) return new Response(null, { status: 404 });
     const image = await renderTicketCard({
@@ -36,6 +37,7 @@ export async function messagePreviewResponse(
         .filter(Boolean)
         .join(", "),
       holder: user.name || "Organizer",
+      organizer: event.org.name,
       type: "Sample ticket",
       code: "SAMPLE",
       url: `${process.env.APP_URL}/e/${event.slug}`,
