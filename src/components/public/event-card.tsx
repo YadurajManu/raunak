@@ -3,6 +3,7 @@ import { EventImage } from "./event-image";
 import { SaveEvent } from "./save-event";
 import { whatsappEventUrl } from "@/lib/event-share";
 import { formatInr } from "@/lib/money";
+import { CalendarDays, MapPin } from "lucide-react";
 export function EventCard({
   event,
   saved = false,
@@ -24,7 +25,9 @@ export function EventCard({
   saved?: boolean;
 }) {
   const image =
-    event.images.find((v) => v.kind === "POSTER") || event.images[0];
+    event.images.find((v) => v.kind === "COVER" && v.variants) ||
+    event.images.find((v) => v.kind === "POSTER" && v.variants) ||
+    event.images.find((v) => v.variants);
   const minimum = event.ticketTypes.length
     ? Math.min(...event.ticketTypes.map((v) => v.pricePaise))
     : null;
@@ -41,6 +44,7 @@ export function EventCard({
           <span className="m-eyebrow">{event.category || "Get together"}</span>
           <h3>{event.title}</h3>
           <time dateTime={event.startsAt.toISOString()}>
+            <CalendarDays size={14} aria-hidden="true" />
             {new Intl.DateTimeFormat("en-IN", {
               weekday: "short",
               month: "short",
@@ -51,6 +55,7 @@ export function EventCard({
             }).format(event.startsAt)}
           </time>
           <p>
+            <MapPin size={14} aria-hidden="true" />
             {event.mode === "ONLINE"
               ? "Online"
               : [event.venueName, event.city].filter(Boolean).join(" · ") ||

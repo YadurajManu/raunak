@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/public/public-header";
 import { EventImage } from "@/components/public/event-image";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
@@ -22,7 +21,6 @@ export default async function MyTickets({
   if (!user)
     return (
       <>
-        <PublicHeader />
         <main className="market-page">
           <h1>Your plans, all in one place.</h1>
           <p>Sign in with the account used to book your tickets.</p>
@@ -85,7 +83,6 @@ export default async function MyTickets({
     `?tab=${tab}&q=${encodeURIComponent(q)}&sort=${raw.sort === "newest" ? "newest" : "date"}&page=${n}`;
   return (
     <>
-      <PublicHeader />
       <main className="market-page wallet-page">
         <header className="wallet-heading">
           <div>

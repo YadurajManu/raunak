@@ -3,7 +3,6 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { z } from "zod";
 import { notFound, redirect } from "next/navigation";
-import { PublicHeader } from "@/components/public/public-header";
 import { EventImage } from "@/components/public/event-image";
 import { PdfDownload } from "@/components/public/pdf-download";
 import { ResendTickets } from "@/components/public/resend-tickets";
@@ -64,7 +63,6 @@ export default async function TicketDetail({
       : null;
   return (
     <>
-      <PublicHeader />
       <main className="market-page">
         <Link href="/my-tickets" className="r-back-link">
           ← My tickets

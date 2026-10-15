@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { faqSchema, marketing } from "@/config/marketing";
 import { pricing, standardFeeLabel } from "@/config/pricing";
 import { APP_NAME } from "@/lib/constants";
-import { MarketingNav } from "@/components/marketing/nav";
 import dynamic from "next/dynamic";
 const MarketingFooter = dynamic(() =>
   import("@/components/marketing/footer").then(
@@ -79,7 +78,6 @@ export default async function MarketingPage() {
           __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
         }}
       />
-      <MarketingNav />
       <main id="main">
         <Hero />
         <Story />

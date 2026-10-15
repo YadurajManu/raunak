@@ -5,7 +5,6 @@ import { db } from "@/server/db/client";
 import { EventCard } from "@/components/public/event-card";
 import { SaveEvent } from "@/components/public/save-event";
 import { documentsSchema } from "@/server/events/documents";
-import { PublicHeader } from "@/components/public/public-header";
 import { MarketingFooter } from "@/components/marketing/footer";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -162,7 +161,6 @@ export default async function EventPage({
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <PublicHeader />
       <div className="mx-auto max-w-6xl px-6">
         <div className="overflow-hidden rounded-3xl">
           <EventImage

@@ -8,6 +8,10 @@ import "./tickets.css";
 import "./operations.css";
 import "./marketplace.css";
 import "./site-polish.css";
+import "./global-navigation.css";
+import "./discovery-premium.css";
+import { GlobalNavbar } from "@/components/global-navbar";
+import { currentUser } from "@/server/auth/session";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
 
 const display = Instrument_Serif({
@@ -25,18 +29,28 @@ const mono = Geist_Mono({
   display: "swap",
 });
 
-export default function MarketingLayout({
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await currentUser();
   return (
     <div className={`marketing ${display.variable} ${mono.variable}`}>
       <SmoothScroll />
       <noscript>
         <style>{`.marketing .m-reveal,.marketing .m-mini-bubble,.marketing .m-paid-stamp{opacity:1!important;transform:none!important}.marketing .m-word-mask>span{transform:none!important}`}</style>
       </noscript>
-      {children}
+      <GlobalNavbar
+        user={
+          user
+            ? { name: user.name, email: user.email, avatarKey: user.avatarKey }
+            : null
+        }
+      />
+      <div id="site-content" tabIndex={-1}>
+        {children}
+      </div>
     </div>
   );
 }

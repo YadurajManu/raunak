@@ -5,6 +5,28 @@ import { eventCategories } from "@/config/event-options";
 
 import { discoveryUrl, type DiscoveryFilters } from "@/lib/discovery";
 import { SearchSuggestions } from "./search-suggestions";
+import {
+  Music2,
+  Paintbrush,
+  Users,
+  Utensils,
+  Dumbbell,
+  Presentation,
+  PartyPopper,
+  Shapes,
+  BookOpen,
+} from "lucide-react";
+const categoryIcons = [
+  Music2,
+  BookOpen,
+  Users,
+  Paintbrush,
+  Utensils,
+  Dumbbell,
+  Presentation,
+  PartyPopper,
+  Shapes,
+];
 type Filters = DiscoveryFilters;
 export function DiscoverFilters({
   filters,
@@ -83,7 +105,7 @@ export function DiscoverFilters({
         <SearchSuggestions initial={filters.q} />
         <div className="d-city">
           <label htmlFor={id}>
-            Where
+            <span className="d-field-label">Where</span>
             <input
               id={id}
               name="city"
@@ -141,31 +163,34 @@ export function DiscoverFilters({
               ×
             </button>
           )}
-          {open && (
-            <ul id={`${id}-list`} role="listbox" aria-label="Choose city">
-              {options.map((value, i) => (
-                <li
-                  key={value}
-                  id={`${id}-${i}`}
-                  role="option"
-                  aria-selected={active === i}
-                  onPointerDown={(e) => e.preventDefault()}
-                  onClick={() => choose(value)}
-                >
-                  <span>{value || "All cities"}</span>
-                  <small>
-                    {value
-                      ? recent.includes(value)
-                        ? "Recent"
-                        : availableCities.includes(value)
-                          ? "Events available"
-                          : "City"
-                      : "Explore everywhere"}
-                  </small>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul
+            id={`${id}-list`}
+            role="listbox"
+            aria-label="Choose city"
+            hidden={!open}
+          >
+            {options.map((value, i) => (
+              <li
+                key={value}
+                id={`${id}-${i}`}
+                role="option"
+                aria-selected={active === i}
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => choose(value)}
+              >
+                <span>{value || "All cities"}</span>
+                <small>
+                  {value
+                    ? recent.includes(value)
+                      ? "Recent"
+                      : availableCities.includes(value)
+                        ? "Events available"
+                        : "City"
+                    : "Explore everywhere"}
+                </small>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {near && (
@@ -279,17 +304,17 @@ export function DiscoverFilters({
         </details>
       </form>
       <div className="market-near">
-        <button
-          type="button"
+        <a
+          href={discoveryUrl(filters, {
+            mode: "ONLINE",
+            city: "",
+            lat: undefined,
+            lng: undefined,
+          })}
           className="r-quiet-button"
-          onClick={() => {
-            choose("");
-            setMode("ONLINE");
-            setMessage("Online selected. Press Find events.");
-          }}
         >
           Online events
-        </button>
+        </a>
         <button
           type="button"
           className="r-quiet-button"
@@ -363,21 +388,25 @@ export function DiscoverFilters({
         >
           All categories
         </a>
-        {eventCategories.map((category) => (
-          <a
-            key={category}
-            href={href(
-              "category",
-              (selected.includes(category)
-                ? selected.filter((v) => v !== category)
-                : [...selected, category]
-              ).join("|"),
-            )}
-            aria-current={selected.includes(category) ? "true" : undefined}
-          >
-            {category}
-          </a>
-        ))}
+        {eventCategories.map((category, index) => {
+          const Icon = categoryIcons[index];
+          return (
+            <a
+              key={category}
+              href={href(
+                "category",
+                (selected.includes(category)
+                  ? selected.filter((v) => v !== category)
+                  : [...selected, category]
+                ).join("|"),
+              )}
+              aria-current={selected.includes(category) ? "true" : undefined}
+            >
+              <Icon size={18} aria-hidden="true" />
+              <span>{category}</span>
+            </a>
+          );
+        })}
       </nav>
     </div>
   );

@@ -10,12 +10,7 @@ export default async function OrganizerGuard({
   if (!user) redirect("/login?intent=organizer");
   if (!user.onboardingCompletedAt) redirect("/onboarding?next=/dashboard");
   return (
-    <AccountShell
-      name={user.name || "You"}
-      email={user.email}
-      avatarUrl={user.avatarKey}
-      organizer
-    >
+    <AccountShell organizer>
       <div className="r-organizer">{children}</div>
     </AccountShell>
   );

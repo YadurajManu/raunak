@@ -1,0 +1,392 @@
+.marketing .d-discover {
+  padding-top: 32px;
+}
+.marketing .d-hero {
+  margin-bottom: 24px;
+  align-items: flex-end;
+}
+.marketing .d-hero h1 {
+  font-size: clamp(34px, 4.3vw, 58px);
+  max-width: 780px;
+  letter-spacing: -0.05em;
+}
+.marketing .d-hero p:last-child {
+  font-size: 15px;
+  max-width: 560px;
+  line-height: 1.6;
+}
+.marketing .d-search {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 10px;
+  gap: 10px;
+}
+.marketing .d-query {
+  position: relative;
+  min-width: 0;
+  padding: 4px 12px;
+}
+.marketing .d-query > label {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.d-query-input {
+  position: relative;
+}
+.marketing .d-query-input input {
+  min-height: 40px;
+  padding-right: 44px;
+  font-size: 15px;
+}
+.d-query-clear {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  border-radius: 8px;
+}
+.d-suggestion-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 24px #0002;
+}
+.d-suggestion-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.d-suggestion-panel [role="option"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.d-suggestion-panel [role="option"]:hover,
+.d-suggestion-panel [aria-selected="true"] {
+  background: var(--surface);
+}
+.d-suggestion-panel small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.d-suggestion-panel p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 6px 10px;
+}
+.marketing .d-search .d-city {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.marketing .d-search .d-city label {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.marketing .d-search .d-city input {
+  min-height: 40px;
+  font-size: 15px;
+}
+.marketing .d-search .market-advanced {
+  padding: 6px 10px 0;
+}
+.marketing .market-advanced summary {
+  min-height: 32px;
+  display: list-item;
+}
+.marketing .d-categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0 16px;
+  margin-top: 14px;
+  scrollbar-width: thin;
+}
+.marketing .d-categories a {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 1px solid transparent;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: var(--muted);
+}
+.marketing .d-categories a:hover {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: transparent;
+}
+.marketing .d-categories a[aria-current="true"] {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--line);
+}
+.marketing .d-categories a[aria-current="true"] svg {
+  color: var(--accent-ink);
+}
+.marketing .d-results-heading {
+  margin-top: 20px;
+}
+.marketing .d-filters > nav[aria-label="Filter by date"] {
+  margin-top: 8px;
+  padding-bottom: 4px;
+}
+.marketing .d-filters .market-near {
+  margin: 8px 0;
+}
+.marketing .market-grid {
+  gap: 24px;
+  margin-top: 16px;
+}
+.marketing .market-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.market-main > picture {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+}
+.marketing .market-cover {
+  aspect-ratio: 16/10;
+  transition: transform 0.2s ease;
+}
+.market-main:hover .market-cover {
+  transform: scale(1.025);
+}
+.marketing .market-main > div {
+  padding: 14px 2px 12px;
+}
+.marketing .market-card h3 {
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 8px 0 12px;
+  min-height: 2.5em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.market-card :is(time, p) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.market-card :is(time, p) svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.marketing .market-card strong {
+  margin-top: 12px;
+  font-size: 15px;
+}
+.marketing .market-card footer {
+  padding: 4px 0;
+  gap: 8px;
+}
+.marketing .market-card footer > a:first-child {
+  padding-right: 8px;
+  color: var(--muted);
+}
+.market-card footer a:hover {
+  color: var(--accent-ink);
+}
+.d-low-inventory {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 32px;
+  align-items: start;
+}
+.marketing .d-low-inventory .market-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 340px));
+}
+.d-host-invitation {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--green);
+  color: #f5f0e6;
+}
+.d-host-invitation > span {
+  font-size: 34px;
+  color: var(--sun);
+}
+.d-host-invitation .m-eyebrow {
+  color: #f5f0e6;
+  font-size: 9px;
+  margin-top: 18px;
+}
+.d-host-invitation h2 {
+  font: 32px/1.08 var(--font-display);
+  margin: 12px 0 16px;
+}
+.d-host-invitation p:not(.m-eyebrow) {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #deded1;
+}
+.d-host-invitation .m-button {
+  margin-top: 20px;
+  font-size: 12px;
+  padding-inline: 14px;
+}
+.d-host-invitation small {
+  display: block;
+  margin-top: 16px;
+  font-size: 11px;
+  color: #deded1;
+}
+.d-empty-host {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 18px 0 0 20px;
+  color: var(--accent-ink);
+  font-size: 13px;
+}
+.d-context-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.d-context-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.d-context-section h2 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+.d-context-section > header > a {
+  font-size: 12px;
+  color: var(--accent-ink);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 1050px) {
+  .d-low-inventory {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 24px;
+  }
+  .marketing .d-low-inventory .market-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .d-low-inventory {
+    display: block;
+  }
+  .marketing .d-low-inventory .market-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .d-host-invitation {
+    margin-top: 24px;
+    padding: 24px;
+  }
+  .d-host-invitation h2 {
+    max-width: 360px;
+  }
+  .d-host-invitation > span {
+    float: right;
+  }
+  .d-suggestion-panel {
+    left: -4px;
+    right: -4px;
+  }
+}
+@media (max-width: 600px) {
+  .marketing .d-discover {
+    padding-top: 24px;
+  }
+  .marketing .d-query > label,
+  .marketing .d-field-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .marketing .d-search .d-city {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .marketing .d-hero {
+    margin-bottom: 16px;
+  }
+  .marketing .d-filters .d-categories {
+    margin-top: 8px;
+    padding: 8px 0 12px;
+  }
+  .marketing .d-hero {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .marketing .d-hero h1 {
+    font-size: 36px;
+  }
+  .marketing .d-hero > a {
+    display: none;
+  }
+  .marketing .d-hero p:last-child {
+    font-size: 14px;
+  }
+  .marketing .d-query {
+    padding: 4px 2px 10px;
+  }
+  .marketing .d-search input {
+    font-size: 16px;
+  }
+  .marketing .d-categories a {
+    font-size: 12px;
+    padding-inline: 10px;
+  }
+  .marketing .d-low-inventory .market-grid {
+    grid-template-columns: 1fr;
+  }
+  .marketing .market-card h3 {
+    font-size: 21px;
+    min-height: 0;
+  }
+  .d-host-invitation {
+    margin-top: 8px;
+  }
+  .d-empty-host {
+    margin-left: 0;
+    display: flex;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing .market-cover {
+    transition: none;
+  }
+  .market-main:hover .market-cover {
+    transform: none;
+  }
+}

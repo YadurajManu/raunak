@@ -7,12 +7,7 @@ export default async function ProfilePage() {
   const user = await currentUser();
   if (!user) redirect("/login?next=/account/profile");
   return (
-    <AccountShell
-      name={user.name || "You"}
-      email={user.email}
-      avatarUrl={user.avatarKey}
-      active="Profile"
-    >
+    <AccountShell>
       <ProfileSettings
         initial={profileValues(user)}
         email={user.email}

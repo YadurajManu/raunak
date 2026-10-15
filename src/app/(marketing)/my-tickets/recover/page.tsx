@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/public/public-header";
 import { currentUser } from "@/server/auth/session";
 export const metadata = {
   title: "Find your booking | Raunak",
@@ -9,7 +8,6 @@ export default async function RecoverBooking() {
   const user = await currentUser();
   return (
     <>
-      <PublicHeader />
       <main className="market-page recovery-page">
         <p className="m-eyebrow">LET’S FIND YOUR PLAN</p>
         <h1>Find a booking</h1>

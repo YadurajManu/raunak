@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PublicHeader } from "@/components/public/public-header";
 import { db } from "@/server/db/client";
 import { currentUser } from "@/server/auth/session";
 import { discoverPage, publicListing } from "@/server/public/events";
@@ -29,7 +28,6 @@ export default async function OrganizerPage({
     : [];
   return (
     <>
-      <PublicHeader />
       <main className="market-page">
         <header className="wallet-heading">
           <div>

@@ -303,11 +303,9 @@ async function main() {
     const job = await mediaQueue.getJob(imageId);
     if (job) await job.remove();
     await page.getByRole("button", { name: "Refresh media status" }).click();
-    const card = page
-      .locator("li")
-      .filter({
-        has: page.getByRole("img", { name: "Event poster", exact: true }),
-      });
+    const card = page.locator("li").filter({
+      has: page.getByRole("img", { name: "Event poster", exact: true }),
+    });
     await card
       .getByRole("button", { name: "Edit Event poster", exact: true })
       .click();
@@ -420,15 +418,11 @@ async function main() {
       (r) =>
         r.url().endsWith("images/order") && r.request().method() === "PATCH",
     );
-    await page
-      .getByRole("button", { name: /^Reorder Fifth gallery/ })
-      .dragTo(
-        page
-          .locator(".mm-card")
-          .filter({
-            has: page.getByRole("img", { name: "Second gallery", exact: true }),
-          }),
-      );
+    await page.getByRole("button", { name: /^Reorder Fifth gallery/ }).dragTo(
+      page.locator(".mm-card").filter({
+        has: page.getByRole("img", { name: "Second gallery", exact: true }),
+      }),
+    );
     assert.equal((await draggedOrder).status(), 200);
     await page
       .getByRole("button", { name: "Edit A warm welcome", exact: true })
@@ -436,13 +430,11 @@ async function main() {
     await page
       .getByRole("button", { name: "Replace image", exact: true })
       .click();
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Replacement cover.png",
-        mimeType: "image/png",
-        buffer: bytes,
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Replacement cover.png",
+      mimeType: "image/png",
+      buffer: bytes,
+    });
     await page
       .getByRole("button", { name: "Upload images", exact: true })
       .click();
@@ -470,13 +462,11 @@ async function main() {
     await page
       .getByRole("button", { name: "Upload a photo", exact: true })
       .click();
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Portrait photo.png",
-        mimeType: "image/png",
-        buffer: bytes,
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Portrait photo.png",
+      mimeType: "image/png",
+      buffer: bytes,
+    });
     await page
       .getByRole("button", { name: "Upload images", exact: true })
       .click();
@@ -489,22 +479,18 @@ async function main() {
     await page
       .getByRole("button", { name: "＋ Add media", exact: true })
       .click();
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Not an image.txt",
-        mimeType: "text/plain",
-        buffer: Buffer.from("invalid"),
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Not an image.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("invalid"),
+    });
     await page.getByText(/Use JPEG, PNG, WebP/).waitFor();
     await page.getByRole("button", { name: "Remove", exact: true }).click();
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Second gallery.png",
-        mimeType: "image/png",
-        buffer: bytes,
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Second gallery.png",
+      mimeType: "image/png",
+      buffer: bytes,
+    });
     await page.getByText(/appears to be in this upload or library/).waitFor();
     assert.equal(await page.locator(".mm-upload-list li").count(), 0);
     let held: import("@playwright/test").Route | undefined;
@@ -515,13 +501,11 @@ async function main() {
       }
       return route.continue();
     });
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Cancelled photo.png",
-        mimeType: "image/png",
-        buffer: bytes,
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Cancelled photo.png",
+      mimeType: "image/png",
+      buffer: bytes,
+    });
     const putStarted = page.waitForRequest(
       (request) =>
         request.method() === "PUT" && request.url().includes("/original/"),
@@ -543,13 +527,11 @@ async function main() {
       }
       return route.continue();
     });
-    await page
-      .getByLabel("Choose media files")
-      .setInputFiles({
-        name: "Retry photo.png",
-        mimeType: "image/png",
-        buffer: bytes,
-      });
+    await page.getByLabel("Choose media files").setInputFiles({
+      name: "Retry photo.png",
+      mimeType: "image/png",
+      buffer: bytes,
+    });
     await page
       .getByRole("button", { name: "Upload images", exact: true })
       .click();
@@ -744,6 +726,47 @@ async function main() {
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/discover?city=Pune");
+    const search = page.getByRole("combobox", {
+      name: "Search events, venues or organizers",
+    });
+    await search.fill("A little room");
+    await page
+      .getByRole("option", { name: "A little room for good people Event" })
+      .waitFor();
+    await search.press("ArrowDown");
+    await search.press("Enter");
+    await page.waitForURL(/\/e\//);
+    await page
+      .getByRole("heading", {
+        name: "A little room for good people",
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(await page.locator("[data-global-navbar]").count(), 1);
+    await page.goto("/discover?city=Pune");
+    await search.fill("no-result-" + key);
+    await page
+      .getByText("No suggestions yet. Press Enter to search all events.", {
+        exact: true,
+      })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Clear search", exact: true })
+      .click();
+    assert.equal(await search.inputValue(), "");
+    await page.route("**/api/discover/suggestions?*", (route) =>
+      route.fulfill({ status: 503, json: { error: "Test outage" } }),
+    );
+    await search.fill("A little room");
+    await page
+      .getByText("Suggestions unavailable. Press Enter to search.", {
+        exact: true,
+      })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Clear search", exact: true })
+      .click();
+    await page.unroute("**/api/discover/suggestions?*");
     await page
       .getByRole("heading", {
         name: "A little room for good people",
@@ -754,14 +777,12 @@ async function main() {
       path: "artifacts/experience/discover.png",
       fullPage: true,
     });
-    const discoveryCard = page
-      .locator(".market-card")
-      .filter({
-        has: page.getByRole("heading", {
-          name: "A little room for good people",
-          exact: true,
-        }),
-      });
+    const discoveryCard = page.locator(".market-card").filter({
+      has: page.getByRole("heading", {
+        name: "A little room for good people",
+        exact: true,
+      }),
+    });
     await discoveryCard
       .getByRole("button", { name: "Save event", exact: true })
       .click();

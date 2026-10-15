@@ -43,21 +43,28 @@ test("landing playground, FAQ, pricing and account routes work", async ({
   await expect(
     page.getByRole("button", { name: "Create your free account" }),
   ).toBeVisible();
-  await expect(page.getByRole("checkbox")).not.toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: /I agree to the Terms/ }),
+  ).not.toBeChecked();
 });
 
-test("mobile menu supports keyboard and leaves no horizontal overflow", async ({
+test("mobile navigation supports keyboard and leaves no horizontal overflow", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("button", { name: "Open menu" }).click();
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  const discover = navigation.getByRole("link", { name: "Discover events" });
+  await expect(discover).toBeVisible();
+  await discover.focus();
+  await page.keyboard.press("Tab");
   await expect(
-    page.getByRole("button", { name: "Close menu" }),
-  ).toHaveAttribute("aria-expanded", "true");
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: "Open menu" })).toBeFocused();
+    navigation.getByRole("link", { name: "My tickets" }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Use dark theme" }).first(),
+  ).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

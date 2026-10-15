@@ -16,8 +16,7 @@ export function NavigationLink({
 }) {
   const pathname = usePathname();
   const selected = pathname
-    ? pathname === href ||
-      (!exact && href !== "/account" && pathname.startsWith(`${href}/`))
+    ? pathname === href || (!exact && pathname.startsWith(`${href}/`))
     : active;
   return (
     <Link

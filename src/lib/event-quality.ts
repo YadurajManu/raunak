@@ -3,6 +3,8 @@ export function eventQuality(event: {
   title: string;
   category: string | null;
   summary: string | null;
+  description?: string | null;
+  visibility?: string;
   mode: string;
   city: string | null;
   venueName: string | null;
@@ -52,6 +54,18 @@ export function eventQuality(event: {
     );
   if (!event.summary)
     warnings.push("Add a short summary to help guests decide.");
+  if ((event.description || "").trim().length < 80)
+    warnings.push(
+      "Describe what guests can expect, who it is for and anything they should bring.",
+    );
+  if (cover?.width && cover.height && (cover.width < 640 || cover.height < 360))
+    warnings.push(
+      "The cover is small. Upload a higher-resolution image for a clearer preview.",
+    );
+  if (event.visibility === "UNLISTED")
+    warnings.push(
+      "This event is unlisted. Only people with its link can find it; it will not appear in Discover.",
+    );
   if (!event.category || !eventCategories.includes(event.category))
     warnings.push(
       "Choose or review the category. Make sure it matches the actual experience.",

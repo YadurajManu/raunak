@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PublicHeader } from "@/components/public/public-header";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { DiscoverFilters } from "@/components/public/discover-filters";
 import { EventCard } from "@/components/public/event-card";
@@ -8,6 +7,7 @@ import { discoverPage, publicListing } from "@/server/public/events";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { discoverySchema, discoveryUrl } from "@/lib/discovery";
+import { discoverySections } from "@/lib/discovery-sections";
 export const metadata: Metadata = {
   title: "Discover events | Raunak",
   description: "Good people. Great events. Find your next plan on Raunak.",
@@ -31,7 +31,6 @@ export default async function DiscoverPage({
   if (!parsed.success)
     return (
       <>
-        <PublicHeader />
         <main className="market-page">
           <h1>Let’s adjust those filters.</h1>
           <p role="alert">{parsed.error.issues[0].message}</p>
@@ -64,9 +63,28 @@ export default async function DiscoverPage({
         select: { eventId: true },
       })
     : [];
+  const unfiltered =
+    !parsed.data.q &&
+    !parsed.data.city &&
+    !parsed.data.category &&
+    !parsed.data.period &&
+    !parsed.data.from &&
+    !parsed.data.to &&
+    !parsed.data.mode &&
+    !parsed.data.price &&
+    parsed.data.min === undefined &&
+    parsed.data.max === undefined &&
+    parsed.data.lat === undefined &&
+    !parsed.data.organizer &&
+    raw.sort === undefined &&
+    parsed.data.sort === "soonest" &&
+    parsed.data.page === 1;
+  const groups = unfiltered
+    ? discoverySections(result.events, user?.city)
+    : { primary: result.events, sections: [] };
+  const lowInventory = unfiltered && result.total > 0 && result.total <= 3;
   return (
     <>
-      <PublicHeader />
       <main className="market-page d-discover">
         <section className="d-hero">
           <div>
@@ -74,7 +92,7 @@ export default async function DiscoverPage({
             <h1>
               Find your next <em className="m-serif">raunak.</em>
             </h1>
-            <p>Find something worth showing up for.</p>
+            <p>Find your people. Make a good plan.</p>
           </div>
           <Link href="/saved" className="r-quiet-button">
             Saved events ♡
@@ -106,24 +124,69 @@ export default async function DiscoverPage({
           </Link>
         </div>
         {result.events.length ? (
-          <ul className="market-grid">
-            {result.events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                saved={saved.some((v) => v.eventId === event.id)}
-              />
-            ))}
-          </ul>
+          <div className={lowInventory ? "d-low-inventory" : undefined}>
+            <ul className="market-grid">
+              {groups.primary.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  saved={saved.some((v) => v.eventId === event.id)}
+                />
+              ))}
+            </ul>
+            {lowInventory && (
+              <aside className="d-host-invitation">
+                <span aria-hidden="true">✳</span>
+                <p className="m-eyebrow">MAKE SOMETHING HAPPEN</p>
+                <h2>Good company starts with an invitation.</h2>
+                <p>
+                  A workshop, a gig, a gathering of your own. There’s room for
+                  your idea here.
+                </p>
+                <Link href="/dashboard" className="m-button m-button-small">
+                  Host your first event ↗
+                </Link>
+                <small>Your first event is free to host.</small>
+              </aside>
+            )}
+          </div>
         ) : (
           <section className="market-empty">
-            <h2>No events match this search.</h2>
-            <p>Try all cities, another date or a broader price range.</p>
+            <h2>
+              {unfiltered
+                ? "Good plans are on their way."
+                : "No events match this search."}
+            </h2>
+            <p>
+              {unfiltered
+                ? "No upcoming public events yet. Bring people together with a gathering of your own."
+                : "Try all cities, another date or a broader price range."}
+            </p>
             <Link href="/discover" className="m-button m-button-small">
               Explore all events ↗
             </Link>
+            <Link href="/dashboard" className="d-empty-host">
+              Host an event ↗
+            </Link>
           </section>
         )}
+        {groups.sections.map((section) => (
+          <section className="d-context-section" key={section.title}>
+            <header>
+              <h2>{section.title}</h2>
+              <Link href={section.href}>Explore more ↗</Link>
+            </header>
+            <ul className="market-grid">
+              {section.events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  saved={saved.some((item) => item.eventId === event.id)}
+                />
+              ))}
+            </ul>
+          </section>
+        ))}
         <nav className="ops-pagination" aria-label="Event result pages">
           {parsed.data.page > 1 && (
             <Link

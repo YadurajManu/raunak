@@ -1,4 +1,3 @@
-import { PublicHeader } from "@/components/public/public-header";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { publicEvent } from "@/server/public/events";
@@ -16,16 +15,28 @@ export default async function CheckoutPage({
   const event = await publicEvent(slug);
   if (!event) notFound();
   const user = await currentUser();
-  const delivery = await Promise.all((["ORDER_CONFIRMED", "TICKET_ISSUED"] as const).map(async trigger => {
-    try {
-      whatsappTemplate(trigger);
-      const setting = await resolvedTemplate(event.orgId, event.id, trigger, "WHATSAPP");
-      return Boolean(process.env.WHATSAPP_CLOUD_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID && setting?.isEnabled !== false);
-    } catch { return false; }
-  }));
+  const delivery = await Promise.all(
+    (["ORDER_CONFIRMED", "TICKET_ISSUED"] as const).map(async (trigger) => {
+      try {
+        whatsappTemplate(trigger);
+        const setting = await resolvedTemplate(
+          event.orgId,
+          event.id,
+          trigger,
+          "WHATSAPP",
+        );
+        return Boolean(
+          process.env.WHATSAPP_CLOUD_TOKEN &&
+          process.env.WHATSAPP_PHONE_NUMBER_ID &&
+          setting?.isEnabled !== false,
+        );
+      } catch {
+        return false;
+      }
+    }),
+  );
   return (
     <>
-      <PublicHeader />
       <main className="r-checkout mx-auto min-h-screen max-w-3xl px-6 py-10">
         <Link
           href={`/e/${slug}`}
@@ -43,7 +54,7 @@ export default async function CheckoutPage({
             eventSlug={slug}
             buyerName={user.name || ""}
             buyerEmail={user.email}
-          whatsappAvailable={delivery.some(Boolean)}
+            whatsappAvailable={delivery.some(Boolean)}
             types={event.ticketTypes.map((type) => ({
               id: type.id,
               name: type.name,

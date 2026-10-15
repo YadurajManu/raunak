@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { getClientAuth } from "@/lib/firebase-client";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 export function ProfileControls({
   name,
@@ -16,6 +14,19 @@ export function ProfileControls({
   avatarUrl?: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (menu.current) menu.current.open = false;
+  }, [pathname]);
+  useEffect(() => {
+    const close = (event: PointerEvent) => {
+      if (menu.current && !menu.current.contains(event.target as Node))
+        menu.current.open = false;
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
   const [imageFailed, setImageFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +37,10 @@ export function ProfileControls({
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok)
         throw new Error("Could not sign out. Please try again.");
+      const [{ signOut }, { getClientAuth }] = await Promise.all([
+        import("firebase/auth"),
+        import("@/lib/firebase-client"),
+      ]);
       await signOut(await getClientAuth());
       router.replace("/login");
       router.refresh();
@@ -36,7 +51,16 @@ export function ProfileControls({
     }
   }
   return (
-    <details className="r-profile-menu">
+    <details
+      ref={menu}
+      className="r-profile-menu"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && menu.current) {
+          menu.current.open = false;
+          menu.current.querySelector("summary")?.focus();
+        }
+      }}
+    >
       <summary aria-label="Open profile menu">
         <span>
           {(avatarUrl?.startsWith("https://") ||
@@ -65,11 +89,18 @@ export function ProfileControls({
           )}
         </span>
       </summary>
-      <nav aria-label="Profile">
+      <nav
+        aria-label="Profile"
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a") && menu.current)
+            menu.current.open = false;
+        }}
+      >
         <b>{name}</b>
         <small style={{ overflowWrap: "anywhere" }}>{email}</small>
         <Link href="/account">My dashboard</Link>
         <Link href="/my-tickets">My tickets</Link>
+        <Link href="/saved">Saved events</Link>
         <Link href="/account/profile">Edit profile</Link>
         <Link href="/dashboard">Organizer workspace ↗</Link>
         <button className="m-button" onClick={logout} disabled={busy}>

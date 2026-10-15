@@ -1,4 +1,3 @@
-import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
@@ -36,8 +35,8 @@ export default async function TeamPage({
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-8">
       <header className="flex items-center justify-between border-b border-[var(--line)] pb-6 dark:border-[var(--line)]">
-        <Link href="/dashboard" className="text-xl font-semibold">
-          {APP_NAME}
+        <Link href={`/dashboard/events?org=${orgId}`} className="r-back-link">
+          ← Workspace events
         </Link>
         <span>{org.name}</span>
       </header>

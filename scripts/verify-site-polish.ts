@@ -74,7 +74,10 @@ async function main() {
       },
     ]);
     const page = await context.newPage();
-    await mkdir("artifacts/site-polish", { recursive: true });
+    const phase = process.env.UI_CAPTURE_PHASE || "after";
+    const directory = `artifacts/universal-${phase}`;
+    await mkdir(directory, { recursive: true });
+    const headerMetrics = new Map<string, { height: number; logoX: number }>();
     const routes = [
       ["account", "/account"],
       ["profile", "/account/profile"],
@@ -86,6 +89,15 @@ async function main() {
       ["discover", "/discover"],
       ["wallet", "/my-tickets"],
       ["saved", "/saved"],
+      ...(phase === "after"
+        ? [
+            ["event-overview", `/dashboard/events/${eventId}`],
+            ["event-details", `/dashboard/events/${eventId}/details`],
+            ["event-settings", `/dashboard/events/${eventId}/settings`],
+            ["workspace-team", `/dashboard/team?org=${orgId}`],
+            ["invitation", "/accept-invite/local-ui-invitation-not-real"],
+          ]
+        : []),
     ];
     for (const [name, route] of routes) {
       await page.goto(route, { waitUntil: "networkidle" });
@@ -107,9 +119,39 @@ async function main() {
           `${name} overflows ${viewport}`,
         );
         await page.screenshot({
-          path: `artifacts/site-polish/${name}-${viewport}.png`,
+          path: `${directory}/${name}-${viewport}.png`,
           fullPage: true,
         });
+        if (phase === "after") {
+          assert.equal(
+            await page.locator("[data-global-navbar]").count(),
+            1,
+            `${name} needs exactly one global navbar`,
+          );
+          assert.equal(
+            await page.locator(".r-account-header,.m-nav").count(),
+            0,
+            `${name} must not duplicate headers`,
+          );
+          assert.equal(await page.locator(".r-profile-menu").count(), 1);
+          const box = await page.locator("[data-global-navbar]").boundingBox();
+          const logo = await page
+            .getByRole("link", { name: "Raunak home", exact: true })
+            .boundingBox();
+          assert.ok(box && logo);
+          const expected = headerMetrics.get(viewport);
+          if (expected) {
+            assert.ok(
+              Math.abs(expected.height - box.height) < 1,
+              `${name} header height differs`,
+            );
+            assert.ok(
+              Math.abs(expected.logoX - logo.x) < 1,
+              `${name} logo alignment differs`,
+            );
+          } else
+            headerMetrics.set(viewport, { height: box.height, logoX: logo.x });
+        }
       }
       if (["discover", "wallet", "saved"].includes(name)) {
         const nav = page.getByRole("navigation", { name: "Main navigation" });
@@ -136,9 +178,53 @@ async function main() {
             .getAttribute("aria-current"),
           "page",
         );
+      if (phase === "after" && name === "account") {
+        const trigger = page.getByLabel("Open profile menu");
+        await trigger.click();
+        await page.keyboard.press("Escape");
+        assert.equal(
+          await page.locator(".r-profile-menu").getAttribute("open"),
+          null,
+        );
+        await trigger.click();
+        await page
+          .locator("#site-content")
+          .click({ position: { x: 5, y: 150 } });
+        assert.equal(
+          await page.locator(".r-profile-menu").getAttribute("open"),
+          null,
+        );
+      }
+      if (phase === "after" && name === "invitation") {
+        await page.route("**/api/invites/**/accept", (route) => route.abort());
+        await page.getByRole("button", { name: "Accept invitation ↗" }).click();
+        await page.getByRole("alert").waitFor();
+        assert.equal(
+          await page
+            .getByRole("button", { name: "Accept invitation ↗" })
+            .isEnabled(),
+          true,
+        );
+      }
+    }
+    if (phase === "after") {
+      await page.goto("/account");
+      await page.getByLabel("Open profile menu").click();
+      await page.getByRole("button", { name: "Sign out", exact: true }).click();
+      await page.waitForURL(/\/login/);
+      assert.equal(await page.locator("[data-global-navbar]").count(), 0);
+      await page.goto("/discover", { waitUntil: "networkidle" });
+      assert.equal(await page.locator("[data-global-navbar]").count(), 1);
+      assert.equal(await page.locator(".r-profile-menu").count(), 0);
+      assert.equal(
+        await page
+          .getByRole("link", { name: "Sign in ↗", exact: true })
+          .isVisible(),
+        true,
+      );
     }
     console.log(
-      "Site polish passed: 10 attendee/organizer pages, desktop/tablet/mobile, light/dark layouts, no horizontal overflow, visible mobile discovery links and correct active navigation. Local disposable fixtures only.",
+      `Navigation passed: ${routes.length} attendee/organizer pages, identical header heights and logo alignment, desktop/tablet/mobile, light/dark layouts, active navigation, profile dismissal and logout. Local disposable fixtures only.`,
     );
   } finally {
     await browser.close();

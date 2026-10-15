@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/public/public-header";
 import { EventCard } from "@/components/public/event-card";
 import { currentUser } from "@/server/auth/session";
 import { publicListing } from "@/server/public/events";
@@ -17,7 +16,6 @@ export default async function SavedPage({
   if (!user)
     return (
       <>
-        <PublicHeader />
         <main className="market-page">
           <h1>Keep good plans close.</h1>
           <p>Sign in to see your saved events across devices.</p>
@@ -58,7 +56,6 @@ export default async function SavedPage({
   ]);
   return (
     <>
-      <PublicHeader />
       <main className="market-page">
         <header className="wallet-heading">
           <div>
