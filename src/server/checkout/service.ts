@@ -26,7 +26,10 @@ const cartSchema = z.object({
   buyerPhone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number.")
-    .refine(phone => parsePhoneNumberFromString(phone, "IN")?.isValid(), "Enter a valid Indian mobile number."),
+    .refine(
+      (phone) => parsePhoneNumberFromString(phone, "IN")?.isValid(),
+      "Enter a valid Indian mobile number.",
+    ),
   whatsappOptIn: z.boolean().default(false),
   idempotencyKey: z.uuid(),
 });

@@ -119,7 +119,9 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
   expect(email.mock.calls[0][0].html).not.toContain("<script>");
   expect(email.mock.calls[0][0].html).toContain("cid:ticket-qr");
   expect(email.mock.calls[0][0].attachments[1].contentId).toBe("ticket-qr");
-  expect(email.mock.calls[0][0].attachments[1].content.subarray(1,4).toString()).toBe("PNG");
+  expect(
+    email.mock.calls[0][0].attachments[1].content.subarray(1, 4).toString(),
+  ).toBe("PNG");
   const waLog = await db.notificationLog.findFirstOrThrow({
     where: { orderId: order.id, channel: "WHATSAPP", trigger: "TICKET_ISSUED" },
   });
@@ -169,7 +171,9 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
     whatsapp: { sendTemplate },
   });
   expect(sendTemplate.mock.calls[0][0].params[0]).toBe(event.title);
-  expect(sendTemplate.mock.calls[0][0].document.content.subarray(0, 5).toString()).toBe("%PDF-");
+  expect(
+    sendTemplate.mock.calls[0][0].document.content.subarray(0, 5).toString(),
+  ).toBe("%PDF-");
   expect(
     (await db.notificationLog.findUniqueOrThrow({ where: { id: waLog.id } }))
       .status,

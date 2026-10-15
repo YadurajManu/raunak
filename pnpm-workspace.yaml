@@ -1,10 +1,10 @@
 packages:
-  - 'packages/*'
-  - 'services/*'
+  - "packages/*"
+  - "services/*"
 
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
 
 patchedDependencies:
-  '@react-pdf/hyphenate': patches/@react-pdf__hyphenate.patch
+  "@react-pdf/hyphenate": patches/@react-pdf__hyphenate.patch

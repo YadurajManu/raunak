@@ -3,8 +3,17 @@ import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 import type { GatewayMessage, SendResult } from "@raunak/wa-contracts";
 export interface WhatsAppMediaProvider {
   send(sessionId: string, message: GatewayMessage): Promise<SendResult>;
-  sendImage(sessionId: string, message: GatewayMessage, image: Buffer): Promise<SendResult>;
-  sendDocument(sessionId: string, message: GatewayMessage, document: Buffer, filename: string): Promise<SendResult>;
+  sendImage(
+    sessionId: string,
+    message: GatewayMessage,
+    image: Buffer,
+  ): Promise<SendResult>;
+  sendDocument(
+    sessionId: string,
+    message: GatewayMessage,
+    document: Buffer,
+    filename: string,
+  ): Promise<SendResult>;
 }
 export interface WhatsAppProvider extends Partial<WhatsAppMediaProvider> {
   sendTemplate(input: {
@@ -32,22 +41,52 @@ export const whatsapp: WhatsAppProvider = {
       throw new Error("WhatsApp sender credentials are not configured.");
     const components: object[] = [];
     if (input.document) {
-      if (input.document.content.length > 10 * 1024 * 1024 ||
-          !input.document.content.subarray(0, 5).equals(Buffer.from("%PDF-")))
+      if (
+        input.document.content.length > 10 * 1024 * 1024 ||
+        !input.document.content.subarray(0, 5).equals(Buffer.from("%PDF-"))
+      )
         throw new Error("Choose a ticket PDF up to 10 MB.");
       const media = new FormData();
       media.set("messaging_product", "whatsapp");
       media.set("type", "application/pdf");
-      media.set("file", new Blob([new Uint8Array(input.document.content)], { type: "application/pdf" }), input.document.filename);
+      media.set(
+        "file",
+        new Blob([new Uint8Array(input.document.content)], {
+          type: "application/pdf",
+        }),
+        input.document.filename,
+      );
       const uploaded = await fetch(
         `https://graph.facebook.com/${env.data.WHATSAPP_API_VERSION}/${env.data.WHATSAPP_PHONE_NUMBER_ID}/media`,
-        { method: "POST", headers: { Authorization: `Bearer ${env.data.WHATSAPP_CLOUD_TOKEN}` }, body: media, signal: AbortSignal.timeout(20000) },
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${env.data.WHATSAPP_CLOUD_TOKEN}` },
+          body: media,
+          signal: AbortSignal.timeout(20000),
+        },
       );
-      if (!uploaded.ok) throw new Error(`WhatsApp ticket upload failed (HTTP ${uploaded.status}).`);
-      const { id } = z.object({ id: z.string().min(1) }).parse(await uploaded.json());
-      components.push({ type: "header", parameters: [{ type: "document", document: { id, filename: input.document.filename } }] });
+      if (!uploaded.ok)
+        throw new Error(
+          `WhatsApp ticket upload failed (HTTP ${uploaded.status}).`,
+        );
+      const { id } = z
+        .object({ id: z.string().min(1) })
+        .parse(await uploaded.json());
+      components.push({
+        type: "header",
+        parameters: [
+          {
+            type: "document",
+            document: { id, filename: input.document.filename },
+          },
+        ],
+      });
     }
-    if (input.params.length) components.push({ type: "body", parameters: input.params.map(text => ({ type: "text", text })) });
+    if (input.params.length)
+      components.push({
+        type: "body",
+        parameters: input.params.map((text) => ({ type: "text", text })),
+      });
     const response = await fetch(
       `https://graph.facebook.com/${env.data.WHATSAPP_API_VERSION}/${env.data.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {

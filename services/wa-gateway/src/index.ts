@@ -6,15 +6,63 @@ import { MockEngine } from "./engines/mock";
 import { BaileysEngine } from "./engines/baileys";
 import { GatewayRuntime } from "./runtime";
 import { gatewayServer } from "./http";
+import { deliverAlerts } from "./alerts";
 
-const config = z.object({ WA_GATEWAY_ENGINE: z.enum(["mock", "baileys"]).default("baileys"), WA_GATEWAY_API_KEY: z.string().min(32), ENCRYPTION_KEY: z.string().min(32), REDIS_URL: z.string().min(1), WA_GATEWAY_HOST: z.string().default("127.0.0.1"), WA_GATEWAY_PORT: z.coerce.number().int().min(1).max(65535).default(3101) }).parse(process.env);
+const config = z
+  .object({
+    WA_GATEWAY_ENGINE: z.enum(["mock", "baileys"]).default("baileys"),
+    WA_GATEWAY_API_KEY: z.string().min(32),
+    ENCRYPTION_KEY: z.string().min(32),
+    REDIS_URL: z.string().min(1),
+    WA_GATEWAY_HOST: z.string().default("127.0.0.1"),
+    WA_GATEWAY_PORT: z.coerce.number().int().min(1).max(65535).default(3101),
+  })
+  .parse(process.env);
 const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: 1 });
-const runtime: GatewayRuntime = new GatewayRuntime(redis, config.WA_GATEWAY_ENGINE === "mock" ? new MockEngine() : new BaileysEngine(id => runtime.assertOwned(id), config.ENCRYPTION_KEY));
+const runtime: GatewayRuntime = new GatewayRuntime(
+  redis,
+  config.WA_GATEWAY_ENGINE === "mock"
+    ? new MockEngine()
+    : new BaileysEngine((id) => runtime.assertOwned(id), config.ENCRYPTION_KEY),
+);
 const server = gatewayServer(runtime, config.WA_GATEWAY_API_KEY);
-server.listen(config.WA_GATEWAY_PORT, config.WA_GATEWAY_HOST, () => console.info(JSON.stringify({ event: "wa.gateway.started", engine: config.WA_GATEWAY_ENGINE })));
+server.listen(config.WA_GATEWAY_PORT, config.WA_GATEWAY_HOST, () =>
+  console.info(
+    JSON.stringify({
+      event: "wa.gateway.started",
+      engine: config.WA_GATEWAY_ENGINE,
+    }),
+  ),
+);
 await runtime.boot();
-const inboundTimer = setInterval(() => { void runtime.drainInbound().catch(() => console.error(JSON.stringify({ event: "wa.inbound.failed", code: "ENGINE_ERROR" }))); }, 15000);
+const inboundTimer = setInterval(() => {
+  void Promise.all([runtime.drainInbound(), deliverAlerts()]).catch(() =>
+    console.error(
+      JSON.stringify({ event: "wa.maintenance.failed", code: "ENGINE_ERROR" }),
+    ),
+  );
+}, 15000);
 inboundTimer.unref();
-async function shutdown() { clearInterval(inboundTimer); server.close(); await runtime.close(); await redis.quit(); await db.$disconnect(); }
-process.once("SIGTERM", () => { void shutdown(); });
-process.once("SIGINT", () => { void shutdown(); });
+let closing = false;
+async function shutdown() {
+  if (closing) return;
+  closing = true;
+  clearInterval(inboundTimer);
+  await new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, 30000);
+    server.close(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+  server.closeAllConnections();
+  await runtime.close();
+  await redis.quit();
+  await db.$disconnect();
+}
+process.once("SIGTERM", () => {
+  void shutdown();
+});
+process.once("SIGINT", () => {
+  void shutdown();
+});

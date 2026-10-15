@@ -1,25 +1,25 @@
 # Eventra — Technical Context
 
-Source of truth for *how* to build. Product intent lives in `project.md`.
+Source of truth for _how_ to build. Product intent lives in `project.md`.
 
 ## 1. Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Latest stable Next.js (App Router) + TypeScript (strict) |
-| UI | Tailwind CSS + shadcn/ui + lucide-react; React Hook Form + Zod; TanStack Query for client data |
-| Database | PostgreSQL 16 via Prisma ORM (migrations checked in) |
-| Auth | Firebase Authentication (client SDK) + `firebase-admin` for server verification and session cookies |
-| Payments | Cashfree PG: `cashfree-pg` (server) + `@cashfreepayments/cashfree-js` (checkout) |
-| Storage | S3-compatible (AWS S3 or Cloudflare R2 in prod, MinIO locally) via `@aws-sdk/client-s3` presigned URLs |
-| Image processing | `sharp` (resize, convert, strip EXIF, blurhash) |
-| Queue / cache | Redis + BullMQ; separate worker process |
-| Email | Provider interface; Resend default, SES/SMTP alternative; React Email templates |
-| WhatsApp | Existing Meta Cloud API; opt-in Baileys gateway extension in development, mock engine for tests; see `docs/whatsapp-gateway.md` |
-| QR / PDF | `qrcode` + `@react-pdf/renderer` |
-| Phone numbers | `libphonenumber-js`, default region IN, store E.164 |
-| Tests | Vitest (unit/integration), Playwright (e2e) |
-| Local dev | `docker-compose.yml` with postgres, redis, minio, mailpit |
+| Layer            | Choice                                                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework        | Latest stable Next.js (App Router) + TypeScript (strict)                                                                                                                    |
+| UI               | Tailwind CSS + shadcn/ui + lucide-react; React Hook Form + Zod; TanStack Query for client data                                                                              |
+| Database         | PostgreSQL 16 via Prisma ORM (migrations checked in)                                                                                                                        |
+| Auth             | Firebase Authentication (client SDK) + `firebase-admin` for server verification and session cookies                                                                         |
+| Payments         | Cashfree PG: `cashfree-pg` (server) + `@cashfreepayments/cashfree-js` (checkout)                                                                                            |
+| Storage          | S3-compatible (AWS S3 or Cloudflare R2 in prod, MinIO locally) via `@aws-sdk/client-s3` presigned URLs                                                                      |
+| Image processing | `sharp` (resize, convert, strip EXIF, blurhash)                                                                                                                             |
+| Queue / cache    | Redis + BullMQ; separate worker process                                                                                                                                     |
+| Email            | Provider interface; Resend default, SES/SMTP alternative; React Email templates                                                                                             |
+| WhatsApp         | Meta Cloud API plus opt-in private Baileys gateway (`7.0.0-rc14`), mock engine for CI; implementation complete, real-phone acceptance pending in `docs/whatsapp-gateway.md` |
+| QR / PDF         | `qrcode` + `@react-pdf/renderer`                                                                                                                                            |
+| Phone numbers    | `libphonenumber-js`, default region IN, store E.164                                                                                                                         |
+| Tests            | Vitest (unit/integration), Playwright (e2e)                                                                                                                                 |
+| Local dev        | `docker-compose.yml` with postgres, redis, minio, mailpit                                                                                                                   |
 
 Pin exact versions and check current docs for Next.js, Firebase, Cashfree and Meta before coding against them. Do not rely on memory of APIs.
 
@@ -88,18 +88,23 @@ Conventions: UUID primary keys, `timestamptz` everywhere, money as integer **pai
 - **Refund** — id, paymentId, amountPaise, status, cfRefundId, reason (table in MVP, UI in Phase 2)
 - **WebhookEvent** — id, provider, idempotencyKey, payload (jsonb), status, processedAt; unique (provider, idempotencyKey)
 - **MessageTemplate** — id, orgId, eventId (nullable), channel (EMAIL | WHATSAPP), trigger, subject, body, language, providerTemplateName, providerStatus, slots (jsonb), isEnabled
-- **NotificationLog** — id, orgId, eventId, orderId, ticketId (nullable), channel, trigger, toAddress, templateId, status (QUEUED | SENT | DELIVERED | READ | FAILED), providerMessageId, error, attempts, scheduledAt, sentAt; unique (ticketId or orderId, trigger, channel) for idempotent reminders
+- **NotificationLog** — id, orgId, eventId, orderId, ticketId (nullable), channel, trigger, toAddress, templateId, status (QUEUED | SENDING | SKIPPED | SENT | DELIVERED | READ | FAILED), providerMessageId, error, attempts, scheduledAt, sentAt; unique dedupeKey derived from order/ticket, trigger, channel, schedule and explicit resend revision
 - **AuditLog** — id, orgId, actorId, action, entityType, entityId, meta (jsonb), ip
+- **WhatsAppSession** — organization or platform number, status, masked display, AES-256-GCM auth state/version, connection timestamps, warm-up and optional lower daily cap. One Redis-owned socket per session.
+- **WhatsAppSuppression** — organization/global E.164 suppression and reason. Platform STOP applies globally; organization STOP applies within that workspace.
+- WhatsApp additions: `Organization.whatsappMode` (DISABLED / PLATFORM_NUMBER / ORG_NUMBER / OFFICIAL_API), `Order.whatsappOptIn` and `whatsappOptInAt`, `MessageTemplate.attachments`, `NotificationLog.sessionId`, `attachmentsSent`, `errorCode`. Existing notification dedupe keys are preserved.
 - Phase 2 tables (design now, migrate later): **Coupon**, **EventTask**, **TaskAssignee**, **Payout**. The former WhatsAppConnection placeholder is replaced by the WhatsAppSession/WhatsAppSuppression gateway migration; see `docs/whatsapp-gateway.md` for implementation status.
 
 ## 5. Key flows
 
 ### 5.1 Auth
+
 1. Client signs in with Firebase, sends ID token to `POST /api/auth/session`.
 2. Server verifies with `firebase-admin`, creates a session cookie (`httpOnly`, `secure`, `sameSite=lax`, ~5 days), upserts `User` by `firebaseUid`.
 3. Every server action and route handler resolves the user from the cookie, then runs `requireOrgRole(orgId, roles)` or `requireEventAccess(eventId, roles)`. Never trust client-provided org or role.
 
 ### 5.2 Checkout and payment (never oversell, never trust the client)
+
 1. `POST /api/checkout` (idempotency key required) validates the cart with Zod.
 2. In one transaction, reserve inventory atomically:
    `UPDATE ticket_types SET quantity_held = quantity_held + :q WHERE id = :id AND quantity_total - quantity_sold - quantity_held >= :q` (0 rows updated means sold out). Create `Order(PENDING, expiresAt = now + 10 min)` and items.
@@ -112,6 +117,7 @@ Conventions: UUID primary keys, `timestamptz` everywhere, money as integer **pai
 9. Late success after expiry: try to re-acquire inventory; if impossible, auto-refund through Cashfree and notify the buyer.
 
 ### 5.3 Tickets and QR
+
 - Token: `v1.<ticketId>.<base64url(HMAC_SHA256(TICKET_SIGNING_SECRET, "v1." + ticketId + "." + eventId))>`.
 - QR encodes `${APP_URL}/t/<token>`. A phone camera opens a read-only ticket page showing status; only the scanner can check in.
 - PDF ticket: event poster, title, date/venue, holder, ticket type, QR, short code.
@@ -120,6 +126,7 @@ Conventions: UUID primary keys, `timestamptz` everywhere, money as integer **pai
   No row returned means respond "already used" with time and who scanned.
 
 ### 5.4 Notifications pipeline
+
 `enqueueNotification(trigger, context)` → resolve template (**event-level > org-level > system default**) → render with a safe variable engine (no code execution; HTML-escape for email) → write `NotificationLog(QUEUED)` → BullMQ job per channel → provider send → update log. Retries: exponential backoff, 5 attempts, then dead-letter and mark FAILED. Reminders: delayed jobs scheduled when tickets are issued and rescheduled if the event time changes; idempotent via the unique log key.
 
 **Template variables:** `{{attendee_name}}` `{{event_title}}` `{{event_date}}` `{{event_time}}` `{{venue}}` `{{city}}` `{{ticket_type}}` `{{quantity}}` `{{order_id}}` `{{amount_paid}}` `{{ticket_url}}` `{{organizer_name}}` `{{support_contact}}` `{{custom_note}}`
@@ -127,19 +134,41 @@ Conventions: UUID primary keys, `timestamptz` everywhere, money as integer **pai
 **Triggers:** `ORDER_CONFIRMED`, `TICKET_ISSUED`, `PAYMENT_FAILED`, `REMINDER_24H`, `REMINDER_2H`, `EVENT_UPDATED`, `EVENT_CANCELLED` (Phase 2: `REFUND_PROCESSED`, `CHECKIN_THANKS`).
 
 **WhatsApp provider interface:**
+
 ```ts
 interface WhatsAppProvider {
-  sendTemplate(input: { to: string; templateName: string; language: string; params: string[]; mediaUrl?: string }): Promise<{ providerMessageId: string }>;
-  sendText(input: { to: string; body: string }): Promise<{ providerMessageId: string }>; // only inside the 24h session window
-  parseWebhook(req: Request): Promise<DeliveryStatusUpdate[]>;                            // sent/delivered/read/failed
+  sendTemplate(input: {
+    to: string;
+    templateName: string;
+    language: string;
+    params: string[];
+    notificationId: string;
+    document?: { filename: string; content: Buffer };
+  }): Promise<{ providerMessageId: string }>;
+  // Optional media capabilities use envelopes with tenant, consent and dedupe metadata.
+  send?(sessionId: string, message: GatewayMessage): Promise<SendResult>;
+  sendImage?(
+    sessionId: string,
+    message: GatewayMessage,
+    image: Buffer,
+  ): Promise<SendResult>;
+  sendDocument?(
+    sessionId: string,
+    message: GatewayMessage,
+    file: Buffer,
+    filename: string,
+  ): Promise<SendResult>;
 }
 ```
+
 - `meta-cloud` (default): business-initiated messages **must** use Meta-approved templates with positional params. Map named variables to positional `{{1}}…{{n}}` at send time.
 - MVP customization: the platform ships a fixed set of approved templates that include customizable slots (for example `custom_note`, `custom_footer`). Organizers edit slot text, toggle triggers per event, preview, and send a test. Full custom body submission through the Meta Message Templates API is Phase 2.
-- `wwebjs`: unofficial, dev/testing only, behind `WHATSAPP_PROVIDER=wwebjs`, runs as a separate worker, with a visible warning in the README about ban risk and ToS. Never the default.
+- `baileys`: explicitly enabled unofficial QR/pairing engine in `services/wa-gateway`. Uses free-form transactional bodies and bounded image/PDF attachments over private authenticated HTTP. Auth state is encrypted in PostgreSQL, never a filesystem auth store. Owner/admin-only integration settings select organization/platform/off/official modes. `mock` exercises the same gateway API without real sockets. A future engine can implement the shared `WhatsAppEngine` contract; no alternate unofficial engine is installed.
+- Linked-number delivery checks consent, suppression and registration, serializes each session, applies conservative warm-up/minute/recipient caps and reminder quiet hours, and deduplicates client IDs for 24 hours. STOP/TICKET replies and monotonic receipts are implemented. Uncertain network acceptance is never blindly resent; email remains the backup.
 - Always normalize phone numbers to E.164, and skip WhatsApp (fall back to email only) when the number is missing or invalid.
 
 ### 5.5 Media pipeline
+
 1. Client requests `POST /api/uploads/presign` (auth + RBAC + size/mime allowlist) and uploads directly to storage under `orgs/{orgId}/events/{eventId}/original/{uuid}`.
 2. Client calls confirm; the worker downloads, validates by **magic bytes** (not the extension), strips EXIF, converts HEIC/HEIF, and writes variants: `thumb 320`, `card 640`, `hero 1280`, `og 1200×630`, in AVIF/WebP plus JPEG fallback. Computes blurhash, width, height.
 3. Limits: 10 MB per file, 20 images per event (configurable). Public read via CDN/bucket policy; originals stay private.
@@ -196,11 +225,20 @@ EMAIL_PROVIDER=resend           # resend | ses | smtp
 RESEND_API_KEY=
 EMAIL_FROM=
 
-WHATSAPP_PROVIDER=meta-cloud    # meta-cloud | wwebjs (dev only)
+WHATSAPP_PROVIDER=meta-cloud    # meta-cloud | baileys | mock
 WHATSAPP_CLOUD_TOKEN=
 WHATSAPP_PHONE_NUMBER_ID=
 WHATSAPP_WABA_ID=
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=
+WA_UNOFFICIAL_ENABLED=false
+WA_GATEWAY_ENGINE=baileys
+WA_GATEWAY_URL=http://127.0.0.1:3101
+WA_GATEWAY_API_KEY=
+WA_MAX_DAILY=400
+WA_PER_RECIPIENT_DAILY=6
+WA_MIN_DELAY_MS=4000
+WA_MAX_DELAY_MS=12000
+WA_ADMIN_EMAIL=
 
 TICKET_SIGNING_SECRET=
 ENCRYPTION_KEY=
@@ -215,7 +253,8 @@ ENCRYPTION_KEY=
 /dashboard/events/[id]              tabs: Overview · Details · Media · Tickets · Attendees · Orders · Messages · Team · Check-in · Settings
 /dashboard/orders
 /dashboard/attendees
-/dashboard/messages                 org-level templates + delivery logs
+/dashboard/settings/messages        org-level templates + delivery logs
+/dashboard/settings/whatsapp        owner/admin linking, status and delivery modes
 /dashboard/team                     members, invites, roles
 /dashboard/settings                 org profile, integrations, (payouts placeholder)
 /my-tickets                         attendee wallet

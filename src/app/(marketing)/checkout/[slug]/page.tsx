@@ -28,7 +28,9 @@ export default async function CheckoutPage({
           "WHATSAPP",
         );
         return Boolean(
-          (route.kind === "gateway" || process.env.WHATSAPP_CLOUD_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) &&
+          (route.kind === "gateway" ||
+            (process.env.WHATSAPP_CLOUD_TOKEN &&
+              process.env.WHATSAPP_PHONE_NUMBER_ID)) &&
           setting?.isEnabled !== false,
         );
       } catch {

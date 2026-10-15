@@ -203,11 +203,18 @@ export function CheckoutForm({
             className="mt-2 w-full rounded-xl border border-[var(--line)] bg-transparent px-4 py-3 dark:border-[var(--line)]"
           />
         </label>
-        {whatsappAvailable && <label className="flex items-start gap-3 text-sm">
-          <input type="checkbox" name="whatsappOptIn" defaultChecked className="mt-1" />
-          Send my tickets and event updates to this number on WhatsApp
-          (optional).
-        </label>}
+        {whatsappAvailable && (
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="whatsappOptIn"
+              defaultChecked
+              className="mt-1"
+            />
+            Send my tickets and event updates to this number on WhatsApp
+            (optional).
+          </label>
+        )}
         <button
           disabled={busy || (total > 0 && !ready)}
           className="w-full rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[#14120f] disabled:opacity-50"

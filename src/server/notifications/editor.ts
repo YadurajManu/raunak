@@ -53,18 +53,30 @@ export async function sendMessageTest(
   orgId?: string,
 ) {
   const access = await messageAccess(userId, eventId, orgId);
-  const count = Number(await producerConnection.eval(`local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],60) end; return n`, 1, `wa:template-test:${access.orgId}:${userId}`));
-  if (count > 3) throw new Error("Please wait a minute before sending another test.");
+  const count = Number(
+    await producerConnection.eval(
+      `local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],60) end; return n`,
+      1,
+      `wa:template-test:${access.orgId}:${userId}`,
+    ),
+  );
+  if (count > 3)
+    throw new Error("Please wait a minute before sending another test.");
   const data = z
     .object({ channel: z.enum(["EMAIL", "WHATSAPP"]), trigger: triggerSchema })
     .parse(input);
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
   const event = await db.event.findFirst({
-    where: { ...(eventId ? { id: eventId } : {}), orgId: access.orgId, deletedAt: null },
+    where: {
+      ...(eventId ? { id: eventId } : {}),
+      orgId: access.orgId,
+      deletedAt: null,
+    },
     include: { org: true },
     orderBy: { createdAt: "desc" },
   });
-  if (!event) throw new Error("Create an event before sending a template test.");
+  if (!event)
+    throw new Error("Create an event before sending a template test.");
   const template = await resolvedTemplate(
     access.orgId,
     eventId,
@@ -120,24 +132,47 @@ export async function sendMessageTest(
     const route = await resolveWhatsApp(event.orgId);
     if (route.kind === "gateway") {
       const phone = parsePhoneNumberFromString(user.phone, "IN");
-      if (!phone?.isValid()) throw new Error("Add a valid mobile number to your profile.");
-      const options = attachmentSettingsSchema.parse(template?.attachments || {});
-      const message = { orgId: event.orgId, clientMessageId: `template-test:${crypto.randomUUID()}`, trigger: data.trigger, timezone: event.timezone, to: phone.number, consent: true, text: `[TEST — NO ENTRY]\n${renderTemplate(template?.body || defaultBodies[data.trigger], values)}\n${values.ticket_url}`, attachments: [] };
+      if (!phone?.isValid())
+        throw new Error("Add a valid mobile number to your profile.");
+      const options = attachmentSettingsSchema.parse(
+        template?.attachments || {},
+      );
+      const message = {
+        orgId: event.orgId,
+        clientMessageId: `template-test:${crypto.randomUUID()}`,
+        trigger: data.trigger,
+        timezone: event.timezone,
+        to: phone.number,
+        consent: true,
+        text: `[TEST — NO ENTRY]\n${renderTemplate(template?.body || defaultBodies[data.trigger], values)}\n${values.ticket_url}`,
+        attachments: [],
+      };
       if (data.trigger === "TICKET_ISSUED" && options.ticketCard) {
-        const card = await renderTicketCard({ title: event.title, date: `${values.event_date} · ${values.event_time}`, venue: values.venue, holder: values.attendee_name, type: "Sample ticket", code: "SAMPLE", url: values.ticket_url, sample: true });
+        const card = await renderTicketCard({
+          title: event.title,
+          date: `${values.event_date} · ${values.event_time}`,
+          venue: values.venue,
+          holder: values.attendee_name,
+          type: "Sample ticket",
+          code: "SAMPLE",
+          url: values.ticket_url,
+          sample: true,
+        });
         await route.provider.sendImage(route.sessionId, message, card);
       } else await route.provider.send(route.sessionId, message);
     } else {
-    const approved = whatsappTemplate(data.trigger);
-    if (approved.documentHeader)
-      throw new Error("Use a paid order's Resend tickets action to test a ticket PDF. Template previews do not create entry tickets.");
-    await whatsapp.sendTemplate({
-      to: user.phone,
-      templateName: approved.name,
-      language: approved.language,
-      params: approved.variables.map((key) => values[key] || "—"),
-      notificationId: crypto.randomUUID(),
-    });
+      const approved = whatsappTemplate(data.trigger);
+      if (approved.documentHeader)
+        throw new Error(
+          "Use a paid order's Resend tickets action to test a ticket PDF. Template previews do not create entry tickets.",
+        );
+      await whatsapp.sendTemplate({
+        to: user.phone,
+        templateName: approved.name,
+        language: approved.language,
+        params: approved.variables.map((key) => values[key] || "—"),
+        notificationId: crypto.randomUUID(),
+      });
     }
   }
   await db.auditLog.create({

@@ -9,6 +9,8 @@ The private source repository is `https://github.com/YadurajManu/raunak`.
 Redis, and Garage S3 storage. Each has its own Raunak container/volume. Database,
 Redis, and storage ports are not published on the host.
 
+The optional `whatsapp` Compose profile adds the private long-lived Baileys gateway. Its Dockerfile target is `wa-gateway`; it has no public port or fleet/tunnel network. App/worker calls use `http://wa-gateway:3101` plus an internal API key. Keep it disabled until configuration and spare-number acceptance are complete. See [the gateway runbook](whatsapp-gateway.md) for build, activation, rollback and key handling.
+
 Cloudflare Tunnel terminates HTTPS and forwards this hostname to the existing
 Raunak Caddy container. Caddy sends `/raunak-media/*` to Garage and other paths to
 the Next.js service. S3 signatures keep the public hostname and original path.

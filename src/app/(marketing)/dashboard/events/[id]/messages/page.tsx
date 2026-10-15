@@ -33,7 +33,9 @@ export default async function MessagesPage({
       attempts: true,
     },
   });
-  const effective = await db.messageTemplate.findMany({ where: { orgId: event.orgId, OR: [{ eventId: id }, { eventId: null }] } });
+  const effective = await db.messageTemplate.findMany({
+    where: { orgId: event.orgId, OR: [{ eventId: id }, { eventId: null }] },
+  });
   effective.sort((a, b) => Number(b.eventId === id) - Number(a.eventId === id));
   const templates = effective.map((t) => ({
     channel: t.channel,

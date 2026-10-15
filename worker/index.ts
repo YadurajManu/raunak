@@ -16,14 +16,16 @@ import { expireOrders } from "../src/server/checkout/service";
 async function main() {
   const pending = await db.eventImage.findMany({
     where: { variants: { equals: Prisma.DbNull }, processingError: null },
-    select: { id: true, crop:true },
+    select: { id: true, crop: true },
   });
   for (const image of pending)
     await mediaQueue.add(
       "process",
       { imageId: image.id },
       {
-        jobId: (image.crop as {revision?:string} | null)?.revision ? `${image.id}-${(image.crop as {revision:string}).revision}` : image.id,
+        jobId: (image.crop as { revision?: string } | null)?.revision
+          ? `${image.id}-${(image.crop as { revision: string }).revision}`
+          : image.id,
         attempts: 5,
         backoff: { type: "exponential", delay: 1000 },
         removeOnComplete: true,
@@ -31,7 +33,8 @@ async function main() {
     );
   const worker = new Worker<{ imageId: string }>(
     "media",
-    (job) => processMedia(job.data.imageId, value => job.updateProgress(value)),
+    (job) =>
+      processMedia(job.data.imageId, (value) => job.updateProgress(value)),
     { connection: mediaConnection, concurrency: 2 },
   );
   await orderQueue.upsertJobScheduler(
@@ -50,10 +53,18 @@ async function main() {
   const notificationWorker = new Worker<{ id: string }>(
     "notifications",
     async (job, token) => {
-      try { await processNotification(job.data.id); }
-      catch (error) {
-        if (error instanceof WaError && error.retryable && ["WA_CAP_REACHED", "QUIET_HOURS"].includes(error.code)) {
-          await job.moveToDelayed(Date.now() + Math.max(1000, error.retryAfterMs), token);
+      try {
+        await processNotification(job.data.id);
+      } catch (error) {
+        if (
+          error instanceof WaError &&
+          error.retryable &&
+          ["WA_CAP_REACHED", "QUIET_HOURS"].includes(error.code)
+        ) {
+          await job.moveToDelayed(
+            Date.now() + Math.max(1000, error.retryAfterMs),
+            token,
+          );
           throw new DelayedError();
         }
         throw error;

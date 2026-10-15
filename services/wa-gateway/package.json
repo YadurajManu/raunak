@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "start": "tsx --tsconfig ../../tsconfig.json src/index.ts" },
+  "scripts": {
+    "start": "tsx --env-file-if-exists=../../.env --tsconfig ../../tsconfig.json src/index.ts"
+  },
   "dependencies": {
     "@raunak/wa-contracts": "workspace:*",
     "baileys": "7.0.0-rc14"

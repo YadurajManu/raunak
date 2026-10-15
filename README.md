@@ -51,24 +51,24 @@ The interface pairs warm cream, dark ink, coral and deep green with editorial ty
 - **Run the event:** attendee search, CSV exports, booking/delivery status, QR/manual check-in and duplicate-entry protection.
 - **Handle changes:** event duplication, cancellation and payment/refund operations.
 
-> **Integration status:** Cashfree, Resend/SMTP and Meta WhatsApp code is implemented. Actual payments and delivery require your own activated provider accounts. Automated WhatsApp delivery also requires a production sender, approved templates and attendee consent. Guest checkout and a platform moderation queue are not implemented.
+> **Integration status:** Cashfree, Resend/SMTP and WhatsApp delivery code is implemented. Actual payments and delivery require configured provider accounts. Official WhatsApp uses a production sender and approved templates; the optional Baileys gateway uses a deliberately linked number. Both require attendee consent. Real-phone Baileys acceptance is pending. Guest checkout and a platform moderation queue are not implemented.
 
 ## Stack
 
-| Layer           | Technology                                          |
-| --------------- | --------------------------------------------------- |
-| Application     | Next.js 16 App Router, React 19, TypeScript         |
-| Interface       | Tailwind CSS 4, shared brand styles, Lucide icons   |
-| Motion          | Motion, GSAP and Lenis, with reduced-motion support |
-| Database        | PostgreSQL 16, Prisma 7 with the PostgreSQL adapter |
-| Authentication  | Firebase Auth and server-side session cookies       |
-| Background jobs | Redis 7 and BullMQ                                  |
-| Media           | S3-compatible storage, Sharp and HEIC conversion    |
-| Payments        | Cashfree hosted checkout and signed webhooks        |
-| Delivery        | Resend or SMTP; Meta WhatsApp Cloud API             |
-| Maps            | MapLibre GL and optional Geoapify geocoding         |
-| Tickets         | Signed QR codes, React PDF and ZXing scanning       |
-| Testing         | Vitest and Playwright                               |
+| Layer           | Technology                                                |
+| --------------- | --------------------------------------------------------- |
+| Application     | Next.js 16 App Router, React 19, TypeScript               |
+| Interface       | Tailwind CSS 4, shared brand styles, Lucide icons         |
+| Motion          | Motion, GSAP and Lenis, with reduced-motion support       |
+| Database        | PostgreSQL 16, Prisma 7 with the PostgreSQL adapter       |
+| Authentication  | Firebase Auth and server-side session cookies             |
+| Background jobs | Redis 7 and BullMQ                                        |
+| Media           | S3-compatible storage, Sharp and HEIC conversion          |
+| Payments        | Cashfree hosted checkout and signed webhooks              |
+| Delivery        | Resend or SMTP; Meta Cloud API or private Baileys gateway |
+| Maps            | MapLibre GL and optional Geoapify geocoding               |
+| Tickets         | Signed QR codes, React PDF and ZXing scanning             |
+| Testing         | Vitest and Playwright                                     |
 
 ### Architecture
 
@@ -152,20 +152,25 @@ pnpm worker
 
 ## Configuration
 
-The per-organization QR-linked WhatsApp extension is being implemented with a private, long-lived Baileys gateway. See the [gateway milestone tracker](docs/whatsapp-gateway.md) for current completion and real-phone acceptance status. It is disabled by default and is not a serverless service.
+The QR-linked WhatsApp extension uses a private, long-lived gateway pinned to `baileys@7.0.0-rc14`. Owners/admins link a dedicated number by QR or pairing code at `/dashboard/settings/whatsapp`, choose a mode, and edit workspace/event messages with ticket-card/PDF attachments. Auth is encrypted in PostgreSQL; Redis holds renewable ownership locks, expiring QR codes, caps and duplicate-send results. It is disabled by default and cannot run on serverless. See the [gateway runbook and phone QA checklist](docs/whatsapp-gateway.md).
 
-| Area                   | Environment variables                                                            | Purpose                                                       |
-| ---------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Application            | `APP_URL`                                                                        | Canonical URL, origin checks and links                        |
-| Data                   | `DATABASE_URL`, `REDIS_URL`                                                      | Database and background queues                                |
-| Browser authentication | `NEXT_PUBLIC_FIREBASE_*`                                                         | Public Firebase web configuration                             |
-| Server authentication  | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`           | Session verification and account administration               |
-| Payments               | `CASHFREE_ENV`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_API_VERSION` | Checkout and webhook verification                             |
-| Storage                | `S3_*`, `AWS_REQUEST_CHECKSUM_CALCULATION`                                       | Media uploads, variants and private files                     |
-| Email                  | `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` or `SMTP_*`                     | Invitations, receipts and ticket delivery                     |
-| WhatsApp               | `WHATSAPP_*`                                                                     | Sender credentials, webhook verification and template mapping |
-| Location               | `GEOAPIFY_API_KEY`, `NEXT_PUBLIC_MAP_TILE_URL`, `NEXT_PUBLIC_MAP_ATTRIBUTION`    | Address lookup and map rendering                              |
-| Signing                | `TICKET_SIGNING_SECRET`, `ENCRYPTION_KEY`                                        | Server-side cryptographic configuration                       |
+**Unofficial connection risk:** WhatsApp may disconnect or restrict the linked number, and upstream changes can break delivery. Traffic controls are conservative heuristics, not protection guarantees. Email remains independent. The official Meta provider is preserved for approved-template delivery. No campaigns or group messaging are supported.
+
+Set `WHATSAPP_PROVIDER=baileys`, configure `WA_GATEWAY_API_KEY`, `WA_GATEWAY_URL`, and a 32-byte `ENCRYPTION_KEY` (64 hex characters or base64), then deliberately enable `WA_UNOFFICIAL_ENABLED=true`. Run `pnpm --filter @raunak/wa-gateway start` alongside the existing worker. Production uses the private `whatsapp` Compose profile; never expose the gateway port through Caddy, Cloudflare Tunnel, or a public load balancer. Back up the encryption key separately; changing it without re-encrypting stored sessions requires re-linking. See the runbook for key rotation and runtime kill-switch steps.
+
+| Area                    | Environment variables                                                                                                                     | Purpose                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Application             | `APP_URL`                                                                                                                                 | Canonical URL, origin checks and links                        |
+| Data                    | `DATABASE_URL`, `REDIS_URL`                                                                                                               | Database and background queues                                |
+| Browser authentication  | `NEXT_PUBLIC_FIREBASE_*`                                                                                                                  | Public Firebase web configuration                             |
+| Server authentication   | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`                                                                    | Session verification and account administration               |
+| Payments                | `CASHFREE_ENV`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_API_VERSION`                                                          | Checkout and webhook verification                             |
+| Storage                 | `S3_*`, `AWS_REQUEST_CHECKSUM_CALCULATION`                                                                                                | Media uploads, variants and private files                     |
+| Email                   | `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` or `SMTP_*`                                                                              | Invitations, receipts and ticket delivery                     |
+| WhatsApp                | `WHATSAPP_*`                                                                                                                              | Sender credentials, webhook verification and template mapping |
+| Linked WhatsApp gateway | `WA_GATEWAY_*`, `WA_UNOFFICIAL_ENABLED`, `WA_MAX_DAILY`, `WA_PER_RECIPIENT_DAILY`, `WA_MIN_DELAY_MS`, `WA_MAX_DELAY_MS`, `WA_ADMIN_EMAIL` | Private engine, traffic controls and connection alerts        |
+| Location                | `GEOAPIFY_API_KEY`, `NEXT_PUBLIC_MAP_TILE_URL`, `NEXT_PUBLIC_MAP_ATTRIBUTION`                                                             | Address lookup and map rendering                              |
+| Signing                 | `TICKET_SIGNING_SECRET`, `ENCRYPTION_KEY`                                                                                                 | Server-side cryptographic configuration                       |
 
 For production email, select `EMAIL_PROVIDER=resend` and use a sender on a verified domain. Payment and messaging providers need their corresponding configuration; credentials are not included.
 

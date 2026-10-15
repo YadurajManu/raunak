@@ -21,6 +21,7 @@ services:
     environment:
       NODE_OPTIONS: --max-old-space-size=512
       AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      WA_GATEWAY_URL: http://wa-gateway:3101
     restart: unless-stopped
     mem_limit: 768m
     depends_on:
@@ -28,7 +29,13 @@ services:
       redis: { condition: service_healthy }
     networks: [default, fleet]
     healthcheck:
-      test: [CMD, node, -e, "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -39,11 +46,59 @@ services:
     environment:
       NODE_OPTIONS: --max-old-space-size=256
       AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      WA_GATEWAY_URL: http://wa-gateway:3101
     restart: unless-stopped
     mem_limit: 384m
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+  wa-gateway:
+    profiles: [whatsapp]
+    image: raunak-wa-gateway:latest
+    build:
+      context: ..
+      target: wa-gateway
+    command: [pnpm, --filter, "@raunak/wa-gateway", start]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      APP_URL: ${APP_URL}
+      TICKET_SIGNING_SECRET: ${TICKET_SIGNING_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      WA_GATEWAY_ENGINE: ${WA_GATEWAY_ENGINE:-baileys}
+      WA_GATEWAY_API_KEY: ${WA_GATEWAY_API_KEY}
+      WA_GATEWAY_HOST: 0.0.0.0
+      WA_GATEWAY_PORT: 3101
+      WA_UNOFFICIAL_ENABLED: ${WA_UNOFFICIAL_ENABLED:-false}
+      WA_MAX_DAILY: ${WA_MAX_DAILY:-400}
+      WA_PER_RECIPIENT_DAILY: ${WA_PER_RECIPIENT_DAILY:-6}
+      WA_MIN_DELAY_MS: ${WA_MIN_DELAY_MS:-4000}
+      WA_MAX_DELAY_MS: ${WA_MAX_DELAY_MS:-12000}
+      WA_ADMIN_EMAIL: ${WA_ADMIN_EMAIL:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER}
+      EMAIL_FROM: ${EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    restart: unless-stopped
+    mem_limit: 384m
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3101/healthz',{headers:{Authorization:'Bearer '+process.env.WA_GATEWAY_API_KEY}}).then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
   postgres:
     image: postgres:16-bookworm
     container_name: raunak-postgres
@@ -63,12 +118,21 @@ services:
     container_name: raunak-redis
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-    command: [sh, -c, 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction']
+    command:
+      [
+        sh,
+        -c,
+        'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction',
+      ]
     restart: unless-stopped
     mem_limit: 128m
     volumes: [redis:/data]
     healthcheck:
-      test: [CMD-SHELL, 'redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      test:
+        [
+          CMD-SHELL,
+          'redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" ping | grep -q PONG',
+        ]
       interval: 5s
       retries: 10
   storage:
