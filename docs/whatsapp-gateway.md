@@ -5,7 +5,7 @@ The requested Baileys extension is under active implementation. Completion is tr
 - [x] W0: schema, shared contracts, environment, workspace foundations (local migration and typecheck verified).
 - [x] W1: internal HTTP service, mock engine, locks, serialization and deduplication (private HTTP provider integration verified).
 - [x] W2 code: real Baileys engine, encrypted PostgreSQL state, lifecycle and addressing (state restore and disconnect mapping tested; phone reconnect/logout acceptance pending).
-- [ ] W3: authorized linking UI, QR/pairing and usage.
+- [x] W3 code: authorized linking UI, QR/pairing and usage (API authorization tested; real-phone linking acceptance pending).
 - [ ] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries.
 - [ ] W5: signed ticket-card images, PDF and multi-ticket delivery.
 - [ ] W6: opt-in timestamps, inbound STOP/TICKET and receipts.
