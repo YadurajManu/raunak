@@ -1,40 +1,50 @@
 .marketing {
   --site-gutter: clamp(16px, 2.2vw, 32px);
-  --global-header-height: 76px;
+  --global-header-height: 64px;
 }
 .gnav {
   position: sticky;
   top: 0;
   z-index: 40;
+  height: 64px;
+  box-sizing: border-box;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.4;
 }
 html:has(.gnav) {
-  scroll-padding-top: 92px;
-}
-.marketing .r-account {
-  min-height: calc(100svh - var(--global-header-height));
-}
-.marketing .r-event-workspace {
-  max-width: none;
-  min-height: 0;
-}
-#site-content :is(h1, h2, h3, section[id]) {
-  scroll-margin-top: calc(var(--global-header-height) + 16px);
+  scroll-padding-top: 80px;
 }
 .gnav-inner {
   max-width: 1480px;
   margin: auto;
   padding: 0 var(--site-gutter);
-  min-height: 76px;
+  height: 63px;
   display: flex;
   align-items: center;
   gap: 24px;
 }
 .marketing .gnav-logo {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
-  font-size: 30px;
-  gap: 10px;
+  gap: 8px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.gnav-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--ink);
+  border-radius: 7px;
+  color: var(--accent);
 }
 .gnav-links {
   display: flex;
@@ -42,49 +52,68 @@ html:has(.gnav) {
   gap: 4px;
   margin-left: auto;
 }
-.gnav-links a {
+.marketing .gnav-links a,
+.marketing .gnav-host {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 10px 12px;
-  font-size: 13px;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 14px;
   white-space: nowrap;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: 7px;
+  text-decoration: none;
 }
 .gnav-links a:hover,
-.gnav-links a[aria-current] {
+.gnav-links a[aria-current],
+.gnav-host:hover {
   background: var(--surface);
 }
 .gnav-links a[aria-current] {
-  border-color: var(--line);
   font-weight: 600;
 }
 .gnav-controls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex-shrink: 0;
 }
-.gnav-host {
-  font-size: 12px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.marketing .gnav .m-theme-toggle {
+.marketing .gnav-theme,
+.marketing .gnav-menu-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.gnav-theme:hover,
+.gnav-menu-toggle:hover {
+  background: var(--surface);
 }
 .marketing .gnav-signin {
-  min-height: 44px;
-  padding: 10px 16px;
-  font-size: 13px;
-  box-shadow: 2px 2px var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #171713;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.gnav-signin:hover {
+  background: color-mix(in srgb, var(--accent) 90%, var(--ink));
 }
 .gnav :is(a, button, summary):focus-visible,
 .r-account-sidebar a:focus-visible {
@@ -92,13 +121,21 @@ html:has(.gnav) {
   outline-offset: 3px;
 }
 .gnav .r-profile-menu summary {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 38px;
+  min-height: 38px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
   display: grid;
   place-items: center;
 }
+.gnav .r-profile-menu summary > span {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+}
 .gnav .r-profile-menu nav {
-  max-height: calc(100dvh - 100px);
+  max-height: calc(100dvh - 80px);
   overflow-y: auto;
 }
 .gnav .r-profile-menu nav > a {
@@ -111,6 +148,25 @@ html:has(.gnav) {
   padding: 10px;
   font-size: 11px;
   color: var(--muted);
+}
+.gnav .r-profile-signout {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #171713;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gnav .r-profile-signout:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.marketing .gnav-menu-toggle,
+.marketing .gnav-links .gnav-mobile-host {
+  display: none;
 }
 .gnav-skip {
   position: fixed;
@@ -126,8 +182,16 @@ html:has(.gnav) {
 .gnav-skip:focus {
   transform: translateY(0);
 }
-#site-content {
+#site-content,
+#site-content :is(h1, h2, h3, section[id]) {
   scroll-margin-top: calc(var(--global-header-height) + 16px);
+}
+.marketing .r-account {
+  min-height: calc(100svh - var(--global-header-height));
+}
+.marketing .r-event-workspace {
+  max-width: none;
+  min-height: 0;
 }
 .marketing .r-account-grid {
   display: block;
@@ -169,78 +233,65 @@ html:has(.gnav) {
 .marketing .market-page {
   padding-inline: var(--site-gutter);
 }
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
   .gnav-inner {
-    gap: 12px;
-  }
-  .gnav-links a {
-    padding-inline: 8px;
-    font-size: 12px;
+    gap: 8px;
+    justify-content: space-between;
   }
   .gnav-controls {
-    gap: 10px;
+    gap: 6px;
   }
-  .gnav-host {
-    font-size: 11px;
+  .marketing .gnav-host {
+    display: none;
   }
-}
-@media (max-width: 900px) {
-  html:has(.gnav) {
-    scroll-padding-top: 140px;
+  .marketing .gnav-menu-toggle {
+    display: inline-flex;
   }
-  .marketing {
-    --global-header-height: 124px;
+  .marketing .gnav-theme,
+  .marketing .gnav-menu-toggle,
+  .gnav .r-profile-menu summary {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
   }
-  .gnav-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0 12px;
-    min-height: 124px;
-    padding-block: 10px;
+  .marketing .gnav-signin {
+    height: 44px;
+    padding-inline: 10px;
+  }
+  .gnav-logo {
+    min-height: 44px;
   }
   .gnav-links {
-    grid-row: 2;
-    grid-column: 1/-1;
-    width: 100%;
+    display: none;
+    position: absolute;
+    top: 63px;
+    left: 0;
+    right: 0;
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
     margin: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 8px;
+    padding: 12px var(--site-gutter);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 16px #0001;
+  }
+  .gnav-links[data-open="true"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     gap: 4px;
   }
-  .gnav-links a {
-    flex: 1;
-    padding: 8px 4px;
-    font-size: 12px;
+  .marketing .gnav-links a {
+    justify-content: flex-start;
+    min-height: 44px;
+    padding: 10px 12px;
   }
-  .gnav-controls {
-    gap: 10px;
-  }
-  .gnav-host {
-    font-size: 11px;
-  }
-  .marketing .gnav-logo {
-    font-size: 27px;
-  }
-}
-@media (max-width: 420px) {
-  .gnav-host {
-    max-width: 78px;
-    white-space: normal;
-    line-height: 1.5;
-  }
-  .gnav-controls {
-    gap: 8px;
-  }
-  .marketing .gnav-logo {
-    font-size: 25px;
-    gap: 7px;
-  }
-  .gnav-links a {
-    font-size: 12px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .gnav * {
-    transition: none !important;
+  .marketing .gnav-links .gnav-mobile-host {
+    display: inline-flex;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    margin-top: 4px;
+    padding-top: 14px;
   }
 }

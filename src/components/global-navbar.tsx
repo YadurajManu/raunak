@@ -1,16 +1,33 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { ArrowLeft, ArrowUpRight, Menu, PieChart, X } from "lucide-react";
 import { NavigationLink } from "@/components/navigation-link";
 import { ProfileControls } from "@/components/onboarding/profile-controls";
 import { ThemeToggle } from "@/components/marketing/footer";
 import { APP_NAME } from "@/lib/constants";
+
 export function GlobalNavbar({
   user,
 }: {
   user: { name: string | null; email: string; avatarKey: string | null } | null;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname(),
+    id = useId();
+  const header = useRef<HTMLElement>(null),
+    trigger = useRef<HTMLButtonElement>(null);
+  const [menu, setMenu] = useState({ open: false, path: pathname });
+  const open = menu.open && menu.path === pathname;
+  if (menu.path !== pathname) setMenu({ open: false, path: pathname });
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (!header.current?.contains(event.target as Node))
+        setMenu({ open: false, path: pathname });
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [pathname]);
   // Authentication, onboarding and signed admission links keep their focused shells.
   if (
     ["/login", "/signup", "/onboarding"].includes(pathname) ||
@@ -20,35 +37,59 @@ export function GlobalNavbar({
     return null;
   const organizer =
     pathname.startsWith("/dashboard") || pathname.startsWith("/organizer/");
+  const hostHref = organizer ? "/account" : "/dashboard";
+  const hostLabel = organizer ? "Attendee view" : "Host an event";
+  const HostIcon = organizer ? ArrowLeft : ArrowUpRight;
   return (
     <>
       <a href="#site-content" className="gnav-skip">
         Skip to content
       </a>
-      <header className="gnav" data-global-navbar>
+      <header
+        className="gnav"
+        data-global-navbar
+        ref={header}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && open) {
+            setMenu({ open: false, path: pathname });
+            trigger.current?.focus();
+          }
+        }}
+      >
         <div className="gnav-inner">
-          <Link href="/" className="m-logo gnav-logo" aria-label="Raunak home">
-            <span className="m-logo-mark" aria-hidden="true">
-              ◔
+          <Link href="/" className="gnav-logo" aria-label="Raunak home">
+            <span className="gnav-logo-mark" aria-hidden="true">
+              <PieChart size={18} />
             </span>
             {APP_NAME}
           </Link>
-          <nav className="gnav-links" aria-label="Main navigation">
+          <nav
+            id={id}
+            className="gnav-links"
+            aria-label="Main navigation"
+            data-open={open}
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest("a"))
+                setMenu({ open: false, path: pathname });
+            }}
+          >
             <NavigationLink href="/discover">Discover events</NavigationLink>
             <NavigationLink href="/my-tickets">My tickets</NavigationLink>
             <NavigationLink href="/saved">Saved</NavigationLink>
             {user && (
               <NavigationLink href="/account">My dashboard</NavigationLink>
             )}
+            <Link className="gnav-mobile-host" href={hostHref}>
+              {hostLabel}
+              <HostIcon size={16} aria-hidden="true" />
+            </Link>
           </nav>
           <div className="gnav-controls">
-            <Link
-              href={organizer ? "/account" : "/dashboard"}
-              className="gnav-host"
-            >
-              {organizer ? "← Attendee view" : "Host an event ↗"}
+            <Link href={hostHref} className="gnav-host">
+              {hostLabel}
+              <HostIcon size={16} aria-hidden="true" />
             </Link>
-            <ThemeToggle />
+            <ThemeToggle compact />
             {user ? (
               <ProfileControls
                 key={user.avatarKey || user.email}
@@ -57,13 +98,35 @@ export function GlobalNavbar({
                 avatarUrl={user.avatarKey}
               />
             ) : (
-              <Link
-                href="/login"
-                className="m-button m-button-small gnav-signin"
-              >
-                Sign in ↗
+              <Link href="/login" className="gnav-signin">
+                Sign in
               </Link>
             )}
+            <button
+              type="button"
+              className="gnav-menu-toggle"
+              ref={trigger}
+              aria-label={
+                open ? "Close navigation menu" : "Open navigation menu"
+              }
+              aria-expanded={open}
+              aria-controls={id}
+              onClick={() => {
+                setMenu({ open: !open, path: pathname });
+                if (!open)
+                  requestAnimationFrame(() =>
+                    header.current
+                      ?.querySelector<HTMLAnchorElement>(".gnav-links a")
+                      ?.focus(),
+                  );
+              }}
+            >
+              {open ? (
+                <X size={20} aria-hidden="true" />
+              ) : (
+                <Menu size={20} aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
       </header>

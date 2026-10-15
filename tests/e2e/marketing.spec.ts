@@ -55,12 +55,17 @@ test("mobile navigation supports keyboard and leaves no horizontal overflow", as
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
   const discover = navigation.getByRole("link", { name: "Discover events" });
   await expect(discover).toBeVisible();
   await discover.focus();
   await page.keyboard.press("Tab");
   await expect(
     navigation.getByRole("link", { name: "My tickets" }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Open navigation menu" }),
   ).toBeFocused();
   await expect(
     page.getByRole("button", { name: "Use dark theme" }).first(),

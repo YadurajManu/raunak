@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { APP_NAME } from "@/lib/constants";
 import { marketing } from "@/config/marketing";
 import { useReducedMotion } from "@/lib/motion/reduced";
+import { Sun, Moon } from "lucide-react";
 
 function subscribeTheme(callback: () => void) {
   const query = matchMedia("(prefers-color-scheme: dark)");
@@ -22,11 +23,12 @@ function darkTheme() {
       matchMedia("(prefers-color-scheme: dark)").matches)
   );
 }
-export function ThemeToggle() {
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
   return (
     <button
-      className="m-theme-toggle m-sticker"
+      type="button"
+      className={compact ? "gnav-theme" : "m-theme-toggle m-sticker"}
       aria-label={dark ? "Use light theme" : "Use dark theme"}
       onClick={() => {
         const theme = dark ? "light" : "dark";
@@ -37,7 +39,17 @@ export function ThemeToggle() {
         window.dispatchEvent(new Event("raunak-theme"));
       }}
     >
-      {dark ? "☀ LIGHT" : "☾ DARK"}
+      {compact ? (
+        dark ? (
+          <Sun size={18} aria-hidden="true" />
+        ) : (
+          <Moon size={18} aria-hidden="true" />
+        )
+      ) : dark ? (
+        "☀ LIGHT"
+      ) : (
+        "☾ DARK"
+      )}
     </button>
   );
 }

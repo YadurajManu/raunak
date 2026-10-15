@@ -103,7 +103,7 @@ export function ProfileControls({
         <Link href="/saved">Saved events</Link>
         <Link href="/account/profile">Edit profile</Link>
         <Link href="/dashboard">Organizer workspace ↗</Link>
-        <button className="m-button" onClick={logout} disabled={busy}>
+        <button className="r-profile-signout" onClick={logout} disabled={busy}>
           {busy ? "Signing out…" : "Sign out"}
         </button>
         {error && <small role="alert">{error}</small>}

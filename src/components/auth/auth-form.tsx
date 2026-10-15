@@ -401,7 +401,7 @@ export function AuthForm({
           <Link href="/" className="m-auth-back">
             ← Back to {APP_NAME}
           </Link>
-          <ThemeToggle />
+          <ThemeToggle compact />
         </div>
         <div className="m-auth-form-wrap">
           <p className="m-eyebrow">

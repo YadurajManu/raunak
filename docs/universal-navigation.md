@@ -8,7 +8,9 @@ The marketing application layout now owns exactly one `GlobalNavbar`. Landing, D
 
 Authentication, onboarding, style-guide previews and signed admission QR pages retain focused shells. Organizer workspaces use a secondary horizontal navigation row, with existing role-filtered event tabs beneath it. Attendee pages no longer repeat global links in a sidebar. API routes have no application navigation.
 
-Navbar dimensions and logo alignment are fixed per breakpoint: 76px desktop inner row and 124px at tablet/mobile, plus the border. Main navigation, profile, theme and organizer/attendee switch use the same implementation everywhere. Profile menus dismiss on Escape, outside clicks and navigation. Private avatar changes reset image fallback state.
+The navbar is 64px including its 1px border at every breakpoint. Its wordmark is 28px, logo icon container 30px, navigation text 14px, and desktop account/theme controls 38px. Below 1000px, navigation and hosting move into an accessible menu while logo, theme and account remain visible with 44px control targets. Main navigation, profile, theme and organizer/attendee switch use the same implementation everywhere. Profile menus dismiss on Escape, outside clicks and navigation. Private avatar changes reset image fallback state.
+
+The previous excess came from the 76/124px header rules and shared marketing classes: `m-sticker` added a shadow and heavy border, `m-theme-toggle` applied rotation, and `m-button` added promotional button sizing and hover transforms. Navigation now uses dedicated control classes and the existing theme-persistence handler with a compact icon presentation. It does not scale elements to compensate for sizing. `scripts/verify-navbar.ts` checks computed dimensions and browser scale, six requested widths, both themes and auth states, mobile keyboard/outside dismissal, route state and theme persistence. Before/after captures are in `artifacts/compact-navbar-before/` and `artifacts/compact-navbar-after/`.
 
 ## Discover
 

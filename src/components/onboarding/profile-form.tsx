@@ -216,7 +216,7 @@ export function ProfileForm({
           </span>
           {APP_NAME}
         </Link>
-        <ThemeToggle />
+        <ThemeToggle compact />
       </header>
       <div className="r-onboarding-grid">
         <aside className="r-onboarding-aside">

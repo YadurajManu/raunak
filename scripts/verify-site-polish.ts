@@ -154,6 +154,10 @@ async function main() {
         }
       }
       if (["discover", "wallet", "saved"].includes(name)) {
+        if (phase === "after")
+          await page
+            .getByRole("button", { name: "Open navigation menu" })
+            .click();
         const nav = page.getByRole("navigation", { name: "Main navigation" });
         for (const label of ["Discover events", "My tickets", "Saved"])
           assert.ok(
@@ -218,7 +222,7 @@ async function main() {
       assert.equal(await page.locator(".r-profile-menu").count(), 0);
       assert.equal(
         await page
-          .getByRole("link", { name: "Sign in ↗", exact: true })
+          .getByRole("link", { name: "Sign in", exact: true })
           .isVisible(),
         true,
       );
