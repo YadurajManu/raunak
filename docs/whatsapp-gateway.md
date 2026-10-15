@@ -3,7 +3,7 @@
 The requested Baileys extension is under active implementation. Completion is tracked below; production activation and real-phone acceptance must not be inferred from checked code milestones.
 
 - [x] W0: schema, shared contracts, environment, workspace foundations (local migration and typecheck verified).
-- [ ] W1: internal HTTP service, mock engine, locks, serialization and deduplication.
+- [x] W1: internal HTTP service, mock engine, locks, serialization and deduplication (private HTTP provider integration verified).
 - [ ] W2: real Baileys engine, encrypted PostgreSQL state, lifecycle and addressing.
 - [ ] W3: authorized linking UI, QR/pairing and usage.
 - [ ] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries.
@@ -33,5 +33,7 @@ The schema defaults new organizations to DISABLED. Application onboarding can se
 Transactional triggers only; consent and suppression checked before sending. Per session: 8 messages/minute; warm-up 30/day on days 1–2, 60 on 3–4, 120 on 5–7, 250 on 8–14, then 400/day. Recipient limit: 6/day. Normal inter-message delay 4–12 seconds. Reminders are deferred from 22:00 to 07:00 in the event timezone. These are conservative traffic controls, not protection against restrictions or a guarantee of delivery.
 
 ## Real-phone acceptance pending
+
+Gateway retries return the original cached result for 24 hours. A send that crashes after network acceptance but before recording its result remains ambiguous and is not automatically resent. This avoids blind duplicates; email is the backup and an operator must investigate. Exactly-once delivery cannot be guaranteed across a network and process crash. The private gateway must not be exposed through the public application tunnel.
 
 Link a dedicated spare number, make a two-ticket sandbox booking, scan both delivered QR cards, edit the template and retest, restart the gateway, unlink from the phone, test STOP/TICKET, exercise the kill switch and retry a message. Record the actual results; mock assertions do not substitute for these checks.
