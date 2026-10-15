@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { APP_NAME } from "../src/lib/constants";
-import { Worker } from "bullmq";
+import { Worker, DelayedError } from "bullmq";
+import { WaError } from "@raunak/wa-contracts";
 import { db } from "../src/server/db/client";
 import { Prisma } from "../src/generated/prisma/client";
 import { mediaConnection, mediaQueue, orderQueue } from "./queues";
@@ -48,7 +49,16 @@ async function main() {
   );
   const notificationWorker = new Worker<{ id: string }>(
     "notifications",
-    (job) => processNotification(job.data.id),
+    async (job, token) => {
+      try { await processNotification(job.data.id); }
+      catch (error) {
+        if (error instanceof WaError && error.retryable && ["WA_CAP_REACHED", "QUIET_HOURS"].includes(error.code)) {
+          await job.moveToDelayed(Date.now() + Math.max(1000, error.retryAfterMs), token);
+          throw new DelayedError();
+        }
+        throw error;
+      }
+    },
     { connection: mediaConnection, concurrency: 2 },
   );
   notificationWorker.on("failed", () =>

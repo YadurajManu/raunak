@@ -33,13 +33,21 @@ const serverSchema = z.object({
   WA_PER_RECIPIENT_DAILY: z.coerce.number().int().positive().default(6),
   WA_MIN_DELAY_MS: z.coerce.number().int().nonnegative().default(4000),
   WA_MAX_DELAY_MS: z.coerce.number().int().nonnegative().default(12000),
-  WHATSAPP_CLOUD_TOKEN: z.string().min(1),
-  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1),
-  WHATSAPP_WABA_ID: z.string().min(1),
-  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1),
-  WHATSAPP_APP_SECRET: z.string().min(16),
+  WHATSAPP_CLOUD_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_WABA_ID: z.string().optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+  WHATSAPP_APP_SECRET: z.string().optional(),
   TICKET_SIGNING_SECRET: z.string().min(32),
   ENCRYPTION_KEY: z.string().min(32),
+}).superRefine((value, context) => {
+  if (value.WA_MAX_DELAY_MS < value.WA_MIN_DELAY_MS) context.addIssue({ code: "custom", path: ["WA_MAX_DELAY_MS"], message: "Must be at least WA_MIN_DELAY_MS" });
+  if (value.WHATSAPP_PROVIDER === "meta-cloud") for (const field of ["WHATSAPP_CLOUD_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_WABA_ID", "WHATSAPP_WEBHOOK_VERIFY_TOKEN", "WHATSAPP_APP_SECRET"] as const) {
+    if (!value[field]) context.addIssue({ code: "custom", path: [field], message: "Required for the official Meta provider" });
+  }
+  if (value.WA_UNOFFICIAL_ENABLED === "true") for (const field of ["WA_GATEWAY_URL", "WA_GATEWAY_API_KEY"] as const) {
+    if (!value[field]) context.addIssue({ code: "custom", path: [field], message: "Required when unofficial delivery is enabled" });
+  }
 });
 
 const publicSchema = z.object({

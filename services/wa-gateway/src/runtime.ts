@@ -5,6 +5,7 @@ import { gatewayMessageSchema, transactionalTriggers, WaError, type EngineEvent,
 import { db } from "@/server/db/client";
 import { SessionQueue } from "./queue";
 import { alertSession } from "./alerts";
+import { PolicyEngine } from "./policy";
 
 const ownLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE', KEYS[1], ARGV[2]) else return 0 end`;
 const releaseLock = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end`;
@@ -15,7 +16,9 @@ export class GatewayRuntime {
   private locks = new Map<string, { token: string; timer: ReturnType<typeof setInterval> }>();
   private queue = new SessionQueue();
   private events = new Map<string, Promise<void>>();
+  private policy: PolicyEngine;
   constructor(readonly redis: Redis, readonly engine: WhatsAppEngine) {
+    this.policy = new PolicyEngine(redis, engine);
     for (const type of ["status", "qr", "receipt", "inbound"] as const) engine.on(type, event => {
       const pending = (this.events.get(event.sessionId) || Promise.resolve()).then(() => this.handle(event)).catch(() => { console.error(JSON.stringify({ event: "wa.event.failed", code: "ENGINE_ERROR" })); });
       this.events.set(event.sessionId, pending);
@@ -39,7 +42,13 @@ export class GatewayRuntime {
   async connect(id: string, orgId: string | null) {
     if (process.env.WA_UNOFFICIAL_ENABLED !== "true") throw new WaError("KILL_SWITCH");
     const session = await this.scoped(id, orgId);
-    if (this.locks.has(id)) return;
+    if (this.locks.has(id)) {
+      if (session.status === "PAUSED" && session.lastError === "CIRCUIT_BREAKER" && session.phoneE164 && await this.engine.isOnWhatsApp(id, session.phoneE164)) {
+        await this.redis.del(`wa:failures:${id}`);
+        await db.whatsAppSession.update({ where: { id }, data: { status: "CONNECTED", pausedUntil: null, lastError: null } });
+      }
+      return;
+    }
     const token = randomUUID(), lockKey = `wa:session:${id}:lock`;
     if (!await this.redis.set(lockKey, token, "PX", 30000, "NX")) throw new WaError("SESSION_PAUSED", true, 30000);
     const timer = setInterval(() => {
@@ -85,18 +94,39 @@ export class GatewayRuntime {
     if (original && original !== "pending") return resultSchema.parse(JSON.parse(original));
     if (original) throw new WaError("ENGINE_ERROR", true, 60000);
     return this.queue.enqueue(id, transactionalTriggers.indexOf(message.trigger), async () => {
+      const cached = await this.redis.get(key);
+      if (cached && cached !== "pending") return resultSchema.parse(JSON.parse(cached));
+      if (cached) throw new WaError("ENGINE_ERROR", true, 60000);
       await this.assertOwned(id);
       if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
       if (!message.consent) throw new WaError("NO_CONSENT");
       const current = await this.scoped(id, session.orgId);
       if (current.status !== "CONNECTED") throw new WaError(current.status === "PAUSED" || current.status === "BANNED_SUSPECTED" ? "SESSION_PAUSED" : "SESSION_DISCONNECTED");
+      await this.policy.check(current, message);
       if (!await this.redis.set(key, "pending", "EX", 86400, "NX")) {
         const saved = await this.redis.get(key);
         if (saved && saved !== "pending") return resultSchema.parse(JSON.parse(saved));
         throw new WaError("ENGINE_ERROR", true, 60000);
       }
       // A crash after network acceptance is ambiguous: leave pending, never blindly resend.
-      const result = await this.engine.sendText(id, message.to, message.text);
+      let result: SendResult;
+      try {
+        const typing = await this.policy.pace(id, message.text);
+        await this.assertOwned(id);
+        if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
+        await this.engine.presence(id, message.to, "composing");
+        await new Promise(resolve => setTimeout(resolve, typing));
+        await this.assertOwned(id);
+        if (process.env.WA_UNOFFICIAL_ENABLED !== "true" || await this.redis.get("wa:kill-switch") === "1") throw new WaError("KILL_SWITCH");
+        if (await db.whatsAppSuppression.findFirst({ where: { phoneE164: message.to, OR: [{ orgId: message.orgId }, { orgId: null }] } })) throw new WaError("SUPPRESSED");
+        result = await this.engine.sendText(id, message.to, message.text);
+        await this.policy.sent(id);
+      } catch (error) {
+        if (!(error instanceof WaError) || error.code === "ENGINE_ERROR") {
+          if (await this.policy.failed(id)) await alertSession(id, "CIRCUIT_BREAKER").catch(() => {});
+        }
+        throw error instanceof WaError ? error : new WaError("ENGINE_ERROR", true, 5000);
+      } finally { await this.engine.presence(id, message.to, "paused").catch(() => {}); }
       await this.redis.eval(replaceLock, 1, key, "pending", JSON.stringify(result), 86400);
       if (message.notificationId) {
         await db.notificationLog.updateMany({ where: { id: message.notificationId, orgId: message.orgId, channel: "WHATSAPP" }, data: { sessionId: id, providerMessageId: result.providerMessageId } });

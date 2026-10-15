@@ -6,7 +6,7 @@ The requested Baileys extension is under active implementation. Completion is tr
 - [x] W1: internal HTTP service, mock engine, locks, serialization and deduplication (private HTTP provider integration verified).
 - [x] W2 code: real Baileys engine, encrypted PostgreSQL state, lifecycle and addressing (state restore and disconnect mapping tested; phone reconnect/logout acceptance pending).
 - [x] W3 code: authorized linking UI, QR/pairing and usage (API authorization tested; real-phone linking acceptance pending).
-- [ ] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries.
+- [x] W4: consent/suppression/caps/quiet-hours policy, provider routing and retries (policy and routing integration tests pass).
 - [ ] W5: signed ticket-card images, PDF and multi-ticket delivery.
 - [ ] W6: opt-in timestamps, inbound STOP/TICKET and receipts.
 - [ ] W7: full-body template editing, attachment controls, modes and retry UI.
@@ -33,6 +33,10 @@ The schema defaults new organizations to DISABLED. Application onboarding can se
 ## Policy defaults
 
 Transactional triggers only; consent and suppression checked before sending. Per session: 8 messages/minute; warm-up 30/day on days 1–2, 60 on 3–4, 120 on 5–7, 250 on 8–14, then 400/day. Recipient limit: 6/day. Normal inter-message delay 4–12 seconds. Reminders are deferred from 22:00 to 07:00 in the event timezone. These are conservative traffic controls, not protection against restrictions or a guarantee of delivery.
+
+Daily counters reset at 00:00 UTC, minute counters at the next UTC minute; quiet hours use the event timezone and handle DST. Caps reserve sends atomically before attempting delivery, including failed attempts. Cap/quiet-hour deferrals do not consume the worker's failure-attempt allowance. Three consecutive engine failures pause a session for 15 minutes; it stays paused until an administrator requests Connect and its number passes a health lookup. Ban-like and replacement disconnects require deliberate re-linking.
+
+For an immediate runtime stop, set Redis key `wa:kill-switch` to `1`; remove it to lift that runtime stop. `WA_UNOFFICIAL_ENABLED=false` always blocks sends, but changing a process environment value requires restarting the affected app/worker/gateway processes (no code deployment required). The kill switch never blocks email or the explicitly selected official API.
 
 ## Real-phone acceptance pending
 

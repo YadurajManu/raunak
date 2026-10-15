@@ -28,6 +28,8 @@ import {
 import { formatInr } from "@/lib/money";
 import QRCode from "qrcode";
 import {emailMarkup} from "./email-markup";
+import { WaError, transactionalTriggers } from "@raunak/wa-contracts";
+import { resolveWhatsApp } from "@/server/whatsapp/routing";
 
 export async function resolvedTemplate(
   orgId: string,
@@ -55,7 +57,8 @@ export async function queueNotification(id: string) {
         jobId: id,
         delay: Math.max(0, (log.scheduledAt?.getTime() || 0) - Date.now()),
         attempts: 5,
-        backoff: { type: "exponential", delay: 5000 },
+        priority: transactionalTriggers.indexOf(log.trigger) + 1,
+        backoff: { type: "exponential", delay: 5000, jitter: 0.2 },
         removeOnComplete: 1000,
         removeOnFail: 1000,
       },
@@ -313,8 +316,16 @@ export async function processNotification(
         idempotencyKey: id,
       });
     } else {
-      if (!log.order.whatsappOptIn)
-        throw new Error("WhatsApp updates were not requested by this buyer.");
+      if (!log.order.whatsappOptIn) throw new WaError("NO_CONSENT");
+      const route = providers.whatsapp !== whatsapp ? { kind: "official" as const, provider: providers.whatsapp } : await resolveWhatsApp(log.orgId);
+      if (route.kind === "gateway") {
+        const text = renderTemplate(template?.body || defaultBodies[log.trigger], values);
+        const result = await route.provider.send(route.sessionId, {
+          clientMessageId: id, notificationId: id, orgId: log.orgId, to: log.toAddress, trigger: log.trigger, timezone: log.event.timezone,
+          consent: log.order.whatsappOptIn, text: `${text}\n\n${values.ticket_url}`, attachments: [],
+        });
+        await db.notificationLog.update({ where: { id }, data: { sessionId: route.sessionId, providerMessageId: result.providerMessageId, errorCode: null } });
+      } else {
       const approved = whatsappTemplate(log.trigger);
       let document: { filename: string; content: Buffer } | undefined;
       if (approved.documentHeader) {
@@ -322,7 +333,7 @@ export async function processNotification(
           throw new Error("A prepared ticket PDF is required for this WhatsApp template.");
         document = { filename: `raunak-${ticket.code}.pdf`, content: await storage.read(ticket.pdfKey, 10 * 1024 * 1024) };
       }
-      const result = await providers.whatsapp.sendTemplate({
+      const result = await route.provider.sendTemplate({
         to: log.toAddress,
         templateName: approved.name,
         language: approved.language,
@@ -334,12 +345,23 @@ export async function processNotification(
         where: { id },
         data: { providerMessageId: result.providerMessageId },
       });
+      }
     }
     await db.notificationLog.updateMany({
       where: { id, status: "SENDING" },
       data: { status: "SENT", sentAt: new Date(), error: null },
     });
   } catch (error) {
+    if (error instanceof WaError) {
+      const deferred = ["WA_CAP_REACHED", "QUIET_HOURS"].includes(error.code) && error.retryable;
+      const skipped = ["NO_CONSENT", "NOT_ON_WHATSAPP", "SUPPRESSED", "KILL_SWITCH", "SESSION_DISCONNECTED"].includes(error.code);
+      await db.notificationLog.updateMany({ where: { id, status: "SENDING" }, data: {
+        status: skipped ? "SKIPPED" : error.retryable && (deferred || log.attempts + 1 < 5) ? "QUEUED" : "FAILED",
+        errorCode: error.code, error: error.code, ...(deferred ? { attempts: { decrement: 1 }, scheduledAt: new Date(Date.now() + error.retryAfterMs) } : {}),
+      } });
+      if (!error.retryable || skipped) return;
+      throw error;
+    }
     await db.notificationLog.updateMany({
       where: { id, status: "SENDING" },
       data: {

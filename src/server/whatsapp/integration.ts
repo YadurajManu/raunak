@@ -6,11 +6,9 @@ import { gatewayRequest, BaileysGatewayProvider } from "@/server/providers/whats
 import { producerConnection } from "../../../worker/queues";
 import { APP_NAME } from "@/lib/constants";
 import { WaError } from "@raunak/wa-contracts";
+import { warmupCap } from "./limits";
+export { warmupCap } from "./limits";
 
-export function warmupCap(start: Date | null, maximum = 400, override?: number | null, now = Date.now()) {
-  const day = Math.max(1, Math.floor((now - (start?.getTime() || now)) / 86400000) + 1);
-  return { day, cap: Math.min(override || maximum, day <= 2 ? 30 : day <= 4 ? 60 : day <= 7 ? 120 : day <= 14 ? 250 : maximum) };
-}
 export const connectionSchema = z.object({ id: z.uuid(), status: z.string(), phone: z.string().nullable(), pushName: z.string().nullable(), lastSeenAt: z.string().nullable(), connectedAt: z.string().nullable(), uptimeSeconds: z.number(), qr: z.string().nullable(), lastError: z.string().nullable() });
 export function officialConfigured() { return !!(process.env.WHATSAPP_CLOUD_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID); }
 export async function integrationStatus(userId: string, orgId: string) {
