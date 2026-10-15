@@ -1,84 +1,239 @@
-# Raunak
+<p align="center">
+  <img src=".github/assets/readme-banner.svg" alt="Raunak — Good people. Great events." width="100%" />
+</p>
 
-India-first event ticketing SaaS. Raunak is the confirmed brand; Eventra was the working codename. Phase 1 implementation is in progress. Read `project.md` for product scope and `context.md` for architecture.
+<p align="center">
+  <strong>An India-first platform for discovering, hosting and showing up.</strong><br />
+  From the first invitation to the QR scan at the door.
+</p>
 
-## Local setup
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-244E3D?style=flat-square" /></a>
+  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-171713?style=flat-square" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-typed-3178C6?style=flat-square" />
+  <img alt="PostgreSQL 16" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square" />
+  <img alt="Built for India" src="https://img.shields.io/badge/Built_for-India-FF5738?style=flat-square" />
+</p>
 
-1. Install Node 24, pnpm 10, and Docker.
-2. `cp .env.example .env` and fill provider credentials.
-3. `docker compose up -d`.
-4. `pnpm install && pnpm exec prisma generate && pnpm db:migrate && pnpm db:seed && pnpm dev`.
-5. Open <http://localhost:3000>; health check: <http://localhost:3000/api/health>.
+<p align="center">
+  <a href="https://raunak.yaduraj.me">Live website</a> ·
+  <a href="#getting-started">Get started</a> ·
+  <a href="#features">Features</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a>
+</p>
 
-`pnpm typecheck`, `pnpm lint`, and `pnpm test` check the current scaffold.
+---
 
-## Decisions
+## Meet Raunak
 
-Environment validation is called by services as they are added, so the health route and initial UI run before external credentials are configured. Each service will fail clearly when its required credentials are absent.
+Raunak brings event discovery, organizer workspaces, ticketing and admission into one application. Attendees can find a plan, book a ticket and open their QR at the entrance. Organizers can publish events, manage media and ticket inventory, track bookings and check guests in.
 
-Local S3 uses LocalStack because the public MinIO container images were unavailable in October 2026. The S3-compatible API remains at `http://localhost:9000`.
+The interface pairs warm cream, dark ink, coral and deep green with editorial typography, responsive layouts and light/dark themes. **Eventra** was the working codename; some internal package, database and development identifiers retain that name.
 
-## Authentication and team
+## Features
 
-Create a Firebase project and enable Email/Password and Google sign-in. Set the four `NEXT_PUBLIC_FIREBASE_*` values from its web app configuration. Create a service account and set `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` from its JSON key (escape line breaks as `\n` in `.env`). Add `localhost` to Firebase authorized domains. Email/password signup starts a server session immediately and sends new users to onboarding. Email verification is not required.
+### For attendees
 
-Local invitation email uses Mailpit at <http://localhost:8025> with `EMAIL_PROVIDER=smtp`, `SMTP_HOST=localhost`, `SMTP_PORT=1025`, and `EMAIL_FROM`. For production, set `EMAIL_PROVIDER=resend`, a verified sender in `EMAIL_FROM`, and `RESEND_API_KEY`. Team invitation links are valid for seven days and match the signed-in email address.
+- **Discover real events:** server-backed search, event/venue/organizer suggestions, city autocomplete, recent cities and optional nearby search.
+- **Find the right plan:** date shortcuts, custom ranges, categories, free/paid filters, price ranges, event formats and sorting, with shareable URL filters.
+- **Keep your favorites:** persistent saved events and public organizer profiles.
+- **Book tickets:** free bookings and Cashfree hosted checkout, inventory holds and verified payment webhooks.
+- **Carry your tickets:** an account-owned wallet, individual admission QR codes, private PDF downloads and permitted resends.
+- **Share and remember:** WhatsApp links, clipboard copying, native sharing where available, Google Calendar, Outlook and ICS exports.
+- **Stay signed in:** Firebase email/password and Google authentication, remembered sessions, onboarding and a dedicated profile editor.
 
-## Current implementation
+### For organizers
 
-M0–M5 are implemented and checked locally. M2 has Firebase sign-in, sessions, workspace creation, invitations, role changes, removals, and tenant checks; external Firebase sign-in still needs project credentials for a manual check. Organizers can create a draft, upload media, add ticket types, assign staff, publish, duplicate, and soft-delete unused drafts. The public landing, discovery, event page, social image, and sitemap are live. Checkout, delivery, scanner, and analytics remain in later milestones.
+- **Separate workspaces:** team invitations, role-based access and assigned event staff.
+- **Create and publish:** timezone-aware schedules, venue pins, online/hybrid formats, validation and publication review guidance.
+- **Manage media:** upload progress, background processing, crop/aspect-ratio editing, galleries, lineup profiles and PDF attachments.
+- **Control tickets:** prices, sale windows, capacity and quantity limits.
+- **Run the event:** attendee search, CSV exports, booking/delivery status, QR/manual check-in and duplicate-entry protection.
+- **Handle changes:** event duplication, cancellation and payment/refund operations.
 
-## Decisions
+> **Integration status:** Cashfree, Resend/SMTP and Meta WhatsApp code is implemented. Actual payments and delivery require your own activated provider accounts. Automated WhatsApp delivery also requires a production sender, approved templates and attendee consent. Guest checkout and a platform moderation queue are not implemented.
 
-Next.js Cache Components are disabled for now because authenticated pages resolve cookie and database data at request time. The public pages can be cached separately when built.
+## Stack
 
-## Media worker
+| Layer           | Technology                                          |
+| --------------- | --------------------------------------------------- |
+| Application     | Next.js 16 App Router, React 19, TypeScript         |
+| Interface       | Tailwind CSS 4, shared brand styles, Lucide icons   |
+| Motion          | Motion, GSAP and Lenis, with reduced-motion support |
+| Database        | PostgreSQL 16, Prisma 7 with the PostgreSQL adapter |
+| Authentication  | Firebase Auth and server-side session cookies       |
+| Background jobs | Redis 7 and BullMQ                                  |
+| Media           | S3-compatible storage, Sharp and HEIC conversion    |
+| Payments        | Cashfree hosted checkout and signed webhooks        |
+| Delivery        | Resend or SMTP; Meta WhatsApp Cloud API             |
+| Maps            | MapLibre GL and optional Geoapify geocoding         |
+| Tickets         | Signed QR codes, React PDF and ZXing scanning       |
+| Testing         | Vitest and Playwright                               |
 
-Run `pnpm worker` alongside `pnpm dev`. Images are uploaded directly to S3-compatible storage through five-minute presigned URLs, then processed by the Redis-backed worker. LocalStack starts with an `eventra` bucket, browser CORS, and public access only for generated variants. Originals stay private. For AWS S3 or Cloudflare R2, set the `S3_*` variables and configure the same CORS and variant-read policy on that bucket.
+### Architecture
 
-The image limit is 20 per event and 10 MB per file. The worker verifies the actual file format before decoding and creates thumb, card, hero, and OG sizes in AVIF, WebP, and JPEG. HEIC/HEIF uses a dedicated decoder. `pnpm test` exercises all six accepted format families against the local S3 service.
+```mermaid
+flowchart LR
+    Browser[Attendee or organizer] --> App[Next.js website and API]
+    App --> Auth[Firebase Auth]
+    App --> DB[(PostgreSQL / Prisma)]
+    App --> Storage[S3-compatible storage]
+    App --> Cashfree[Cashfree checkout]
+    Cashfree -->|Signed webhook| App
+    App --> Queue[(Redis / BullMQ)]
+    Queue --> Worker[Background worker]
+    Worker --> DB
+    Worker --> Storage
+    Worker --> Email[Resend / SMTP]
+    Worker --> WhatsApp[Meta WhatsApp]
+```
 
-A deletion that races an already-running conversion can leave an unreferenced variant in storage. A durable deletion outbox is needed before using this for sensitive uploads; event images should be treated as public assets.
+The web process serves the interface and API. A separate worker processes artwork, prepares ticket PDFs, delivers notifications and maintains order expiry. Run both for the complete workflow.
 
-## Organizer event flow
+## Getting started
 
-Sign in, create a workspace, then open its Events page. Create a draft with local date and time in the selected event timezone. Add a poster on Media, add ticket types on Tickets, and publish from Overview. Published events require a processed poster, a future start time, and at least one ticket type. A capacity, when set, limits the sum of ticket inventory. Event Managers only see events assigned to them; Check-in Staff only see assigned attendee lists. Published unlisted events open by direct URL but are excluded from discovery and the sitemap.
+### Prerequisites
 
+- Node.js **24** and pnpm **10.12.4**.
+- Docker with Docker Compose.
+- A Firebase project for authenticated features.
+- Cashfree sandbox credentials when testing paid checkout.
 
-## Raunak landing and account UI
+### 1. Clone and start local services
 
-The landing page is now the visual foundation for the company: paper, ink, vermilion, deep green, Instrument Serif, Geist and Geist Mono. Login and signup share the same layout, tokens, theme, forms and ticket motif. See `docs/brand.md` for reuse rules.
+```bash
+git clone https://github.com/YadurajManu/raunak.git
+cd raunak
+pnpm install --frozen-lockfile
+cp .env.example .env
+docker compose up -d
+```
 
-Implemented landing sections: floating navigation and mobile menu, ticket hero with tilt and scroll tear, event marquee, desktop scroll story with a mobile fallback, six interactive feature demos, live WhatsApp customizer, pricing, product facts, accessible FAQ, final ticket invitation, and footer with IST clock, theme toggle, back-to-top and ticket confetti. All sample events are fictional; sample analytics is labeled.
+The root Compose file starts development PostgreSQL, Redis, LocalStack S3 and Mailpit. Give services time to initialize before migrating or uploading files.
 
-Run `pnpm dev` and open `/`. `/login` and `/signup?intent=organizer` use the new identity. `/style-guide` is development-only. `pnpm test:e2e` checks marketing interactions and generates screenshots under `artifacts/landing`. Set `PLAYWRIGHT_BASE_URL=http://localhost:3001` to check an existing production server. The landing itself does not need a database or external credentials. Discovery and the attendee wallet use the existing database.
+### 2. Configure your environment
 
-Pricing defaults in `src/config/pricing.ts` are proposals: first event ₹0 platform fee; later paid tickets 2% + ₹3. Gateway processing charges apply separately. Confirm the commercial values and implement eligibility in checkout before launch. FAQ and structured data derive their price wording from this config.
+Edit `.env` using [.env.example](.env.example) as the complete reference. Keep `APP_URL=http://localhost:3000` for the default port; origin checks require it to match your browser URL.
 
-Privacy and terms pages are drafts. The business entity, support/privacy contact, retention schedule and jurisdiction need legal review before launch. The Contact page points event attendees toward their organizer; no unverified support mailbox is advertised.
+Enable **Email/Password** and **Google** in Firebase Authentication, register its web app and authorize `localhost`. Add the four `NEXT_PUBLIC_FIREBASE_*` values and server service-account values. In the quoted `FIREBASE_PRIVATE_KEY`, represent line breaks as `\n`. Never put a service-account key in a `NEXT_PUBLIC_*` variable.
 
-Backend checkout work is preserved in the Git stash named `WIP checkout before Raunak landing`, following the request to finish the UI first. The marketing page previews the intended checkout, messaging and scanner behavior; those backend milestones still need completion and provider credentials.
+Generate **separate** values for `TICKET_SIGNING_SECRET` and `ENCRYPTION_KEY`:
 
-Motion versions: Lenis 1.3.26, GSAP 3.15.0, Motion 14.2.0. Heavy GSAP scroll code is loaded only on desktop when reduced motion is off. Marketing styles remain scoped so the dashboard can adopt the new foundation deliberately.
+```bash
+openssl rand -hex 32
+```
 
-### UI verification
+Paste a newly generated value into each setting. Keep local email on SMTP/Mailpit and payment testing on `CASHFREE_ENV=sandbox`.
 
-Production build checks passed: lint, TypeScript, 16 unit/integration tests, and four Playwright marketing tests. Screenshots cover 375, 768 and 1440 widths in light and dark themes, reduced motion, landing interactions, login and signup. The public navigation and social image are checked, and core content is visible with JavaScript disabled.
+### 3. Prepare the database and run
 
-Local Lighthouse 13.5.0 mobile audit: Performance 95, Accessibility 100, Best Practices 100, SEO 100; CLS 0. Simulated mobile LCP was 2.8s, so the brief's stricter 2.5s LCP target remains a deployment performance follow-up. Reports and screenshots are generated in `artifacts/landing` and are not committed. External Firebase login and payment-provider completion require credentials and are not claimed as verified by these UI tests.
+```bash
+pnpm exec prisma generate
+pnpm db:migrate
+pnpm dev
+```
 
-## Personal onboarding and location
+In another terminal:
 
-New verified accounts now enter `/onboarding` before their destination. This is personal setup for everyone, separate from `/organizer/setup` (workspace creation). Standard sign-in continues to `/account`; `?intent=organizer` preserves the hosting path through verification and onboarding. Existing completed profiles keep their details on future Firebase logins.
+```bash
+pnpm worker
+```
 
-Personal setup collects a name and a valid international phone number (India by default). Gender is optional, including “Prefer not to say.” Location is optional and can be searched, chosen by tapping/dragging a real map pin, or supplied with browser geolocation after an explicit click. Address candidates are confirmed before continuing. By default only city/region/country are saved; exact coordinates and the address label require a separate consent checkbox. `/account/profile` lets the user remove gender/location and revoke the saved pin. Phone numbers are normalized to E.164 but are not OTP verified.
+| Local service          | Address                          |
+| ---------------------- | -------------------------------- |
+| Application            | http://localhost:3000            |
+| Health endpoint        | http://localhost:3000/api/health |
+| Mailpit inbox          | http://localhost:8025            |
+| PostgreSQL             | `localhost:5433`                 |
+| Redis                  | `localhost:6379`                 |
+| S3-compatible endpoint | http://localhost:9000            |
 
-Set `GEOAPIFY_API_KEY` in `.env` from https://myprojects.geoapify.com/ to enable server-side place search and reverse geocoding. The key stays on the server. Without it, the real map and manual city entry still work and lookup explains the missing configuration. Location endpoints require a session, an allowed origin, validated inputs and a Redis-backed limit of 30 requests per user per minute. No location or API key is written to logs.
+**Optional demo data:** run `pnpm db:seed` against a development database. It adds fictional events; it does not provision Firebase sign-in accounts. Never seed a production database.
 
-MapLibre GL 6.14.0 renders the map, using its emitted same-origin worker asset. `NEXT_PUBLIC_MAP_TILE_URL` and `NEXT_PUBLIC_MAP_ATTRIBUTION` let you configure a production tile provider. Local defaults use OpenStreetMap standard tiles with visible attribution; follow https://operations.osmfoundation.org/policies/tiles/ and use an appropriately provisioned tile service for larger traffic. Geoapify address lookup: https://apidocs.geoapify.com/docs/geocoding/reverse-geocoding/.
+## Configuration
 
-The attendee dashboard uses real ticket/order records and upcoming public events around the saved city. Its profile menu links to editing and hosting; the organizer workspace entry links back to attendee view. Full checkout, messaging and scanner milestones remain pending; their earlier checkout work stays preserved in the named Git stash.
+| Area                   | Environment variables                                                            | Purpose                                                       |
+| ---------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Application            | `APP_URL`                                                                        | Canonical URL, origin checks and links                        |
+| Data                   | `DATABASE_URL`, `REDIS_URL`                                                      | Database and background queues                                |
+| Browser authentication | `NEXT_PUBLIC_FIREBASE_*`                                                         | Public Firebase web configuration                             |
+| Server authentication  | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`           | Session verification and account administration               |
+| Payments               | `CASHFREE_ENV`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_API_VERSION` | Checkout and webhook verification                             |
+| Storage                | `S3_*`, `AWS_REQUEST_CHECKSUM_CALCULATION`                                       | Media uploads, variants and private files                     |
+| Email                  | `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` or `SMTP_*`                     | Invitations, receipts and ticket delivery                     |
+| WhatsApp               | `WHATSAPP_*`                                                                     | Sender credentials, webhook verification and template mapping |
+| Location               | `GEOAPIFY_API_KEY`, `NEXT_PUBLIC_MAP_TILE_URL`, `NEXT_PUBLIC_MAP_ATTRIBUTION`    | Address lookup and map rendering                              |
+| Signing                | `TICKET_SIGNING_SECRET`, `ENCRYPTION_KEY`                                        | Server-side cryptographic configuration                       |
 
-Development preview: `/style-guide/onboarding` renders the actual onboarding component without an account for visual QA. It returns 404 in production and does not bypass either profile or location API authentication. Tests use provider mocks for address lookup and profile submission, plus database integration tests for persistence, consent removal, phone validation and redirect safety. Screenshots are under `artifacts/landing/onboarding-*`.
+For production email, select `EMAIL_PROVIDER=resend` and use a sender on a verified domain. Payment and messaging providers need their corresponding configuration; credentials are not included.
 
-Onboarding verification: 20 unit/integration tests and seven Playwright tests passed, together with lint, TypeScript and the production build. A live OpenStreetMap tile check rendered the selected Pune pin without browser errors. Geoapify responses and profile HTTP submissions were mocked in browser tests; database persistence was checked separately against local PostgreSQL. External Firebase sign-in and live Geoapify address lookup still require project credentials.
+Without Geoapify, manual city entry and the map remain available. Choose a tile provider appropriate for your traffic and retain its required attribution.
+
+## Development and verification
+
+```bash
+pnpm exec next typegen
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+Database and storage integration tests require local services and a migrated **development/test database**. Browser tests start the development server unless `PLAYWRIGHT_BASE_URL` points to an existing instance. Some onboarding tests require opt-in fixture settings; check the test files before enabling them.
+
+Additional local checks are in `scripts/verify-experience.ts`, `scripts/verify-site-polish.ts` and `scripts/verify-event-actions.ts`. They use disposable accounts or records and may require Firebase test-project credentials. Target the matching local environment. Generated screenshots and reports belong in the ignored `artifacts/` directory.
+
+Tests exercise payment logic with injected providers. A passing suite does not establish live settlement, deliverability or physical-device camera behavior.
+
+## Project structure
+
+```text
+src/
+  app/                 Pages, shared layouts and API routes
+  components/          Marketing, attendee and organizer components
+  config/              Categories, cities, pricing and product configuration
+  lib/                 Shared validation, formatting and browser helpers
+  server/              Authentication, events, checkout, tickets and providers
+prisma/                Schema, migrations and optional development seed
+worker/                Media, ticket, notification and order-maintenance jobs
+tests/                 Unit, integration and Playwright tests
+scripts/               Verification and maintenance tools
+docker/                Development storage initialization
+deploy/                Production Compose and Caddy configuration
+docs/                  Design, architecture and integration notes
+```
+
+## Deployment
+
+Build and run the web process with `pnpm build` and `pnpm start`, and run `pnpm worker` separately. Apply migrations before starting code that depends on them. Configure HTTPS, Firebase authorized domains, provider webhooks, storage CORS and private access policies.
+
+The [Dockerfile](Dockerfile) and [production Compose file](deploy/compose.yml) describe the existing server deployment. That Compose file expects a Fleet network, Caddy routing and Garage storage configuration; it is not a generic one-click deployment. See the [deployment runbook](docs/deployment.md) for that installation.
+
+Keep environment files outside images and Git, back up database and storage, and retain the previous image before a release. Paid checkout requires Cashfree domain approval and its webhook at `/api/webhooks/cashfree`. Never use `docker compose down -v` on an installation whose data you need.
+
+## Documentation
+
+| Guide                                                   | Contents                                       |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| [Brand foundation](docs/brand.md)                       | Colors, typography and visual patterns         |
+| [Navigation architecture](docs/universal-navigation.md) | Navbar, layout boundaries and Discover         |
+| [Discovery and wallet](docs/discovery-wallet.md)        | Search, bookmarks, ownership and ticket states |
+| [Media editor](docs/media-editor-redesign.md)           | Uploading, cropping, galleries and lineup      |
+| [Payments and delivery](docs/payments-whatsapp.md)      | Cashfree webhooks and WhatsApp activation      |
+| [Event operations](docs/event-operations.md)            | Organizer workflows and event management       |
+| [WhatsApp configuration](docs/whatsapp.md)              | Sender, webhook and template setup             |
+| [Deployment](docs/deployment.md)                        | Existing server installation and rollback      |
+
+## Contributing
+
+Bug reports, accessibility fixes, clearer documentation and focused improvements are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and pull-request expectations. For vulnerabilities, follow [SECURITY.md](SECURITY.md) rather than posting sensitive details in an issue.
+
+## License
+
+Raunak's original source code is available under the [MIT License](LICENSE). Third-party packages, fonts and assets retain their respective licenses. Provider accounts and services are separate from the source-code license.
+
+---
+
+<p align="center"><strong>A little less admin. A lot more event.</strong><br />Made for getting together.</p>
