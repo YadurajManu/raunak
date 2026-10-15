@@ -1,0 +1,159 @@
+.event-action-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.marketing .eat-organizer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  flex: 1 1 160px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.eat-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--cream, #f5f0e6);
+  font-size: 16px;
+  font-weight: 600;
+}
+.eat-organizer small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.eat-organizer strong {
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.eat-organizer:hover strong {
+  color: var(--accent);
+}
+.eat-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.marketing .eat-actions :is(button, summary) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  list-style: none;
+}
+.eat-actions summary::-webkit-details-marker {
+  display: none;
+}
+.marketing .eat-actions :is(button, summary):hover,
+.marketing .eat-menu[open] > summary {
+  background: var(--line);
+}
+.marketing .eat-actions button[aria-pressed="true"] {
+  color: var(--accent);
+}
+.marketing .eat-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.event-action-toolbar :is(a, button, summary, input):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.eat-actions svg {
+  flex-shrink: 0;
+}
+.eat-menu {
+  position: relative;
+}
+.eat-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: 224px;
+  max-width: calc(100vw - 48px);
+  padding: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px #0002;
+}
+.marketing .eat-popover :is(a, button) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13px;
+  text-align: left;
+  justify-content: flex-start;
+}
+.eat-popover a svg:last-child {
+  margin-left: auto;
+}
+.marketing .eat-popover :is(a, button):hover {
+  background: var(--surface);
+}
+.eat-feedback {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 12px;
+}
+.eat-feedback:empty {
+  display: none;
+}
+.eat-actions .save-action small {
+  max-width: 110px;
+}
+@media (max-width: 600px) {
+  .event-action-toolbar {
+    gap: 10px;
+  }
+  .eat-organizer {
+    flex-basis: 100%;
+  }
+  .eat-actions {
+    width: 100%;
+  }
+  .eat-actions > * {
+    flex: 1;
+  }
+  .marketing .eat-actions > .save-action > button,
+  .marketing .eat-actions > details > summary {
+    width: 100%;
+    padding-inline: 8px;
+  }
+  .eat-actions > details:nth-child(2) .eat-popover {
+    right: 50%;
+    transform: translateX(50%);
+  }
+}

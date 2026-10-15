@@ -1,9 +1,9 @@
 import { VenueMap } from "@/components/public/venue-map";
-import Link from "next/link";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { EventCard } from "@/components/public/event-card";
-import { SaveEvent } from "@/components/public/save-event";
+import { EventActionToolbar } from "@/components/public/event-action-toolbar";
+import { eventCalendarOptions } from "@/lib/event-calendar";
 import { documentsSchema } from "@/server/events/documents";
 import { MarketingFooter } from "@/components/marketing/footer";
 import type { Metadata } from "next";
@@ -176,22 +176,15 @@ export default async function EventPage({
               {event.category || "Event"}
             </p>
             <h1 className="r-event-title">{event.title}</h1>
-            <div className="wallet-actions">
-              <Link href={`/organizers/${event.org.slug}`}>
-                Hosted by {event.org.name} ↗
-              </Link>
-              {event.visibility === "PUBLIC" && (
-                <SaveEvent eventId={event.id} initial={saved} />
-              )}
-              <a href={`/api/events/${event.id}/calendar`}>Add to calendar ↗</a>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(`${event.title} ${base}/e/${event.slug}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Share on WhatsApp ↗
-              </a>
-            </div>
+            <EventActionToolbar
+              eventId={event.id}
+              title={event.title}
+              url={`${base}/e/${event.slug}`}
+              organizer={event.org}
+              saved={saved}
+              saveAvailable={event.visibility === "PUBLIC"}
+              calendar={eventCalendarOptions(event, `${base}/e/${event.slug}`)}
+            />
             {event.summary && (
               <p className="mt-5 max-w-2xl text-lg text-[var(--muted)] dark:text-[var(--muted)]">
                 {event.summary}

@@ -7,6 +7,8 @@ export function calendarFile(
     address: string | null;
     city: string | null;
     id: string;
+    description?: string | null;
+    summary?: string | null;
   },
   url: string,
 ) {
@@ -32,6 +34,7 @@ export function calendarFile(
     `DTSTART:${date(event.startsAt)}`,
     `DTEND:${date(event.endsAt)}`,
     `SUMMARY:${escape(event.title)}`,
+    `DESCRIPTION:${escape([event.description || event.summary, `Event details: ${url}`].filter(Boolean).join("\n\n"))}`,
     `LOCATION:${escape([event.venueName, event.address, event.city].filter(Boolean).join(", "))}`,
     `URL:${escape(url)}`,
     "END:VEVENT",

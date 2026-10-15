@@ -1,23 +1,27 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Heart, LoaderCircle } from "lucide-react";
 export function SaveEvent({
   eventId,
   initial,
+  labeled = false,
 }: {
   eventId: string;
   initial: boolean;
+  labeled?: boolean;
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   return (
-    <span className="save-action">
+    <span className={`save-action${labeled ? " save-action-labeled" : ""}`}>
       <button
         type="button"
         disabled={busy}
         aria-pressed={saved}
+        aria-busy={busy}
         aria-label={saved ? "Unsave event" : "Save event"}
         onClick={async () => {
           setBusy(true);
@@ -44,8 +48,20 @@ export function SaveEvent({
           }
         }}
       >
-        {saved ? "♥" : "♡"}
+        {busy ? (
+          <LoaderCircle size={18} aria-hidden="true" />
+        ) : (
+          <Heart
+            size={18}
+            fill={saved ? "currentColor" : "none"}
+            aria-hidden="true"
+          />
+        )}
+        {labeled && <span>{busy ? "Saving…" : saved ? "Saved" : "Save"}</span>}
       </button>
+      <span className="sr-only" role="status">
+        {saved ? "Event saved" : "Event not saved"}
+      </span>
       {error && <small role="alert">{error}</small>}
     </span>
   );
