@@ -22,6 +22,27 @@ enum OrgStatus {
   ACTIVE
   SUSPENDED
 }
+enum WhatsAppMode {
+  DISABLED
+  PLATFORM_NUMBER
+  ORG_NUMBER
+  OFFICIAL_API
+}
+enum WhatsAppSessionStatus {
+  DISCONNECTED
+  QR_PENDING
+  CONNECTING
+  CONNECTED
+  LOGGED_OUT
+  BANNED_SUSPECTED
+  PAUSED
+}
+enum WhatsAppSuppressionReason {
+  STOP_REPLY
+  NOT_ON_WHATSAPP
+  MANUAL
+  COMPLAINT
+}
 enum FeeMode {
   ABSORB
   PASS_TO_BUYER
@@ -122,6 +143,9 @@ model Organization {
   name String
   slug String @unique
   logoKey String?
+  whatsappMode WhatsAppMode @default(DISABLED)
+  whatsappSessions WhatsAppSession[]
+  whatsappSuppressions WhatsAppSuppression[]
   supportEmail String?
   supportPhone String?
   brandColor String @default("#4f46e5")
@@ -310,6 +334,7 @@ model Order {
   buyerEmail String
   buyerPhone String?
   whatsappOptIn Boolean @default(false)
+  whatsappOptInAt DateTime? @db.Timestamptz(6)
   fulfilmentQueuedAt DateTime? @db.Timestamptz(6)
   idempotencyKey String @unique
   createdAt DateTime @default(now()) @db.Timestamptz(6)
@@ -417,6 +442,7 @@ model MessageTemplate {
   providerTemplateName String?
   providerStatus String?
   slots Json?
+  attachments Json @default("{\"ticketCard\":true,\"ticketPdf\":false,\"poster\":false}")
   isEnabled Boolean @default(true)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -440,6 +466,10 @@ model NotificationLog {
   templateId String? @db.Uuid
   status NotificationStatus @default(QUEUED)
   providerMessageId String?
+  sessionId String? @db.Uuid
+  session WhatsAppSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  attachmentsSent Json?
+  errorCode String?
   error String?
   attempts Int @default(0)
   scheduledAt DateTime? @db.Timestamptz(6)
@@ -456,6 +486,40 @@ model NotificationLog {
   @@index([orderId])
   @@index([ticketId])
   @@index([templateId])
+  @@index([sessionId, providerMessageId])
+}
+
+model WhatsAppSession {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String? @db.Uuid
+  org Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  label String @default("default")
+  status WhatsAppSessionStatus @default(DISCONNECTED)
+  phoneE164 String?
+  pushName String?
+  authStateEnc Bytes?
+  authVersion Int @default(0)
+  connectedAt DateTime? @db.Timestamptz(6)
+  lastSeenAt DateTime? @db.Timestamptz(6)
+  lastError String?
+  warmupStartedAt DateTime? @db.Timestamptz(6)
+  dailyCapOverride Int?
+  createdByUserId String? @db.Uuid
+  pausedUntil DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  logs NotificationLog[]
+  @@unique([orgId, label])
+}
+
+model WhatsAppSuppression {
+  id String @id @default(uuid()) @db.Uuid
+  orgId String? @db.Uuid
+  org Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  phoneE164 String
+  reason WhatsAppSuppressionReason
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([orgId, phoneE164])
 }
 
 model AuditLog {

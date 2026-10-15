@@ -152,6 +152,8 @@ pnpm worker
 
 ## Configuration
 
+The per-organization QR-linked WhatsApp extension is being implemented with a private, long-lived Baileys gateway. See the [gateway milestone tracker](docs/whatsapp-gateway.md) for current completion and real-phone acceptance status. It is disabled by default and is not a serverless service.
+
 | Area                   | Environment variables                                                            | Purpose                                                       |
 | ---------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Application            | `APP_URL`                                                                        | Canonical URL, origin checks and links                        |

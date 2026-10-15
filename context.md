@@ -15,7 +15,7 @@ Source of truth for *how* to build. Product intent lives in `project.md`.
 | Image processing | `sharp` (resize, convert, strip EXIF, blurhash) |
 | Queue / cache | Redis + BullMQ; separate worker process |
 | Email | Provider interface; Resend default, SES/SMTP alternative; React Email templates |
-| WhatsApp | Provider interface; `meta-cloud` default, `wwebjs` dev-only |
+| WhatsApp | Existing Meta Cloud API; opt-in Baileys gateway extension in development, mock engine for tests; see `docs/whatsapp-gateway.md` |
 | QR / PDF | `qrcode` + `@react-pdf/renderer` |
 | Phone numbers | `libphonenumber-js`, default region IN, store E.164 |
 | Tests | Vitest (unit/integration), Playwright (e2e) |
@@ -90,7 +90,7 @@ Conventions: UUID primary keys, `timestamptz` everywhere, money as integer **pai
 - **MessageTemplate** — id, orgId, eventId (nullable), channel (EMAIL | WHATSAPP), trigger, subject, body, language, providerTemplateName, providerStatus, slots (jsonb), isEnabled
 - **NotificationLog** — id, orgId, eventId, orderId, ticketId (nullable), channel, trigger, toAddress, templateId, status (QUEUED | SENT | DELIVERED | READ | FAILED), providerMessageId, error, attempts, scheduledAt, sentAt; unique (ticketId or orderId, trigger, channel) for idempotent reminders
 - **AuditLog** — id, orgId, actorId, action, entityType, entityId, meta (jsonb), ip
-- Phase 2 tables (design now, migrate later): **Coupon**, **EventTask**, **TaskAssignee**, **Payout**, **WhatsAppConnection**
+- Phase 2 tables (design now, migrate later): **Coupon**, **EventTask**, **TaskAssignee**, **Payout**. The former WhatsAppConnection placeholder is replaced by the WhatsAppSession/WhatsAppSuppression gateway migration; see `docs/whatsapp-gateway.md` for implementation status.
 
 ## 5. Key flows
 

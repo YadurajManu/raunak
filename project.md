@@ -125,7 +125,7 @@ Native mobile apps, reserved seating, multi-currency, ticket resale marketplace,
 | Topic | Default |
 |---|---|
 | Auth methods | Firebase email/password + Google. Login required to buy (inline in checkout); guest checkout is Phase 2 |
-| WhatsApp | Provider interface. Production: Meta WhatsApp Cloud API. Dev/low-volume only: optional unofficial whatsapp-web.js worker (account-ban risk, against WhatsApp ToS, never the default for customers) |
+| WhatsApp | Meta Cloud API plus an explicitly enabled per-organization Baileys gateway extension. Unofficial connections can disconnect or be restricted. Email remains the backup; implementation and real-phone QA status are in `docs/whatsapp-gateway.md` |
 | WhatsApp customization (MVP) | Organizers edit customizable slots and enable/disable triggers on pre-approved templates. Full custom template submission is Phase 2 |
 | Payouts | Phase 1 collects money into the platform's Cashfree account and records everything needed for payouts. Automated split/payout is Phase 2 |
 | Platform fee | Configurable % + fixed fee per ticket, organizer chooses "absorb" or "pass to buyer" |
