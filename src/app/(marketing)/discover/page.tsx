@@ -7,7 +7,12 @@ import { EventCard } from "@/components/public/event-card";
 import { discoverPage, publicListing } from "@/server/public/events";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
-import { discoverySchema, discoveryUrl } from "@/lib/discovery";
+import {
+  discoverySchema,
+  discoveryUrl,
+  discoveryFilterLabels,
+} from "@/lib/discovery";
+import { ArrowRight, CalendarDays, SearchX } from "lucide-react";
 import { discoverySections } from "@/lib/discovery-sections";
 export const metadata: Metadata = {
   title: "Discover events | Raunak",
@@ -93,6 +98,14 @@ export default async function DiscoverPage({
     ? discoverySections(result.events, user?.city)
     : { primary: result.events, sections: [] };
   const lowInventory = unfiltered && result.total > 0 && result.total <= 3;
+  const appliedFilters = discoveryFilterLabels(parsed.data);
+  // A filtered miss must not be confused with an empty public marketplace.
+  const hasPublicEvents =
+    result.total > 0 ||
+    !!(await db.event.findFirst({
+      where: { ...publicListing, startsAt: { gte: new Date() } },
+      select: { id: true },
+    }));
   return (
     <>
       <main className="market-page d-discover">
@@ -104,9 +117,6 @@ export default async function DiscoverPage({
             </h1>
             <p>Find your people. Make a good plan.</p>
           </div>
-          <Link href="/saved" className="r-quiet-button">
-            Saved events ♡
-          </Link>
         </section>
         <DiscoverFilters
           key={JSON.stringify(parsed.data)}
@@ -129,13 +139,15 @@ export default async function DiscoverPage({
                         : "Explore upcoming events"}
             </h2>
             <p>
-              {result.total} {result.total === 1 ? "event" : "events"} · page{" "}
-              {parsed.data.page}
+              {result.total} {result.total === 1 ? "event" : "events"}
+              {result.events.length > 0 && ` · page ${parsed.data.page}`}
             </p>
           </div>
-          <Link href="/discover" className="d-clear">
-            Reset filters ×
-          </Link>
+          {appliedFilters.length > 0 && result.events.length > 0 && (
+            <Link href="/discover" className="d-clear">
+              Clear filters
+            </Link>
+          )}
         </div>
         {result.events.length ? (
           <div className={lowInventory ? "d-low-inventory" : undefined}>
@@ -165,23 +177,45 @@ export default async function DiscoverPage({
             )}
           </div>
         ) : (
-          <section className="market-empty">
-            <h2>
-              {unfiltered
-                ? "Good plans are on their way."
-                : "No events match this search."}
-            </h2>
-            <p>
-              {unfiltered
-                ? "No upcoming public events yet. Bring people together with a gathering of your own."
-                : "Try all cities, another date or a broader price range."}
-            </p>
-            <Link href="/discover" className="m-button m-button-small">
-              Explore all events ↗
-            </Link>
-            <Link href="/dashboard" className="d-empty-host">
-              Host an event ↗
-            </Link>
+          <section
+            className="market-empty d-discovery-empty"
+            aria-labelledby="discovery-empty-title"
+          >
+            <span className="d-empty-icon" aria-hidden="true">
+              {hasPublicEvents ? (
+                <SearchX size={22} />
+              ) : (
+                <CalendarDays size={22} />
+              )}
+            </span>
+            <div>
+              <h2 id="discovery-empty-title">
+                {!hasPublicEvents
+                  ? "Good plans are on their way."
+                  : result.total > 0
+                    ? "No events on this page."
+                    : "No events match these filters."}
+              </h2>
+              <p>
+                {!hasPublicEvents
+                  ? "No upcoming public events yet. Bring people together with a gathering of your own."
+                  : "Try another city, a different date or a broader price range."}
+              </p>
+              {hasPublicEvents && appliedFilters.length > 0 && (
+                <ul className="d-applied-filters" aria-label="Selected filters">
+                  {appliedFilters.map((label, index) => (
+                    <li key={`${index}-${label}`}>{label}</li>
+                  ))}
+                </ul>
+              )}
+              <Link
+                href={hasPublicEvents ? "/discover" : "/dashboard"}
+                className="m-button m-button-small"
+              >
+                {hasPublicEvents ? "Clear filters" : "Host an event"}
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
           </section>
         )}
         {groups.sections.map((section) => (
@@ -201,23 +235,25 @@ export default async function DiscoverPage({
             </ul>
           </section>
         ))}
-        <nav className="ops-pagination" aria-label="Event result pages">
-          {parsed.data.page > 1 && (
-            <Link
-              href={discoveryUrl(parsed.data, { page: parsed.data.page - 1 })}
-            >
-              ← Previous
-            </Link>
-          )}
-          <span>{result.total} events</span>
-          {parsed.data.page * 12 < result.total && (
-            <Link
-              href={discoveryUrl(parsed.data, { page: parsed.data.page + 1 })}
-            >
-              Next →
-            </Link>
-          )}
-        </nav>
+        {result.events.length > 0 && (
+          <nav className="ops-pagination" aria-label="Event result pages">
+            {parsed.data.page > 1 && (
+              <Link
+                href={discoveryUrl(parsed.data, { page: parsed.data.page - 1 })}
+              >
+                ← Previous
+              </Link>
+            )}
+            <span>{result.total} events</span>
+            {parsed.data.page * 12 < result.total && (
+              <Link
+                href={discoveryUrl(parsed.data, { page: parsed.data.page + 1 })}
+              >
+                Next →
+              </Link>
+            )}
+          </nav>
+        )}
       </main>
       <MarketingFooter />
     </>

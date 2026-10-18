@@ -4,6 +4,38 @@ test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
 
+test("categories expand without clipping and selected categories remain visible", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/discover");
+  const categories = page.getByRole("navigation", {
+    name: "Filter by category",
+  });
+  await expect(
+    page.getByRole("link", { name: "Saved events", exact: true }),
+  ).toHaveCount(0);
+  const more = categories.getByRole("button", { name: "More categories" });
+  await expect(more).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    categories.getByRole("link", { name: "Other", exact: true }),
+  ).toHaveCount(0);
+  await more.click();
+  await expect(
+    categories.getByRole("link", { name: "Other", exact: true }),
+  ).toBeVisible();
+  expect(
+    await categories.evaluate((el) => el.scrollWidth <= el.clientWidth),
+  ).toBe(true);
+  await categories.getByRole("link", { name: "Other", exact: true }).click();
+  await expect(
+    categories.getByRole("link", { name: "Other", exact: true }),
+  ).toHaveAttribute("aria-current", "true");
+  await expect(
+    categories.getByRole("button", { name: "More categories" }),
+  ).toBeVisible();
+});
+
 test("compact search keeps advanced filters in an accessible cancellable drawer", async ({
   page,
 }) => {

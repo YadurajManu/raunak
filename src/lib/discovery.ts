@@ -35,6 +35,36 @@ export const discoverySchema = z
       : v,
   );
 export type DiscoveryFilters = z.infer<typeof discoverySchema>;
+/** Human-readable applied constraints, without exposing precise coordinates. */
+export function discoveryFilterLabels(f: DiscoveryFilters): string[] {
+  const labels: string[] = [];
+  if (f.q) labels.push(`Search: ${f.q}`);
+  if (f.city) labels.push(f.city);
+  if (f.lat !== undefined) labels.push(`Within ${f.radius} km`);
+  labels.push(...f.category.split("|").filter(Boolean));
+  if (f.period)
+    labels.push(
+      {
+        today: "Today",
+        tomorrow: "Tomorrow",
+        weekend: "This weekend",
+        month: "This month",
+      }[f.period],
+    );
+  if (!f.period && f.from) labels.push(`From ${f.from}`);
+  if (!f.period && f.to) labels.push(`Until ${f.to}`);
+  if (f.mode)
+    labels.push(
+      { ONLINE: "Online", IN_PERSON: "In person", HYBRID: "Hybrid" }[f.mode],
+    );
+  if (f.price) labels.push(f.price === "free" ? "Free" : "Paid");
+  if (f.min !== undefined)
+    labels.push(`From ₹${f.min.toLocaleString("en-IN")}`);
+  if (f.max !== undefined)
+    labels.push(`Up to ₹${f.max.toLocaleString("en-IN")}`);
+  if (f.organizer) labels.push(`Organizer: ${f.organizer}`);
+  return labels;
+}
 export function discoveryUrl(
   filters: Record<string, unknown>,
   changes: Record<string, unknown> = {},

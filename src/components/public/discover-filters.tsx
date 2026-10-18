@@ -13,6 +13,8 @@ import {
   ArrowRight,
   BookOpen,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
   Check,
   Dumbbell,
   Globe2,
@@ -73,6 +75,7 @@ export function DiscoverFilters({
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [recent, setRecent] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const geoRequest = useRef(0);
   const snapshot = useRef({ city, mode, period, near, advanced });
@@ -712,6 +715,8 @@ export function DiscoverFilters({
           All categories
         </a>
         {eventCategories.map((category, index) => {
+          if (!allCategories && index >= 3 && !selected.includes(category))
+            return null;
           const Icon = categoryIcons[index];
           return (
             <a
@@ -725,11 +730,24 @@ export function DiscoverFilters({
               )}
               aria-current={selected.includes(category) ? "true" : undefined}
             >
-              <Icon size={18} aria-hidden="true" />
+              <Icon size={16} aria-hidden="true" />
               <span>{category}</span>
             </a>
           );
         })}
+        <button
+          type="button"
+          className="d-more-categories"
+          aria-expanded={allCategories}
+          onClick={() => setAllCategories((value) => !value)}
+        >
+          {allCategories ? "Fewer categories" : "More categories"}
+          {allCategories ? (
+            <ChevronUp size={16} aria-hidden="true" />
+          ) : (
+            <ChevronDown size={16} aria-hidden="true" />
+          )}
+        </button>
       </nav>
     </div>
   );
