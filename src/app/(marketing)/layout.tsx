@@ -11,6 +11,7 @@ import "./site-polish.css";
 import "./global-navigation.css";
 import "./discovery-premium.css";
 import "./event-actions.css";
+import "./checkin.css";
 import { GlobalNavbar } from "@/components/global-navbar";
 import { currentUser } from "@/server/auth/session";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
