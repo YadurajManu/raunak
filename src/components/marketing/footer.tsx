@@ -1,11 +1,18 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { APP_NAME } from "@/lib/constants";
 import { marketing } from "@/config/marketing";
 import { useReducedMotion } from "@/lib/motion/reduced";
-import { Sun, Moon } from "lucide-react";
+import { Sun } from "lucide-react";
+import { revealTheme } from "@/lib/motion/theme-reveal";
 
 function subscribeTheme(callback: () => void) {
   const query = matchMedia("(prefers-color-scheme: dark)");
@@ -25,31 +32,59 @@ function darkTheme() {
 }
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
+  const eclipseMask = useId();
   return (
     <button
       type="button"
       className={compact ? "gnav-theme" : "m-theme-toggle m-sticker"}
       aria-label={dark ? "Use light theme" : "Use dark theme"}
-      onClick={() => {
-        const theme = dark ? "light" : "dark";
-        document.documentElement.dataset.marketingTheme = theme;
-        try {
-          localStorage.setItem("raunak-theme", theme);
-        } catch {}
-        window.dispatchEvent(new Event("raunak-theme"));
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        // Focusing a sticky header must not scroll before the reveal is captured.
+        event.preventDefault();
+        event.currentTarget.focus({ preventScroll: true });
       }}
+      onClick={(event) =>
+        void revealTheme(event.currentTarget, dark ? "light" : "dark")
+      }
     >
-      {compact ? (
-        dark ? (
-          <Sun size={18} aria-hidden="true" />
-        ) : (
-          <Moon size={18} aria-hidden="true" />
-        )
-      ) : dark ? (
-        "☀ LIGHT"
-      ) : (
-        "☾ DARK"
-      )}
+      <span
+        className="theme-reveal-icon"
+        data-theme={dark ? "dark" : "light"}
+        aria-hidden="true"
+      >
+        <Sun className="theme-eclipse-rays" size={18} strokeWidth={1.7} />
+        <svg
+          className="theme-eclipse-disc"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          focusable="false"
+        >
+          <defs>
+            <mask
+              id={eclipseMask}
+              maskUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width="24"
+              height="24"
+            >
+              <rect width="24" height="24" fill="white" />
+              <circle
+                className="theme-eclipse-shadow"
+                cx="12"
+                cy="12"
+                r="7"
+                fill="black"
+              />
+            </mask>
+          </defs>
+          <circle cx="12" cy="12" r="6" mask={`url(#${eclipseMask})`} />
+        </svg>
+      </span>
+      {!compact && <span>{dark ? "LIGHT" : "DARK"}</span>}
     </button>
   );
 }

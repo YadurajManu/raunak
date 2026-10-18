@@ -3,4 +3,45 @@
 :root { color-scheme: light dark; }
 body { margin: 0; background: #fafafa; color: #18181b; }
 @media (prefers-color-scheme: dark) { body { background: #101014; color: #f4f4f5; } }
+
+:root[data-theme-revealing]::view-transition-old(root),
+:root[data-theme-revealing]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-theme-revealing]::view-transition-image-pair(root) { isolation: isolate; }
+:root[data-theme-revealing]::view-transition-old(root) { z-index: 1; }
+:root[data-theme-revealing]::view-transition-new(root) { z-index: 2; }
+
+.theme-reveal-icon {
+  position: relative;
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.theme-reveal-icon svg {
+  grid-area: 1 / 1;
+  transform-origin: center;
+}
+.theme-eclipse-rays,
+.theme-eclipse-shadow {
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), opacity 350ms ease;
+}
+.theme-eclipse-shadow { transform: translate(16px, -16px); }
+.theme-reveal-icon[data-theme="dark"] .theme-eclipse-shadow { transform: translate(4px, -4px); }
+.theme-reveal-icon[data-theme="dark"] .theme-eclipse-rays {
+  opacity: 0;
+  transform: rotate(-45deg) scale(0.6);
+}
+.theme-reveal-icon[data-theme="light"] .theme-eclipse-rays {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.marketing .gnav-theme:hover { color: var(--accent-ink); border-color: var(--accent-ink); }
+.marketing .m-theme-toggle { display: inline-flex; align-items: center; gap: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  .theme-eclipse-rays, .theme-eclipse-shadow { transition: none; }
+}
 :focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
