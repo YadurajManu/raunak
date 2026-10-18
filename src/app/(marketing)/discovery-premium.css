@@ -74,6 +74,7 @@
 
 .marketing .d-discover {
   padding-top: 32px;
+  padding-bottom: 56px;
 }
 .marketing .d-hero {
   margin-bottom: 24px;
@@ -217,7 +218,7 @@
 }
 .marketing .d-categories svg { flex-shrink: 0; }
 .marketing .d-categories :is(a, button):focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; }
-.marketing .market-empty.d-discovery-empty { display: flex; gap: 16px; align-items: flex-start; padding: 24px; margin: 16px 0 24px; }
+.marketing .market-empty.d-discovery-empty { display: flex; gap: 16px; align-items: flex-start; padding: 24px; margin: 16px 0 0; }
 .d-empty-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: var(--surface); color: var(--accent-ink); }
 .d-discovery-empty > div { min-width: 0; }
 .marketing .d-discovery-empty h2 { margin: 0 0 8px; font-size: 22px; }
@@ -401,9 +402,13 @@
     right: -4px;
   }
 }
+@media (max-width: 1024px) {
+  .marketing .d-discover { padding-bottom: 40px; }
+}
 @media (max-width: 600px) {
   .marketing .d-discover {
     padding-top: 24px;
+    padding-bottom: 24px;
   }
   .marketing .d-query > label,
   .marketing .d-field-label {

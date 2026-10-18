@@ -1,8 +1,5 @@
 .marketing .d-discover { max-width:1240px; padding:30px 28px 64px; }
 .marketing .r-resolved-address { color:var(--muted); font-size:.75rem; line-height:1.5; margin:10px 0; }
-.marketing .d-discover+.m-footer { padding-top:28px; }
-.marketing .d-discover+.m-footer :is(.m-footer-top,.m-footer-wordmark,.m-footer-tear) { display:none; }
-.marketing .d-discover+.m-footer .m-footer-links { margin-top:0; padding-top:0; }
 .marketing .d-hero { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-bottom:24px; }
 .marketing .d-hero h1 { font-size:clamp(2.2rem,4vw,3.6rem); line-height:1.08; margin:10px 0; letter-spacing:-.045em; }
 .marketing .d-hero p:last-child { color:var(--muted); font-size:.88rem; line-height:1.6; margin:0; }

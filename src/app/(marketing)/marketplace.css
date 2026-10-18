@@ -6,9 +6,7 @@
 }
 .marketing .d-discover.market-page {
   max-width: 1480px;
-}
-.marketing .d-discover + .m-footer {
-  position: relative;
+  min-height: auto;
 }
 .market-page .m-eyebrow,
 .marketing .market-page .d-clear {
