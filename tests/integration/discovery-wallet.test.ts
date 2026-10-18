@@ -65,6 +65,17 @@ it("queries real server filters independently and together with stable paginatio
   expect((await query({ price: "free" })).total).toBe(1);
   expect((await query({ price: "paid" })).total).toBe(13);
   expect((await query({ mode: "ONLINE" })).total).toBe(1);
+  expect(
+    (
+      await query({
+        mode: "ONLINE",
+        city: "Delhi",
+        lat: 28.6,
+        lng: 77.2,
+        radius: 5,
+      })
+    ).total,
+  ).toBe(1);
   expect((await query({ mode: "HYBRID" })).total).toBe(1);
   expect((await query({ mode: "IN_PERSON" })).total).toBe(12);
   expect((await query({ lat: 18.52, lng: 73.85, radius: 5 })).total).toBe(13);

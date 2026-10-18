@@ -28,18 +28,30 @@ export const discoverySchema = z
   })
   .refine((v) => (v.lat === undefined) === (v.lng === undefined), {
     message: "Choose a location before using nearby discovery.",
-  });
+  })
+  .transform((v) =>
+    v.mode === "ONLINE"
+      ? { ...v, city: "", lat: undefined, lng: undefined, radius: 25 }
+      : v,
+  );
 export type DiscoveryFilters = z.infer<typeof discoverySchema>;
 export function discoveryUrl(
   filters: Record<string, unknown>,
   changes: Record<string, unknown> = {},
 ) {
   const query = new URLSearchParams();
-  for (const [key, value] of Object.entries({
+  const values: Record<string, unknown> = {
     ...filters,
     page: undefined,
     ...changes,
-  }))
+  };
+  if (values.mode === "ONLINE") {
+    values.city = "";
+    values.lat = undefined;
+    values.lng = undefined;
+  }
+  if (values.lat === undefined) values.radius = undefined;
+  for (const [key, value] of Object.entries(values))
     if (
       value !== undefined &&
       value !== null &&

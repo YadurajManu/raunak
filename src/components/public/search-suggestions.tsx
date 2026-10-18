@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 type Suggestion = { label: string; kind: string; href: string };
 export function SearchSuggestions({ initial }: { initial: string }) {
   const id = useId(),
@@ -43,7 +44,10 @@ export function SearchSuggestions({ initial }: { initial: string }) {
   }
   return (
     <div className="d-query">
-      <label htmlFor={id}>Search events, venues or organizers</label>
+      <label htmlFor={id}>
+        <Search size={13} aria-hidden="true" /> Search events, venues or
+        organizers
+      </label>
       <div className="d-query-input">
         <input
           id={id}

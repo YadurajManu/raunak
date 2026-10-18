@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { DiscoverFilters } from "@/components/public/discover-filters";
 import { EventCard } from "@/components/public/event-card";
@@ -39,6 +40,15 @@ export default async function DiscoverPage({
           </Link>
         </main>
       </>
+    );
+  if (
+    parsed.data.mode === "ONLINE" &&
+    (raw.city || raw.lat || raw.lng || raw.radius)
+  )
+    redirect(
+      discoveryUrl(parsed.data, {
+        page: parsed.data.page > 1 ? parsed.data.page : undefined,
+      }),
     );
   const [result, locations, user] = await Promise.all([
     discoverPage(parsed.data),
@@ -112,7 +122,11 @@ export default async function DiscoverPage({
                   ? `Events in ${parsed.data.city}`
                   : parsed.data.lat !== undefined
                     ? "Events near your location"
-                    : "Explore upcoming events"}
+                    : parsed.data.mode === "IN_PERSON"
+                      ? "In-person events"
+                      : parsed.data.mode === "HYBRID"
+                        ? "Hybrid events"
+                        : "Explore upcoming events"}
             </h2>
             <p>
               {result.total} {result.total === 1 ? "event" : "events"} · page{" "}

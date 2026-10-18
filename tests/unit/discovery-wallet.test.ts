@@ -23,6 +23,44 @@ it("validates ranges and coordinates and retains filters in shareable URLs", () 
   expect(url.searchParams.has("page")).toBe(false);
   expect(url.searchParams.get("mode")).toBe("ONLINE");
 });
+it("normalizes online discovery and omits irrelevant nearby restrictions", () => {
+  const filters = discoverySchema.parse({
+    q: "Workshop",
+    mode: "ONLINE",
+    city: "Pune",
+    lat: 18.52,
+    lng: 73.85,
+    radius: 5,
+    price: "free",
+    period: "weekend",
+  });
+  expect(filters).toMatchObject({
+    mode: "ONLINE",
+    city: "",
+    lat: undefined,
+    lng: undefined,
+    price: "free",
+    period: "weekend",
+  });
+  const url = new URL(discoveryUrl(filters), "https://example.test");
+  for (const key of ["city", "lat", "lng", "radius"])
+    expect(url.searchParams.has(key)).toBe(false);
+  expect(url.searchParams.get("q")).toBe("Workshop");
+  expect(
+    new URL(
+      discoveryUrl(discoverySchema.parse({})),
+      "https://example.test",
+    ).searchParams.has("radius"),
+  ).toBe(false);
+  expect(
+    new URL(
+      discoveryUrl(
+        discoverySchema.parse({ lat: 18.52, lng: 73.85, radius: 10 }),
+      ),
+      "https://example.test",
+    ).searchParams.get("radius"),
+  ).toBe("10");
+});
 
 it("exports calendar text without line injection and folds Unicode safely", () => {
   const result = calendarFile(
