@@ -1,5 +1,6 @@
 "use client";
 import { APP_NAME } from "@/lib/constants";
+import { BrandMark } from "@/components/brand-mark";
 import { FakeQR, Sticker, TicketShell } from "@/components/marketing/motifs";
 import { ThemeToggle } from "@/components/marketing/footer";
 
@@ -353,9 +354,7 @@ export function AuthForm({
     <main className="m-auth-shell">
       <section className="m-auth-art" aria-label={`Welcome to ${APP_NAME}`}>
         <Link href="/" className="m-logo">
-          <span className="m-logo-mark" aria-hidden="true">
-            ◔
-          </span>
+          <BrandMark className="m-logo-mark" />
           {APP_NAME}
         </Link>
         <div className="m-auth-art-copy">

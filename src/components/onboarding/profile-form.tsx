@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { countries } from "@/config/countries";
 import { APP_NAME } from "@/lib/constants";
+import { BrandMark } from "@/components/brand-mark";
 import { authNextPath } from "@/lib/auth-next";
 import { ThemeToggle } from "@/components/marketing/footer";
 import type { Place } from "@/server/location/service";
@@ -211,9 +212,7 @@ export function ProfileForm({
     <main className="r-onboarding">
       <header className="r-onboarding-header">
         <Link href="/" className="m-logo">
-          <span className="m-logo-mark" aria-hidden="true">
-            ◔
-          </span>
+          <BrandMark className="m-logo-mark" />
           {APP_NAME}
         </Link>
         <ThemeToggle compact />

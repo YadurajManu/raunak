@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
+import { APP_NAME } from "@/lib/constants";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { db } from "@/server/db/client";
@@ -39,7 +41,8 @@ export default async function TicketPage({
   return (
     <main className="m-legal m-container">
       <Link href="/" className="m-logo">
-        raunak.
+        <BrandMark className="m-logo-mark" />
+        {APP_NAME}
       </Link>
       <div className="m-legal-content">
         <p className="m-eyebrow">YOUR WAY IN</p>

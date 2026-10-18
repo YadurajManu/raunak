@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, Menu, PieChart, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Menu, X } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { NavigationLink } from "@/components/navigation-link";
 import { ProfileControls } from "@/components/onboarding/profile-controls";
 import { ThemeToggle } from "@/components/marketing/footer";
@@ -58,9 +59,7 @@ export function GlobalNavbar({
       >
         <div className="gnav-inner">
           <Link href="/" className="gnav-logo" aria-label="Raunak home">
-            <span className="gnav-logo-mark" aria-hidden="true">
-              <PieChart size={18} />
-            </span>
+            <BrandMark className="gnav-logo-mark" />
             {APP_NAME}
           </Link>
           <nav

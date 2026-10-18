@@ -364,16 +364,11 @@
   white-space: nowrap;
 }
 .marketing .m-logo-mark {
-  display: inline-grid;
-  place-items: center;
-  width: 31px;
+  display: block;
+  width: 37px;
   height: 31px;
-  font-family: var(--font-ui);
-  color: var(--accent);
-  border: 2px solid var(--ink);
-  border-radius: 7px;
-  transform: rotate(-12deg);
-  font-size: 1.35rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .marketing .m-nav-links,
 .marketing .m-nav-actions {
@@ -2534,9 +2529,6 @@
   border-radius: 50%;
   left: -200px;
   top: 200px;
-}
-.marketing .m-auth-art .m-logo-mark {
-  border-color: #f5f0e6;
 }
 .marketing .m-auth-art-copy {
   margin-top: 95px;

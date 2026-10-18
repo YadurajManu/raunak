@@ -38,13 +38,11 @@ html:has(.gnav) {
   text-decoration: none;
 }
 .gnav-logo-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
+  display: block;
+  width: 36px;
   height: 30px;
-  border: 1px solid var(--ink);
-  border-radius: 7px;
-  color: var(--accent);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .gnav-links {
   display: flex;
