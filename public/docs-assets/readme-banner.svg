@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="520" viewBox="0 0 1440 520" role="img" aria-labelledby="title description">
+  <title id="title">Raunak — Discover events. Sell tickets. Scan guests in.</title>
+  <desc id="description">Warm cream banner with a Raunak wordmark and a coral admission ticket, reflecting the event platform's paper and ink identity.</desc>
+  <rect width="1440" height="520" rx="24" fill="#f5f0e6"/>
+  <path d="M960 0v520" stroke="#82796b" stroke-dasharray="4 9"/>
+  <circle cx="960" cy="0" r="19" fill="#fff"/><circle cx="960" cy="520" r="19" fill="#fff"/>
+  <rect x="64" y="56" width="48" height="42" rx="5" fill="#14120f"/>
+  <path d="M79 87V66h9c9 0 10 12 2 13l11 8H91l-8-7v7zm5-15v4h4c3 0 3-4 0-4z" fill="#f5f0e6"/>
+  <path d="M87 59v7m-8-4 4 6m13-6-4 6m8 2-7 2m-17-2 7 2" stroke="#ff4b2b" stroke-width="2"/>
+  <text x="126" y="91" font-family="Georgia,serif" font-size="42" letter-spacing="-2" fill="#14120f">Raunak</text>
+  <text x="64" y="160" font-family="monospace" font-size="14" letter-spacing="2" fill="#aa301b">GOOD PEOPLE. GREAT PLANS.</text>
+  <g font-family="Arial,Helvetica,sans-serif" font-size="65" font-weight="700" letter-spacing="-3" fill="#14120f">
+    <text x="60" y="244">Discover events.</text>
+    <text x="60" y="316">Sell tickets.</text>
+    <text x="60" y="388">Scan guests in.</text>
+  </g>
+  <text x="64" y="454" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#5e584d">An India-first platform, from the first plan to the front door.</text>
+  <rect x="1045" y="80" width="312" height="370" rx="20" fill="#14120f"/>
+  <rect x="1037" y="72" width="312" height="370" rx="20" fill="#244e3d" stroke="#14120f" stroke-width="1.5"/>
+  <text x="1065" y="112" font-family="monospace" font-size="12" letter-spacing="1" fill="#f5f0e6">MADE FOR GETTING TOGETHER</text>
+  <circle cx="1193" cy="221" r="72" fill="#ff4b2b"/>
+  <path d="M1121 221h144v68h-144z" fill="#244e3d"/>
+  <path d="M1065 315h256" stroke="#a9c3ac" stroke-dasharray="4 5"/>
+  <circle cx="1037" cy="315" r="12" fill="#f5f0e6"/><circle cx="1349" cy="315" r="12" fill="#f5f0e6"/>
+  <text x="1065" y="356" font-family="monospace" font-size="12" letter-spacing="1" fill="#c7d5be">ADMIT ONE GREAT IDEA</text>
+  <text x="1065" y="399" font-family="Georgia,serif" font-size="34" font-style="italic" fill="#f5f0e6">Let’s make a plan.</text>
+</svg>
