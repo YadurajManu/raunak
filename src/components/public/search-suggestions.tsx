@@ -3,7 +3,13 @@ import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 type Suggestion = { label: string; kind: string; href: string };
-export function SearchSuggestions({ initial }: { initial: string }) {
+export function SearchSuggestions({
+  initial,
+  onQueryChange,
+}: {
+  initial: string;
+  onQueryChange?: (query: string) => void;
+}) {
   const id = useId(),
     router = useRouter();
   const [query, setQuery] = useState(initial);
@@ -67,6 +73,7 @@ export function SearchSuggestions({ initial }: { initial: string }) {
           }}
           onChange={(event) => {
             setQuery(event.target.value);
+            onQueryChange?.(event.target.value);
             setItems([]);
             setStatus(
               event.target.value.trim().length >= 2 ? "loading" : "idle",
@@ -104,6 +111,7 @@ export function SearchSuggestions({ initial }: { initial: string }) {
             aria-label="Clear search"
             onClick={() => {
               setQuery("");
+              onQueryChange?.("");
               setItems([]);
               setStatus("idle");
               setActive(-1);

@@ -46,15 +46,22 @@ export default async function DiscoverPage({
         </main>
       </>
     );
+  const canonicalUrl = discoveryUrl(parsed.data, {
+    page: parsed.data.page > 1 ? parsed.data.page : undefined,
+  });
+  const rawCategories = Array.isArray(raw.category)
+    ? raw.category.join(",")
+    : raw.category;
+  const canonicalCategories = new URL(
+    canonicalUrl,
+    "https://raunak.local",
+  ).searchParams.get("category");
   if (
-    parsed.data.mode === "ONLINE" &&
-    (raw.city || raw.lat || raw.lng || raw.radius)
+    (raw.category !== undefined && rawCategories !== canonicalCategories) ||
+    (parsed.data.mode === "ONLINE" &&
+      (raw.city || raw.lat || raw.lng || raw.radius || raw.nearCity))
   )
-    redirect(
-      discoveryUrl(parsed.data, {
-        page: parsed.data.page > 1 ? parsed.data.page : undefined,
-      }),
-    );
+    redirect(canonicalUrl);
   const [result, locations, user] = await Promise.all([
     discoverPage(parsed.data),
     db.event.findMany({
@@ -99,6 +106,23 @@ export default async function DiscoverPage({
     : { primary: result.events, sections: [] };
   const lowInventory = unfiltered && result.total > 0 && result.total <= 3;
   const appliedFilters = discoveryFilterLabels(parsed.data);
+  const categorySummary = parsed.data.category.split("|").filter(Boolean);
+  const placeSummary =
+    parsed.data.city ||
+    (parsed.data.lat !== undefined
+      ? `${parsed.data.nearCity || "Nearby"} · ${parsed.data.radius} km`
+      : "");
+  const skippedSummary = new Set([
+    ...categorySummary,
+    ...(placeSummary ? [placeSummary] : []),
+  ]);
+  const activeFilterSummary = [
+    ...(categorySummary.length ? [categorySummary.join(", ")] : []),
+    placeSummary,
+    ...appliedFilters.filter((label) => !skippedSummary.has(label)),
+  ]
+    .filter(Boolean)
+    .join(" · ");
   // A filtered miss must not be confused with an empty public marketplace.
   const hasPublicEvents =
     result.total > 0 ||
@@ -115,7 +139,6 @@ export default async function DiscoverPage({
             <h1>
               Find your next <em className="m-serif">raunak.</em>
             </h1>
-            <p>Find your people. Make a good plan.</p>
           </div>
         </section>
         <DiscoverFilters
@@ -131,7 +154,7 @@ export default async function DiscoverPage({
                 : parsed.data.city
                   ? `Events in ${parsed.data.city}`
                   : parsed.data.lat !== undefined
-                    ? "Events near your location"
+                    ? `Events near ${parsed.data.nearCity || "you"}`
                     : parsed.data.mode === "IN_PERSON"
                       ? "In-person events"
                       : parsed.data.mode === "HYBRID"
@@ -140,7 +163,8 @@ export default async function DiscoverPage({
             </h2>
             <p>
               {result.total} {result.total === 1 ? "event" : "events"}
-              {result.events.length > 0 && ` · page ${parsed.data.page}`}
+              {parsed.data.page > 1 && ` · page ${parsed.data.page}`}
+              {activeFilterSummary && ` · ${activeFilterSummary}`}
             </p>
           </div>
           {appliedFilters.length > 0 && result.events.length > 0 && (
@@ -170,7 +194,7 @@ export default async function DiscoverPage({
                   your idea here.
                 </p>
                 <Link href="/dashboard" className="m-button m-button-small">
-                  Host your first event ↗
+                  Host your first event
                 </Link>
                 <small>Your first event is free to host.</small>
               </aside>
@@ -213,7 +237,7 @@ export default async function DiscoverPage({
                 className="m-button m-button-small"
               >
                 {hasPublicEvents ? "Clear filters" : "Host an event"}
-                <ArrowRight size={16} aria-hidden="true" />
+                {hasPublicEvents && <ArrowRight size={16} aria-hidden="true" />}
               </Link>
             </div>
           </section>

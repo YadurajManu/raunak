@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import IORedis from "ioredis";
 import { citySuggestions } from "@/config/cities";
 const globalRedis = globalThis as unknown as { locationRedis?: IORedis };
@@ -105,4 +106,47 @@ export async function lookupLocation(
       latitude: place.lat,
       longitude: place.lon,
     }));
+}
+
+export async function lookupPublicCity(
+  input: unknown,
+  clientIp: string,
+  request: typeof fetch = fetch,
+): Promise<string> {
+  const data = lookupSchema.parse(input);
+  if (data.kind !== "reverse") throw new Error("Choose a nearby location.");
+  const apiKey = process.env.GEOAPIFY_API_KEY;
+  if (!apiKey) throw new Error("Nearby city lookup is unavailable.");
+  const clientKey = createHash("sha256").update(clientIp || "unknown").digest("hex");
+  const count = Number(
+    await redis.eval(
+      'local n=redis.call("INCR",KEYS[1]); if n==1 then redis.call("EXPIRE",KEYS[1],60) end; return n',
+      1,
+      `discover-location-rate:${clientKey}`,
+    ),
+  );
+  if (count > 30)
+    throw new Error("Too many location requests. Try again in a minute.");
+  const url = new URL("https://api.geoapify.com/v1/geocode/reverse");
+  url.searchParams.set("apiKey", apiKey);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("lang", "en");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("lat", String(data.latitude));
+  url.searchParams.set("lon", String(data.longitude));
+  const response = await request(url, {
+    signal: AbortSignal.timeout(10000),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Nearby city lookup is unavailable.");
+  const place = responseSchema.parse(await response.json()).results[0];
+  const city =
+    place?.city ||
+    place?.town ||
+    place?.village ||
+    place?.suburb ||
+    place?.county ||
+    "";
+  if (!city) throw new Error("We couldn’t identify your city.");
+  return city;
 }

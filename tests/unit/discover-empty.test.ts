@@ -98,9 +98,9 @@ it("summarizes every constraint without exposing location coordinates or default
     }),
   );
   expect(labels).toEqual([
-    "Within 10 km",
     "Arts & culture",
     "Other",
+    "Nearby · 10 km",
     "From 2027-01-01",
     "Until 2027-02-01",
     "Hybrid",

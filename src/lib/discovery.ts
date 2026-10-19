@@ -1,9 +1,66 @@
 import { z } from "zod";
+import { eventCategories } from "@/config/event-options";
+
+const slugifyCategory = (value: string) =>
+  value
+    .toLocaleLowerCase("en-IN")
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+const categorySlugs: Record<string, string> = {
+  "Music & nightlife": "music-nightlife",
+  "Workshops & classes": "workshops-classes",
+  "Meetups & networking": "meetups",
+  "Arts & culture": "arts-culture",
+  "Food & drink": "food-drink",
+  "Sports & wellness": "sports-wellness",
+  Conferences: "conferences",
+  "Community & celebrations": "community-celebrations",
+  Other: "other",
+};
+const categoryBySlug = new Map(
+  Object.entries(categorySlugs).map(([category, slug]) => [slug, category]),
+);
+const slugByCategory = new Map(Object.entries(categorySlugs));
+
+function parseCategories(value: string) {
+  return (value.includes("|") ? value.split("|") : value.split(","))
+    .map((item) => {
+      const trimmed = item.trim();
+      return (
+        categoryBySlug.get(slugifyCategory(trimmed)) ||
+        eventCategories.find(
+          (category) =>
+            category.toLocaleLowerCase("en-IN") ===
+            trimmed.toLocaleLowerCase("en-IN"),
+        ) ||
+        trimmed
+      );
+    })
+    .filter(Boolean)
+    .slice(0, 12)
+    .join("|");
+}
+
+function serializeCategories(value: string) {
+  return (value.includes("|") ? value.split("|") : value.split(","))
+    .map((item) => {
+      const category = eventCategories.find(
+        (value) => value.toLocaleLowerCase("en-IN") === item.trim().toLocaleLowerCase("en-IN"),
+      );
+      return category ? slugByCategory.get(category) : slugifyCategory(item.trim());
+    })
+    .filter(Boolean)
+    .slice(0, 12)
+    .join(",");
+}
+
 export const discoverySchema = z
   .object({
     q: z.string().trim().max(100).default(""),
     city: z.string().trim().max(100).default(""),
     category: z.string().max(800).default(""),
+    nearCity: z.string().trim().max(100).optional(),
     period: z.enum(["", "today", "tomorrow", "weekend", "month"]).default(""),
     from: z.union([z.literal(""), z.iso.date()]).default(""),
     to: z.union([z.literal(""), z.iso.date()]).default(""),
@@ -29,19 +86,32 @@ export const discoverySchema = z
   .refine((v) => (v.lat === undefined) === (v.lng === undefined), {
     message: "Choose a location before using nearby discovery.",
   })
-  .transform((v) =>
-    v.mode === "ONLINE"
-      ? { ...v, city: "", lat: undefined, lng: undefined, radius: 25 }
-      : v,
-  );
+  .transform((v) => {
+    const normalized = {
+      ...v,
+      category: parseCategories(v.category),
+      nearCity: v.lat === undefined ? undefined : v.nearCity,
+    };
+    return v.mode === "ONLINE"
+      ? {
+          ...normalized,
+          city: "",
+          lat: undefined,
+          lng: undefined,
+          nearCity: undefined,
+          radius: 25,
+        }
+      : normalized;
+  });
 export type DiscoveryFilters = z.infer<typeof discoverySchema>;
 /** Human-readable applied constraints, without exposing precise coordinates. */
 export function discoveryFilterLabels(f: DiscoveryFilters): string[] {
   const labels: string[] = [];
   if (f.q) labels.push(`Search: ${f.q}`);
-  if (f.city) labels.push(f.city);
-  if (f.lat !== undefined) labels.push(`Within ${f.radius} km`);
   labels.push(...f.category.split("|").filter(Boolean));
+  if (f.city) labels.push(f.city);
+  if (f.lat !== undefined)
+    labels.push(`${f.nearCity || "Nearby"} · ${f.radius} km`);
   if (f.period)
     labels.push(
       {
@@ -75,10 +145,13 @@ export function discoveryUrl(
     page: undefined,
     ...changes,
   };
+  if (typeof values.category === "string" && values.category)
+    values.category = serializeCategories(values.category);
   if (values.mode === "ONLINE") {
     values.city = "";
     values.lat = undefined;
     values.lng = undefined;
+    values.nearCity = undefined;
   }
   if (values.lat === undefined) values.radius = undefined;
   for (const [key, value] of Object.entries(values))

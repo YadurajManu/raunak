@@ -2,7 +2,6 @@ import Link from "next/link";
 import { EventImage } from "./event-image";
 import { SaveEvent } from "./save-event";
 import { whatsappEventUrl } from "@/lib/event-share";
-import { formatInr } from "@/lib/money";
 import { CalendarDays, MapPin } from "lucide-react";
 export function EventCard({
   event,
@@ -66,7 +65,11 @@ export function EventCard({
               ? "Tickets soon"
               : minimum === 0
                 ? "Free"
-                : `From ${formatInr(minimum)}`}
+                : `From ${new Intl.NumberFormat("en-IN", {
+                    style: "currency",
+                    currency: "INR",
+                    maximumFractionDigits: 0,
+                  }).format(Math.round(minimum / 100))}`}
           </strong>
         </div>
       </Link>

@@ -18,10 +18,25 @@ it("validates ranges and coordinates and retains filters in shareable URLs", () 
     "https://example.test",
   );
   expect(url.searchParams.get("q")).toBe("Music & dance");
-  expect(url.searchParams.get("category")).toBe("Music|Arts");
+  expect(url.searchParams.get("category")).toBe("music,arts");
   expect(url.searchParams.has("city")).toBe(false);
   expect(url.searchParams.has("page")).toBe(false);
   expect(url.searchParams.get("mode")).toBe("ONLINE");
+});
+it("uses stable category slugs and accepts legacy display-name URLs", () => {
+  expect(
+    new URL(
+      discoveryUrl({ category: "Arts & culture|Meetups & networking" }),
+      "https://example.test",
+    ).searchParams.get("category"),
+  ).toBe("arts-culture,meetups");
+  expect(
+    discoverySchema.parse({ category: "Arts & culture|Meetups & networking" })
+      .category,
+  ).toBe("Arts & culture|Meetups & networking");
+  expect(
+    discoverySchema.parse({ category: "arts-culture,meetups" }).category,
+  ).toBe("Arts & culture|Meetups & networking");
 });
 it("normalizes online discovery and omits irrelevant nearby restrictions", () => {
   const filters = discoverySchema.parse({

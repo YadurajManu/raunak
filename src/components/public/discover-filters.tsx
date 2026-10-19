@@ -55,11 +55,13 @@ export function DiscoverFilters({
     router = useRouter();
   const [pending, startTransition] = useTransition();
   const [city, setCity] = useState(filters.city);
+  const [searchQuery, setSearchQuery] = useState(filters.q);
   const [mode, setMode] = useState(filters.mode);
   const [period, setPeriod] = useState(filters.period);
   const [near, setNear] = useState(
     filters.lat !== undefined ? { lat: filters.lat, lng: filters.lng! } : null,
   );
+  const [nearCity, setNearCity] = useState(filters.nearCity || "");
   const [advanced, setAdvanced] = useState({
     from: filters.from,
     to: filters.to,
@@ -78,7 +80,7 @@ export function DiscoverFilters({
   const [allCategories, setAllCategories] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const geoRequest = useRef(0);
-  const snapshot = useRef({ city, mode, period, near, advanced });
+  const snapshot = useRef({ city, mode, period, near, nearCity, advanced });
   const activeCount =
     Number(!!(filters.period || filters.from || filters.to)) +
     Number(
@@ -103,10 +105,11 @@ export function DiscoverFilters({
     if (value === "ONLINE") {
       setCity("");
       setNear(null);
+      setNearCity("");
     }
   }
   function openDrawer() {
-    snapshot.current = { city, mode, period, near, advanced };
+    snapshot.current = { city, mode, period, near, nearCity, advanced };
     setOpen(false);
     setError("");
     dialog.current?.showModal();
@@ -118,6 +121,7 @@ export function DiscoverFilters({
     setMode(previous.mode);
     setPeriod(previous.period);
     setNear(previous.near);
+    setNearCity(previous.nearCity);
     setAdvanced(previous.advanced);
     setError("");
     dialog.current?.close();
@@ -147,9 +151,33 @@ export function DiscoverFilters({
   function choose(value: string) {
     stopLocation();
     setNear(null);
+    setNearCity("");
     setCity(value);
     setOpen(false);
     setActive(-1);
+    if (value.trim())
+      try {
+        localStorage.setItem(
+          "raunak-recent-cities",
+          JSON.stringify(
+            [value.trim(), ...recent.filter((item) => item !== value.trim())].slice(
+              0,
+              4,
+            ),
+          ),
+        );
+      } catch {}
+    startTransition(() =>
+      router.push(
+        discoveryUrl(filters, {
+          city: value.trim(),
+          lat: undefined,
+          lng: undefined,
+          nearCity: undefined,
+        }),
+        { scroll: false },
+      ),
+    );
   }
   function locate() {
     if (!navigator.geolocation) {
@@ -160,13 +188,55 @@ export function DiscoverFilters({
     setLocating(true);
     setMessage("Requesting your location…");
     navigator.geolocation.getCurrentPosition(
-      (p) => {
+      async (p) => {
         if (request !== geoRequest.current) return;
-        setNear({ lat: p.coords.latitude, lng: p.coords.longitude });
+        const coordinates = {
+          lat: p.coords.latitude,
+          lng: p.coords.longitude,
+        };
+        setMessage("Finding your city…");
+        let detectedCity = "";
+        try {
+          const response = await fetch("/api/discover/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: "reverse",
+              latitude: coordinates.lat,
+              longitude: coordinates.lng,
+            }),
+          });
+          if (response.ok) {
+            const result: unknown = await response.json();
+            if (
+              result &&
+              typeof result === "object" &&
+              "city" in result &&
+              typeof result.city === "string"
+            )
+              detectedCity = result.city;
+          }
+        } catch {}
+        if (request !== geoRequest.current) return;
+        setNear(coordinates);
+        setNearCity(detectedCity);
         setCity("");
         setLocating(false);
         setMessage(
-          "Nearby selected. Press Find events. Your location is only used for this search.",
+          detectedCity
+            ? `${detectedCity} · ${advanced.radius} km`
+            : `Nearby · ${advanced.radius} km. City lookup is unavailable.`,
+        );
+        startTransition(() =>
+          router.push(
+            discoveryUrl(filters, {
+              city: "",
+              ...coordinates,
+              nearCity: detectedCity || undefined,
+              radius: Number(advanced.radius),
+            }),
+            { scroll: false },
+          ),
         );
       },
       () => {
@@ -223,7 +293,10 @@ export function DiscoverFilters({
         }}
       >
         <div className="d-search" role="search" aria-label="Find events">
-          <SearchSuggestions initial={filters.q} />
+          <SearchSuggestions
+            initial={filters.q}
+            onQueryChange={setSearchQuery}
+          />
           {mode === "ONLINE" ? (
             <div className="d-online-location">
               <Globe2 size={18} aria-hidden="true" />
@@ -240,10 +313,14 @@ export function DiscoverFilters({
                 </span>
                 <input
                   id={id}
-                  name="city"
-                  value={city}
+                  name={near ? undefined : "city"}
+                  value={
+                    near
+                      ? `${nearCity || "Nearby"} · ${advanced.radius} km`
+                      : city
+                  }
                   maxLength={100}
-                  placeholder={near ? "Near you" : "All cities"}
+                  placeholder={near ? "Nearby" : "All cities"}
                   role="combobox"
                   aria-autocomplete="list"
                   aria-expanded={open}
@@ -261,6 +338,7 @@ export function DiscoverFilters({
                     stopLocation();
                     setCity(e.target.value);
                     setNear(null);
+                    setNearCity("");
                     setOpen(true);
                     setActive(-1);
                   }}
@@ -334,12 +412,22 @@ export function DiscoverFilters({
                   </li>
                 ))}
               </ul>
+              <p
+                className="d-location-status"
+                role="status"
+                hidden={!message}
+              >
+                {message}
+              </p>
             </div>
           )}
           {near && mode !== "ONLINE" && (
             <>
               <input type="hidden" name="lat" value={near.lat} />
               <input type="hidden" name="lng" value={near.lng} />
+              {nearCity && (
+                <input type="hidden" name="nearCity" value={nearCity} />
+              )}
             </>
           )}
           {filters.category && (
@@ -349,14 +437,16 @@ export function DiscoverFilters({
             <input type="hidden" name="organizer" value={filters.organizer} />
           )}
           {period && <input type="hidden" name="period" value={period} />}
-          <button
-            className="m-button d-find-button"
-            type="submit"
-            disabled={pending}
-          >
-            {pending ? "Finding…" : "Find events"}
-            <ArrowRight size={16} aria-hidden="true" />
-          </button>
+          {searchQuery.trim() && (
+            <button
+              className="m-button d-find-button"
+              type="submit"
+              disabled={pending}
+            >
+              {pending ? "Finding…" : "Search events"}
+              <ArrowRight size={16} aria-hidden="true" />
+            </button>
+          )}
         </div>
         <div className="d-quick-row">
           <nav className="d-quick-filters" aria-label="Quick event filters">
@@ -379,10 +469,16 @@ export function DiscoverFilters({
             ].map(([value, label]) => (
               <a
                 key={value}
-                href={href("period", value)}
+                href={href("period", filters.period === value ? "" : value)}
                 aria-current={filters.period === value ? "true" : undefined}
               >
                 {label}
+                {filters.period === value && (
+                  <>
+                    <X size={12} aria-hidden="true" />
+                    <span className="sr-only">, remove date filter</span>
+                  </>
+                )}
               </a>
             ))}
             <span className="d-filter-divider" aria-hidden="true" />
@@ -396,6 +492,12 @@ export function DiscoverFilters({
             >
               <Tag size={15} aria-hidden="true" />
               Free
+              {filters.price === "free" && (
+                <>
+                  <X size={12} aria-hidden="true" />
+                  <span className="sr-only">, remove price filter</span>
+                </>
+              )}
             </a>
             <a
               href={href(
@@ -406,6 +508,12 @@ export function DiscoverFilters({
             >
               <MapPin size={15} aria-hidden="true" />
               In person
+              {filters.mode === "IN_PERSON" && (
+                <>
+                  <X size={12} aria-hidden="true" />
+                  <span className="sr-only">, remove format filter</span>
+                </>
+              )}
             </a>
             <a
               href={href("mode", filters.mode === "ONLINE" ? "" : "ONLINE")}
@@ -413,6 +521,12 @@ export function DiscoverFilters({
             >
               <Globe2 size={15} aria-hidden="true" />
               Online
+              {filters.mode === "ONLINE" && (
+                <>
+                  <X size={12} aria-hidden="true" />
+                  <span className="sr-only">, remove format filter</span>
+                </>
+              )}
             </a>
           </nav>
           <button
@@ -432,9 +546,6 @@ export function DiscoverFilters({
             )}
           </button>
         </div>
-        <p className="d-location-status" role="status" hidden={!message}>
-          {message}
-        </p>
         {error && (
           <p role="alert" className="d-filter-error">
             {error}
@@ -606,7 +717,9 @@ export function DiscoverFilters({
               <fieldset>
                 <legend>
                   <LocateFixed size={17} aria-hidden="true" />
-                  Near you
+                  {nearCity
+                    ? `${nearCity} · ${advanced.radius} km`
+                    : `Nearby · ${advanced.radius} km`}
                 </legend>
                 <label>
                   Search radius
@@ -685,6 +798,7 @@ export function DiscoverFilters({
               onClick={() => {
                 changeMode("");
                 setNear(null);
+                setNearCity("");
                 setPeriod("");
                 setAdvanced({
                   from: "",
@@ -732,6 +846,12 @@ export function DiscoverFilters({
             >
               <Icon size={16} aria-hidden="true" />
               <span>{category}</span>
+              {selected.includes(category) && (
+                <>
+                  <X size={12} aria-hidden="true" />
+                  <span className="sr-only">, remove category filter</span>
+                </>
+              )}
             </a>
           );
         })}

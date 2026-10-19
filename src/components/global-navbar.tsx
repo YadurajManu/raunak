@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowLeft, Menu, X } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { NavigationLink } from "@/components/navigation-link";
 import { ProfileControls } from "@/components/onboarding/profile-controls";
@@ -40,7 +40,6 @@ export function GlobalNavbar({
     pathname.startsWith("/dashboard") || pathname.startsWith("/organizer/");
   const hostHref = organizer ? "/account" : "/dashboard";
   const hostLabel = organizer ? "Attendee view" : "Host an event";
-  const HostIcon = organizer ? ArrowLeft : ArrowUpRight;
   return (
     <>
       <a href="#site-content" className="gnav-skip">
@@ -78,15 +77,21 @@ export function GlobalNavbar({
             {user && (
               <NavigationLink href="/account">My dashboard</NavigationLink>
             )}
-            <Link className="gnav-mobile-host" href={hostHref}>
+            <Link
+              className={`gnav-mobile-host${organizer ? "" : " gnav-host-cta"}`}
+              href={hostHref}
+            >
               {hostLabel}
-              <HostIcon size={16} aria-hidden="true" />
+              {organizer && <ArrowLeft size={16} aria-hidden="true" />}
             </Link>
           </nav>
           <div className="gnav-controls">
-            <Link href={hostHref} className="gnav-host">
+            <Link
+              href={hostHref}
+              className={`gnav-host${organizer ? "" : " gnav-host-cta"}`}
+            >
               {hostLabel}
-              <HostIcon size={16} aria-hidden="true" />
+              {organizer && <ArrowLeft size={16} aria-hidden="true" />}
             </Link>
             <ThemeToggle compact />
             {user ? (

@@ -68,6 +68,23 @@ html:has(.gnav) {
 .gnav-host:hover {
   background: var(--surface);
 }
+.marketing .gnav-host.gnav-host-cta,
+.marketing .gnav-mobile-host.gnav-host-cta {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #171713;
+  font-weight: 600;
+}
+.marketing .gnav-host.gnav-host-cta:hover,
+.marketing .gnav-mobile-host.gnav-host-cta:hover {
+  background: var(--accent);
+  filter: brightness(0.96);
+}
+.marketing .gnav-host.gnav-host-cta:focus-visible,
+.marketing .gnav-mobile-host.gnav-host-cta:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
 .gnav-links a[aria-current] {
   font-weight: 600;
 }
@@ -291,5 +308,12 @@ html:has(.gnav) {
     border-radius: 0;
     margin-top: 4px;
     padding-top: 14px;
+  }
+  .marketing .gnav-links .gnav-mobile-host.gnav-host-cta {
+    justify-content: center;
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    margin-top: 10px;
+    padding: 10px 12px;
   }
 }
