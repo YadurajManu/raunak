@@ -1,11 +1,11 @@
 import Link from "next/link";
-/* eslint-disable @next/next/no-img-element -- Private generated QR, never optimized through a public image cache. */
 import QRCode from "qrcode";
 import { z } from "zod";
 import { notFound, redirect } from "next/navigation";
 import { EventImage } from "@/components/public/event-image";
 import { PdfDownload } from "@/components/public/pdf-download";
 import { ResendTickets } from "@/components/public/resend-tickets";
+import { TicketQrDisplay } from "@/components/public/ticket-qr-display";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { ticketUrl } from "@/server/tickets/qr";
@@ -173,13 +173,7 @@ export default async function TicketDetail({
             </h2>
             {qr ? (
               <>
-                <img
-                  src={qr}
-                  width={240}
-                  height={240}
-                  alt="Your signed entry QR code"
-                />
-                <strong className="m-mono">{ticket.code}</strong>
+                <TicketQrDisplay qr={qr} code={ticket.code} title={event.title} />
                 <p>
                   Show this QR to entry staff. Each ticket admits one guest.
                 </p>

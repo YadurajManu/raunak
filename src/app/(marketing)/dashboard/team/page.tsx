@@ -55,7 +55,7 @@ export default async function TeamPage({
           }))}
         />
       ) : null}
-      <ul className="mt-8 divide-y divide-zinc-200 rounded-2xl border border-[var(--line)] dark:divide-zinc-800 dark:border-[var(--line)]">
+      <ul className="mt-8 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)]">
         {members.map(({ userId, role, user }) => (
           <li key={userId} className="flex justify-between gap-4 p-4">
             <span>

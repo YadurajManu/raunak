@@ -22,12 +22,12 @@ export function DeleteEventButton({
     <>
       <button
         onClick={remove}
-        className="mt-5 rounded-xl bg-red-600 px-4 py-2 font-medium text-white"
+        className="mt-5 rounded-xl bg-[var(--danger-bg)] px-4 py-2 font-medium text-[var(--danger-fg)]"
       >
         Delete draft
       </button>
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-600">
+        <p role="alert" className="mt-3 text-sm text-[var(--danger)]">
           {error}
         </p>
       )}

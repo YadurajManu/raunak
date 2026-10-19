@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "check:theme-colors": "tsx scripts/check-theme-colors.ts",
+    "check:contrast": "tsx scripts/check-theme-contrast.ts && playwright test tests/e2e/theme-contrast.spec.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "worker": "tsx worker/index.ts",
@@ -56,6 +58,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "1.64.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/heic-convert": "2.1.1",

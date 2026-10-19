@@ -37,7 +37,14 @@ export function walletWhere(
           ? cancelled
           : {
               ...active,
-              event: { endsAt: tab === "past" ? { lte: now } : { gt: now } },
+              ...(tab === "past"
+                ? {
+                    OR: [
+                      { status: "USED" as const },
+                      { event: { endsAt: { lte: now } } },
+                    ],
+                  }
+                : { status: "VALID" as const, event: { endsAt: { gt: now } } }),
             },
       ...(q
         ? [

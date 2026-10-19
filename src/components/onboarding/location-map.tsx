@@ -68,7 +68,7 @@ export default function LocationMap({
             "top-right",
           );
           const pin = new Marker({
-            color: "#FF4B2B",
+            color: "var(--accent)",
             draggable: editable.current,
           });
           marker.current = pin;

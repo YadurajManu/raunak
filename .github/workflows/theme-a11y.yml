@@ -1,0 +1,29 @@
+name: Theme accessibility
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+
+jobs:
+  theme-a11y:
+    runs-on: ubuntu-latest
+    env:
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgresql://raunak:raunak@localhost:5432/raunak
+      NEXT_PUBLIC_FIREBASE_API_KEY: local-a11y-check
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:theme-colors
+      - run: pnpm exec vitest run tests/unit/theme-color-policy.test.ts tests/unit/theme-token-contrast.test.ts
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm check:contrast

@@ -38,7 +38,7 @@ export function EventTeam({
   }
   return (
     <>
-      <ul className="mt-8 divide-y divide-zinc-200 rounded-2xl border border-[var(--line)] dark:divide-zinc-800 dark:border-[var(--line)]">
+      <ul className="mt-8 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)]">
         {assigned.length ? (
           assigned.map((person) => (
             <li
@@ -54,7 +54,7 @@ export function EventTeam({
               {canManage && (
                 <button
                   onClick={() => unassign(person.id)}
-                  className="text-sm text-red-600"
+                  className="text-sm text-[var(--danger)]"
                 >
                   Remove
                 </button>
@@ -92,13 +92,13 @@ export function EventTeam({
                 ))}
             </select>
           </div>
-          <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
+          <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-[var(--on-accent)]">
             Assign
           </button>
         </form>
       )}
       {error && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
+        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
           {error}
         </p>
       )}

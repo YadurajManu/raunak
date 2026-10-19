@@ -315,7 +315,7 @@ export function MessageEditor({
           <div className="flex flex-wrap gap-3">
             <button
               disabled={busy}
-              className="rounded-xl bg-[var(--accent)] px-5 py-3 text-white"
+              className="rounded-xl bg-[var(--accent)] px-5 py-3 text-[var(--on-accent)]"
             >
               Save settings
             </button>
@@ -446,7 +446,7 @@ export function MessageEditor({
                     <td className="p-3">
                       {log.status}
                       {log.error && !log.errorCode && (
-                        <p className="mt-1 max-w-xs text-red-700">
+                        <p className="mt-1 max-w-xs text-[var(--danger)]">
                           {log.error}
                         </p>
                       )}

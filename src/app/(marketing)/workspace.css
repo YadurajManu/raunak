@@ -19,32 +19,32 @@
 .marketing .r-settings-fields input[readonly] { background:var(--paper-2); }
 .marketing .r-search select { width:100%; min-width:0; padding:14px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font:inherit; }
 .marketing .r-settings-save { grid-column:1/-1; margin-top:0; gap:16px; }
-.marketing .r-settings .m-auth-consent { margin-top:16px; font-size:.72rem; line-height:1.5; }
+.marketing .r-settings .m-auth-consent { margin-top:16px; font-size:0.75rem; line-height:1.5; }
 .marketing .r-back-link { font-size:.75rem; color:var(--muted); display:inline-block; margin-bottom:12px; }
-.marketing .r-status-chip { display:inline-block; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:.65rem; color:var(--muted); }
+.marketing .r-status-chip { display:inline-block; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:0.75rem; color:var(--muted); }
 .marketing .r-city-picker { position:relative; min-width:0; }
 .marketing .r-location-input-row { display:flex; align-items:flex-end; gap:8px; }
 .marketing .r-location-input-row label { flex:1; min-width:0; }
 .marketing .r-quiet-button { border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-height:42px; background:var(--paper); color:var(--ink); font-size:.75rem; white-space:nowrap; display:inline-flex; align-items:center; justify-content:center; }
 .marketing .r-quiet-button:hover { border-color:var(--accent); }
-.marketing .r-inline-button { font-size:.72rem; color:var(--accent); min-height:36px; padding:6px 0; text-decoration:underline; text-underline-offset:3px; }
+.marketing .r-inline-button { font-size:0.75rem; color: var(--accent-text); min-height:36px; padding:6px 0; text-decoration:underline; text-underline-offset:3px; }
 .marketing .r-location-tools { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; }
-.marketing .r-location-tools small,.marketing .r-city-picker>small { color:var(--muted); font-size:.68rem; line-height:1.5; }
-.marketing .r-location-results { position:absolute; top:67px; left:0; right:0; z-index:20; list-style:none; padding:5px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--paper); box-shadow:0 12px 24px #0002; }
+.marketing .r-location-tools small,.marketing .r-city-picker>small { color:var(--muted); font-size:0.75rem; line-height:1.5; }
+.marketing .r-location-results { position:absolute; top:67px; left:0; right:0; z-index:20; list-style:none; padding:5px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--paper); box-shadow:0 12px 24px var(--shadow); }
 .marketing .r-location-results [role=option] { width:100%; display:flex; justify-content:space-between; gap:12px; text-align:left; padding:10px; border-radius:6px; font-size:.78rem; cursor:pointer; }
 .marketing .r-location-results [role=option]:hover,.marketing .r-location-results [aria-selected=true] { background:var(--paper-2); }
-.marketing .r-location-results span { color:var(--muted); font-size:.68rem; }
+.marketing .r-location-results span { color:var(--muted); font-size:0.75rem; }
 .marketing .r-small-map { margin:8px 0; }
 .marketing .r-small-map .r-map { height:180px; border-radius:9px; }
-.marketing .r-small-map .r-map-hint { font-size:.6rem; }
+.marketing .r-small-map .r-map-hint { font-size:0.75rem; }
 .marketing .r-event-form { display:grid; grid-template-columns:minmax(0,1fr) 245px; align-items:start; gap:24px; margin-top:18px; }
 .marketing .r-event-form-main { min-width:0; }
-.marketing .r-create-steps { display:flex; flex-wrap:wrap; gap:14px; padding:0 0 14px; font-size:.68rem; color:var(--muted); border-bottom:1px solid var(--line); }
-.marketing .r-create-steps strong { color:var(--accent); }
+.marketing .r-create-steps { display:flex; flex-wrap:wrap; gap:14px; padding:0 0 14px; font-size:0.75rem; color:var(--muted); border-bottom:1px solid var(--line); }
+.marketing .r-create-steps strong { color: var(--accent-text); }
 .marketing .r-form-section { padding:20px 0; border-bottom:1px solid var(--line); }
 .marketing .r-section-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
 .marketing .r-section-heading h2 { font-size:1rem; font-weight:650; letter-spacing:-.02em; margin:0; }
-.marketing .r-section-heading small,.marketing .r-form-section>small { font-size:.7rem; color:var(--muted); line-height:1.5; }
+.marketing .r-section-heading small,.marketing .r-form-section>small { font-size:0.75rem; color:var(--muted); line-height:1.5; }
 .marketing .r-form-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; margin-top:14px; }
 .marketing .r-field-wide { grid-column:1/-1; }
 .marketing .r-event-form textarea { height:auto; min-height:76px; resize:vertical; }
@@ -54,28 +54,28 @@
 .marketing .r-format-options label:has(input:checked) { border-color:var(--accent); background:var(--paper-2); }
 .marketing .r-format-options input { accent-color:var(--accent); flex-shrink:0; }
 .marketing .r-format-options strong { display:block; font-size:.75rem; }
-.marketing .r-format-options small { display:block; color:var(--muted); font-size:.62rem; margin-top:3px; }
+.marketing .r-format-options small { display:block; color:var(--muted); font-size:0.75rem; margin-top:3px; }
 .marketing .r-form-disclosure { font-size:.78rem; margin-top:14px; }
 .marketing .r-form-disclosure summary { cursor:pointer; min-height:32px; padding:6px 0; }
-.marketing .r-form-disclosure summary small { float:right; color:var(--muted); font-size:.7rem; }
+.marketing .r-form-disclosure summary small { float:right; color:var(--muted); font-size:0.75rem; }
 .marketing .r-form-disclosure>label { margin-top:10px; max-width:350px; }
 .marketing .r-online-link { margin-top:14px; }
 .marketing .r-form-actions { display:flex; flex-wrap:wrap; gap:14px; align-items:center; padding:20px 0 0; }
-.marketing .r-form-actions small { font-size:.7rem; color:var(--muted); }
-.marketing .r-form-message { margin-top:12px; font-size:.8rem; color:var(--accent); }
+.marketing .r-form-actions small { font-size:0.75rem; color:var(--muted); }
+.marketing .r-form-message { margin-top:12px; font-size:.8rem; color: var(--accent-text); }
 .marketing .r-event-preview { position:sticky; top:20px; border:1px solid var(--line); border-radius:14px; padding:18px; background:var(--paper-2); overflow-wrap:anywhere; }
 .marketing .r-preview-art { height:105px; background:var(--green); color:var(--sun); display:grid; place-items:center; font-size:3.4rem; border-radius:8px; margin:12px 0; }
 .marketing .r-event-preview h2 { font-size:1.35rem; line-height:1.15; letter-spacing:-.04em; margin:12px 0 8px; }
 .marketing .r-event-preview p:not(.m-eyebrow) { font-size:.75rem; line-height:1.6; color:var(--muted); }
 .marketing .r-event-preview dl { border-top:1px solid var(--line); margin-top:16px; padding-top:8px; }
 .marketing .r-event-preview dl>div { padding:8px 0; }
-.marketing .r-event-preview dt,.marketing .r-event-preview>small { font-size:.65rem; color:var(--muted); }
+.marketing .r-event-preview dt,.marketing .r-event-preview>small { font-size:0.75rem; color:var(--muted); }
 .marketing .r-event-preview dd { font-size:.78rem; margin:4px 0 0; }
 .marketing .r-workspace-filters { display:flex; flex-wrap:wrap; gap:8px; padding:14px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
 .marketing .r-workspace-filters input:not([type=hidden]) { flex:1; min-width:150px; }
 .marketing .r-workspace-filters input,.marketing .r-workspace-filters select,.marketing .r-workspace-filters button { min-height:40px; padding:8px 12px; border-radius:8px; font-size:.8rem; }
 .marketing .r-workspace-empty { display:flex; align-items:center; flex-wrap:wrap; gap:18px; border:1px dashed var(--line); border-radius:12px; padding:24px; margin-top:20px; }
-.marketing .r-workspace-empty>span { color:var(--accent); font-size:2rem; }
+.marketing .r-workspace-empty>span { color: var(--accent-text); font-size:2rem; }
 .marketing .r-workspace-empty>div { flex:1; min-width:180px; }
 .marketing .r-workspace-empty h2 { font-size:1.05rem; margin:0 0 6px; }
 .marketing .r-workspace-empty p { font-size:.8rem; color:var(--muted); margin:0; }

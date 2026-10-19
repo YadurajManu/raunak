@@ -89,7 +89,7 @@ export function TicketSelector({
                       {formatInr(type.pricePaise)}
                     </p>
                     {!onSale && (
-                      <p className="mt-1 text-xs text-amber-600">{label}</p>
+                      <p className="mt-1 text-xs text-[var(--warning)]">{label}</p>
                     )}
                   </div>
                   <div className="flex h-9 shrink-0 items-center rounded-lg border border-[var(--line)] dark:border-[var(--line)]">
@@ -173,7 +173,7 @@ export function TicketSelector({
             );
             router.push(`/checkout/${eventSlug}`);
           }}
-          className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-40"
+          className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--on-accent)] disabled:opacity-40"
         >
           Continue
         </button>

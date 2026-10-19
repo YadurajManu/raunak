@@ -79,7 +79,7 @@ export default async function CheckoutPage({
             <p>Sign in to continue with your tickets.</p>
             <Link
               href={`/login?next=${encodeURIComponent(`/checkout/${slug}`)}`}
-              className="mt-5 inline-block rounded-xl bg-[var(--accent)] px-5 py-3 text-[#14120f]"
+              className="mt-5 inline-block rounded-xl bg-[var(--accent)] px-5 py-3 text-[var(--on-accent)]"
             >
               Sign in
             </Link>

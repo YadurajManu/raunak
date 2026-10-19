@@ -115,12 +115,12 @@
   width: 44px;
   height: 44px;
   font-size: 24px;
-  color: var(--accent);
+  color: var(--accent-text);
   border-radius: 8px;
 }
 .save-action small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   max-width: 120px;
 }
 .market-advanced {
@@ -264,7 +264,7 @@
 .wallet-card small {
   display: block;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   margin: 8px 0;
 }
 .wallet-card .m-button {
@@ -333,7 +333,7 @@
   max-width: 100%;
   height: auto;
   margin: 16px auto;
-  background: white;
+  background: var(--art-paper);
   border-radius: 0;
 }
 .wallet-qr strong {

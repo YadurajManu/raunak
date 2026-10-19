@@ -49,7 +49,7 @@ export function OnboardingForm() {
         </a>
         <p className="m-eyebrow">YOUR FIRST EVENT STARTS HERE</p>
         <h1 className="m-heading">Create your workspace</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-[var(--text-muted)]">
           Your team and events live in one workspace.
         </p>
         <form onSubmit={submit} className="r-profile-fields">
@@ -66,7 +66,7 @@ export function OnboardingForm() {
               readOnly={busy}
               aria-invalid={errorField === "name" || undefined}
               aria-describedby={errorField === "name" ? "workspace-error" : undefined}
-              className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
+              className="mt-2 w-full rounded-xl border border-[var(--border-strong)] bg-transparent px-4 py-3"
             />
           </div>
           <div>
@@ -87,7 +87,7 @@ export function OnboardingForm() {
               aria-invalid={errorField === "slug" || undefined}
               aria-describedby={errorField === "slug" ? "workspace-slug-help workspace-error" : "workspace-slug-help"}
               onChange={() => { if (errorField === "slug") { setError(""); setErrorField(""); } }}
-              className="mt-2 w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 dark:border-zinc-700"
+              className="mt-2 w-full rounded-xl border border-[var(--border-strong)] bg-transparent px-4 py-3"
             />
             <p id="workspace-slug-help" className="mt-2 text-sm">A unique name using lowercase letters, numbers and hyphens.</p>
             {error && errorField === "slug" && <p id="workspace-error" role="alert" className="m-field-error">{error}</p>}

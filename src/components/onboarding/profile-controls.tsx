@@ -8,10 +8,12 @@ export function ProfileControls({
   name,
   email,
   avatarUrl,
+  hasOrganization = false,
 }: {
   name: string;
   email?: string;
   avatarUrl?: string | null;
+  hasOrganization?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -98,11 +100,11 @@ export function ProfileControls({
       >
         <b>{name}</b>
         <small style={{ overflowWrap: "anywhere" }}>{email}</small>
-        <Link href="/account">My dashboard</Link>
+        <Link href="/account">My plans</Link>
         <Link href="/my-tickets">My tickets</Link>
         <Link href="/saved">Saved events</Link>
         <Link href="/account/profile">Edit profile</Link>
-        <Link href="/dashboard">Organizer workspace ↗</Link>
+        {hasOrganization && <Link href="/dashboard">Organizer dashboard</Link>}
         <button className="r-profile-signout" onClick={logout} disabled={busy}>
           {busy ? "Signing out…" : "Sign out"}
         </button>

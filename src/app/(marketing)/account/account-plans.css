@@ -1,0 +1,886 @@
+.marketing .plans-page {
+  max-width: 1240px;
+  padding: 42px 32px 72px;
+  margin: auto;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.marketing .plans-page * {
+  min-width: 0;
+}
+.marketing .plans-page > h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+}
+.marketing .plans-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.marketing .plans-page a:focus-visible,
+.marketing .plans-page select:focus-visible,
+.marketing .plans-page button:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 4px;
+}
+.marketing .plans-page a:hover {
+  color: var(--accent-ink);
+}
+.marketing .plans-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.marketing .plans-heading .m-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  margin: 0 0 8px;
+}
+.marketing .plans-heading h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.marketing .plans-heading h1 em {
+  font-family: var(--font-display), serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  word-spacing: 0.06em;
+  white-space: normal;
+}
+.marketing .plans-heading p:last-child {
+  color: var(--muted);
+  margin: 0;
+}
+.marketing .plans-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--paper);
+}
+.marketing .plans-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--art-ink) !important;
+}
+.marketing .plans-primary:hover {
+  filter: brightness(0.96);
+}
+.marketing .plans-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  gap: 24px;
+  overflow: auto;
+  margin-bottom: 30px;
+  scrollbar-width: thin;
+}
+.marketing .plans-tabs a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  padding: 0 2px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.marketing .plans-tabs a[aria-current="page"] {
+  border-color: var(--accent-ink);
+  color: var(--ink);
+  font-weight: 650;
+}
+.marketing .plans-tabs a span {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  background: var(--paper-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--ink);
+}
+.marketing .plans-section {
+  margin-bottom: 30px;
+}
+.marketing .plans-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+}
+.marketing .plans-section h2 {
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.marketing .plans-section h2 > span {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.marketing .plans-section-heading > a,
+.marketing .plans-empty-inline > a,
+.marketing .plans-aside > a,
+.marketing .plans-browse a,
+.marketing .plans-discovery-link,
+.marketing .plans-order-action,
+.marketing .plans-settings article > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.marketing .plans-ticket-list {
+  display: grid;
+  gap: 14px;
+}
+.marketing .plans-ticket {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 190px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.marketing .plans-ticket-poster {
+  display: block;
+  background: var(--paper-2);
+  position: relative;
+  min-height: 214px;
+}
+.marketing .plans-ticket-poster picture {
+  display: block;
+  height: 100%;
+}
+.marketing .plans-poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  inset: 0;
+}
+.marketing .plans-ticket-body {
+  padding: 20px 24px;
+}
+.marketing .plans-ticket-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+  flex-wrap: wrap;
+}
+.marketing .plans-date-chip {
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent-ink);
+}
+.marketing .plans-status {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  white-space: normal;
+}
+.marketing .plans-status[data-status="PAID"],
+.marketing .plans-status[data-status="VALID"] {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+.marketing .plans-ticket h3 {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+.marketing .plans-ticket-body > p {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+.marketing .plans-ticket-body > p svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.marketing .plans-ticket-body > small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.marketing .plans-ticket-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.marketing .plans-ticket-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 12px;
+  color: var(--accent-ink);
+}
+.marketing .plans-ticket-entry {
+  position: relative;
+  border-left: 1px dashed var(--line);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--paper-2);
+}
+.marketing .plans-ticket-entry > svg {
+  color: var(--muted);
+}
+.marketing .plans-ticket-entry > span {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  text-align: center;
+  color: var(--muted);
+}
+.marketing .plans-ticket-entry > a:last-child:not(.plans-button) {
+  font-size: 12px;
+  text-decoration: underline;
+  min-height: 44px;
+}
+.marketing .plans-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+.marketing .plans-note a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .plans-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper-2);
+}
+.marketing .plans-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--accent-ink);
+}
+.marketing .plans-empty h3 {
+  font-family: var(--font-display), serif;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 2px 0 10px;
+}
+.marketing .plans-empty p {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+.marketing .plans-empty-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.marketing .plans-secondary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 32px;
+}
+.marketing .plans-empty-inline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.marketing .plans-empty-inline > svg {
+  flex-shrink: 0;
+  color: var(--accent-ink);
+}
+.marketing .plans-empty-inline > div {
+  flex: 1;
+}
+.marketing .plans-empty-inline h3 {
+  font-size: 16px;
+  font-weight: 550;
+  line-height: 1.35;
+  margin: 0 0 5px;
+}
+.marketing .plans-empty-inline p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  max-width: 620px;
+}
+.marketing .plans-empty-inline > a {
+  flex-shrink: 0;
+}
+.marketing .plans-saved-grid,
+.marketing .plans-discover-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.marketing .plans-discover-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.marketing .plans-page .market-cover {
+  height: 190px;
+  aspect-ratio: 16/10;
+  object-fit: contain;
+  background: var(--paper-2);
+}
+.marketing .plans-page .market-card {
+  max-width: 380px;
+}
+.marketing .plans-page .market-card h3 {
+  font-size: 19px;
+}
+.marketing .plans-page .market-card footer {
+  font-size: 12px;
+}
+.marketing .plans-page .market-main > div {
+  padding: 14px;
+}
+.marketing .plans-orders {
+  border-top: 1px solid var(--line);
+}
+.marketing .plans-orders-pages {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+  font-size: 13px;
+}
+.marketing .plans-orders-pages a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.marketing .plans-order {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px 18px;
+  align-items: start;
+  padding: 17px 0;
+  border-bottom: 1px solid var(--line);
+}
+.marketing .plans-order h3 {
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+.marketing .plans-order p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+.marketing .plans-order small {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.marketing .plans-order > strong {
+  font-size: 15px;
+  white-space: nowrap;
+}
+.marketing .plans-order-action {
+  grid-column: 1/-1;
+  justify-self: start;
+  min-height: 44px;
+}
+.marketing .plans-aside {
+  border-left: 1px solid var(--line);
+  padding: 3px 0 0 26px;
+}
+.marketing .plans-aside > svg,
+.marketing .plans-hosting > svg {
+  color: var(--accent-ink);
+  margin-bottom: 12px;
+}
+.marketing .plans-aside h2 {
+  font-family: var(--font-display), serif;
+  font-size: 26px;
+  margin: 0 0 10px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.marketing .plans-aside p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.marketing .plans-hosting {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  margin-top: 24px;
+}
+.marketing .plans-hosting a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+}
+.marketing .plans-hosting strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.marketing .plans-hosting small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.marketing .plans-discovery {
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+}
+.marketing .plans-discovery .m-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  margin: 0 0 8px;
+}
+.marketing .plans-discovery-link {
+  margin-top: 12px;
+}
+.marketing .plans-city {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.marketing .plans-city select {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  min-height: 44px;
+  padding: 8px 30px 8px 12px;
+  max-width: 220px;
+}
+.marketing .plans-browse {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 6px;
+}
+.marketing .plans-settings article {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.marketing .plans-settings article > div {
+  flex: 1;
+  max-width: 650px;
+}
+.marketing .plans-settings h3 {
+  font-size: 17px;
+  font-weight: 550;
+  margin: 0 0 6px;
+}
+.marketing .plans-settings p {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+.marketing .plans-loading {
+  padding: 30px 0;
+}
+.marketing .plans-skeleton {
+  height: 18px;
+  background: var(--paper-2);
+  border-radius: 5px;
+  margin: 12px 0;
+  max-width: 420px;
+  animation: plans-pulse 1.4s ease-in-out infinite alternate;
+}
+.marketing .plans-skeleton-ticket {
+  height: 210px;
+  max-width: none;
+  margin-top: 30px;
+  border: 1px solid var(--line);
+}
+@keyframes plans-pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+@media (min-width: 1100px) {
+  .marketing .plans-page[data-tab="orders"] .plans-order {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+  .marketing .plans-page[data-tab="orders"] .plans-order-action {
+    grid-column: auto;
+  }
+}
+.marketing .plans-saved-preview {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.marketing .plans-saved-preview .market-card {
+  max-width: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+}
+.marketing .plans-saved-preview .market-main {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 0;
+}
+.marketing .plans-saved-preview .market-main picture {
+  display: block;
+  height: 100%;
+}
+.marketing .plans-saved-preview .market-cover {
+  width: 80px;
+  height: 100%;
+  min-height: 135px;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+.marketing .plans-saved-preview .market-main > div {
+  padding: 13px 14px;
+}
+.marketing .plans-saved-preview .market-main h3 {
+  font-size: 17px;
+  margin: 5px 0 7px;
+  line-height: 1.25;
+}
+.marketing .plans-saved-preview .market-main .m-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.marketing .plans-saved-preview .market-main time,
+.marketing .plans-saved-preview .market-main p {
+  font-size: 12px;
+  margin: 3px 0;
+  line-height: 1.4;
+}
+.marketing .plans-saved-preview .market-main strong {
+  font-size: 13px;
+  margin-top: 6px;
+  display: block;
+}
+.marketing .plans-saved-preview .market-card footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  align-items: center;
+  padding: 10px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  max-width: 84px;
+}
+.marketing .plans-saved-preview .market-card footer > a:first-child {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: center;
+}
+.marketing .plans-saved-preview .market-card footer > a:last-child {
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .marketing .plans-saved-preview .market-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .marketing .plans-saved-preview .market-card footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    max-width: none;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    gap: 8px 12px;
+    padding: 6px 12px;
+  }
+  .marketing .plans-saved-preview .market-card footer > a:first-child {
+    flex: 1;
+    min-width: 80px;
+    text-align: left;
+    font-size: 12px;
+  }
+  .marketing .plans-secondary-grid {
+    grid-template-columns: minmax(0, 1fr) 210px;
+    gap: 24px;
+  }
+  .marketing .plans-ticket {
+    grid-template-columns: 112px minmax(0, 1fr) 150px;
+  }
+  .marketing .plans-ticket-body {
+    padding: 18px;
+  }
+  .marketing .plans-ticket h3 {
+    font-size: 20px;
+  }
+  .marketing .plans-ticket-entry {
+    padding: 18px 10px;
+  }
+  .marketing .plans-ticket-entry .plans-button {
+    padding: 10px;
+  }
+  .marketing .plans-empty-inline {
+    flex-wrap: wrap;
+  }
+  .marketing .plans-empty-inline > a {
+    margin-left: auto;
+  }
+  .marketing .plans-discover-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .marketing .plans-discover-grid > li:nth-child(3) {
+    display: none;
+  }
+  .marketing .plans-saved-grid {
+    grid-template-columns: 1fr;
+  }
+  .marketing .plans-saved-grid > li {
+    max-width: none;
+  }
+  .marketing .plans-saved-grid .market-cover {
+    height: 170px;
+  }
+}
+@media (max-width: 650px) {
+  .marketing .plans-page {
+    padding: 28px 20px 48px;
+  }
+  .marketing .plans-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .marketing .plans-heading h1 {
+    font-size: 30px;
+  }
+  .marketing .plans-heading h1 em {
+    display: block;
+    margin-top: 3px;
+  }
+  .marketing .plans-heading > .plans-button {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .marketing .plans-tabs {
+    gap: 19px;
+    margin-bottom: 24px;
+  }
+  .marketing .plans-tabs a {
+    font-size: 13px;
+    gap: 5px;
+  }
+  .marketing .plans-tabs a span {
+    font-size: 12px;
+    padding: 1px 4px;
+  }
+  .marketing .plans-section-heading h2 {
+    font-size: 19px;
+  }
+  .marketing .plans-ticket {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+  .marketing .plans-ticket-poster {
+    min-height: 220px;
+  }
+  .marketing .plans-ticket-body {
+    padding: 15px 14px;
+  }
+  .marketing .plans-ticket h3 {
+    font-size: 19px;
+  }
+  .marketing .plans-ticket-body > small {
+    font-size: 12px;
+  }
+  .marketing .plans-ticket-links {
+    gap: 12px;
+  }
+  .marketing .plans-ticket-entry {
+    grid-column: 1/-1;
+    border-left: 0;
+    border-top: 1px dashed var(--line);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px;
+  }
+  .marketing .plans-ticket-entry > svg {
+    display: none;
+  }
+  .marketing .plans-ticket-entry > span {
+    font-size: 12px;
+    order: 2;
+  }
+  .marketing .plans-ticket-entry > a:last-child:not(.plans-button) {
+    order: 3;
+  }
+  .marketing .plans-empty {
+    padding: 20px;
+    gap: 15px;
+    flex-direction: column;
+  }
+  .marketing .plans-empty-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .marketing .plans-empty h3 {
+    font-size: 29px;
+  }
+  .marketing .plans-empty p {
+    font-size: 13px;
+  }
+  .marketing .plans-empty-actions {
+    gap: 8px;
+  }
+  .marketing .plans-empty-actions .plans-button {
+    font-size: 12px;
+    padding: 10px 11px;
+  }
+  .marketing .plans-secondary-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .marketing .plans-aside {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  .marketing .plans-aside > svg {
+    display: none;
+  }
+  .marketing .plans-aside h2 {
+    font-size: 25px;
+  }
+  .marketing .plans-hosting {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+  .marketing .plans-order {
+    gap: 8px 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .marketing .plans-order > .plans-status {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .marketing .plans-order-action {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+  }
+  .marketing .plans-discovery .plans-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .marketing .plans-city {
+    width: 100%;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+  .marketing .plans-city select {
+    max-width: none;
+    width: 100%;
+  }
+  .marketing .plans-discover-grid,
+  .marketing .plans-saved-grid {
+    grid-template-columns: 1fr;
+  }
+  .marketing .plans-discover-grid > li:nth-child(3) {
+    display: list-item;
+  }
+  .marketing .plans-page .market-card {
+    max-width: none;
+  }
+  .marketing .plans-page .market-cover {
+    height: 210px;
+  }
+  .marketing .plans-empty-inline {
+    padding: 18px 0;
+    gap: 12px;
+  }
+  .marketing .plans-empty-inline > a {
+    margin-left: 0;
+  }
+  .marketing .plans-browse {
+    gap: 18px;
+  }
+  .marketing .plans-settings article {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .marketing .plans-settings article > div {
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing .plans-skeleton {
+    animation: none;
+  }
+}

@@ -11,8 +11,10 @@ import { APP_NAME } from "@/lib/constants";
 
 export function GlobalNavbar({
   user,
+  hasOrganization = false,
 }: {
   user: { name: string | null; email: string; avatarKey: string | null } | null;
+  hasOrganization?: boolean;
 }) {
   const pathname = usePathname(),
     id = useId();
@@ -39,7 +41,11 @@ export function GlobalNavbar({
   const organizer =
     pathname.startsWith("/dashboard") || pathname.startsWith("/organizer/");
   const hostHref = organizer ? "/account" : "/dashboard";
-  const hostLabel = organizer ? "Attendee view" : "Host an event";
+  const hostLabel = organizer
+    ? "My plans"
+    : hasOrganization
+      ? "Organizer dashboard"
+      : "Host an event";
   return (
     <>
       <a href="#site-content" className="gnav-skip">
@@ -74,9 +80,7 @@ export function GlobalNavbar({
             <NavigationLink href="/discover">Discover events</NavigationLink>
             <NavigationLink href="/my-tickets">My tickets</NavigationLink>
             <NavigationLink href="/saved">Saved</NavigationLink>
-            {user && (
-              <NavigationLink href="/account">My dashboard</NavigationLink>
-            )}
+            {user && <NavigationLink href="/account">My plans</NavigationLink>}
             <Link
               className={`gnav-mobile-host${organizer ? "" : " gnav-host-cta"}`}
               href={hostHref}
@@ -100,6 +104,7 @@ export function GlobalNavbar({
                 name={user.name || "You"}
                 email={user.email}
                 avatarUrl={user.avatarKey}
+                hasOrganization={hasOrganization}
               />
             ) : (
               <Link href="/login" className="gnav-signin">

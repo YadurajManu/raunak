@@ -48,7 +48,7 @@ export function EventActions({
         <button
           disabled={busy}
           onClick={() => setStatus("PUBLISHED")}
-          className="rounded-xl bg-[var(--accent)] px-4 py-2 text-white"
+          className="rounded-xl bg-[var(--accent)] px-4 py-2 text-[var(--on-accent)]"
         >
           {status === "DRAFT" ? "Submit for review" : "Resubmit for review"}
         </button>
@@ -84,7 +84,7 @@ export function EventActions({
             onClick={() => {
               if (confirm("Cancel this event? Sales and check-in will stop, and customers will be notified. Review bookings below to issue refunds according to your policy. This cannot be undone.")) setStatus("CANCELLED");
             }}
-            className="rounded-xl border border-red-300 px-4 py-2 text-red-600"
+            className="rounded-xl border border-[var(--danger)] px-4 py-2 text-[var(--danger)]"
           >
             Cancel event
           </button>
@@ -98,7 +98,7 @@ export function EventActions({
         Duplicate
       </button>
       {error && (
-        <p role="alert" className="w-full text-sm text-red-600">
+        <p role="alert" className="w-full text-sm text-[var(--danger)]">
           {error}
         </p>
       )}

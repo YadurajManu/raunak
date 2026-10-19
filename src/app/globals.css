@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
-:root { color-scheme: light dark; }
-body { margin: 0; background: #fafafa; color: #18181b; }
-@media (prefers-color-scheme: dark) { body { background: #101014; color: #f4f4f5; } }
+
+body { margin: 0; }
 
 :root[data-theme-revealing]::view-transition-old(root),
 :root[data-theme-revealing]::view-transition-new(root) {
@@ -44,4 +43,4 @@ body { margin: 0; background: #fafafa; color: #18181b; }
 @media (prefers-reduced-motion: reduce) {
   .theme-eclipse-rays, .theme-eclipse-shadow { transition: none; }
 }
-:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }

@@ -64,13 +64,13 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
               width="24"
               height="24"
             >
-              <rect width="24" height="24" fill="white" />
+              <rect width="24" height="24" fill="var(--mask-visible)" />
               <circle
                 className="theme-eclipse-shadow"
                 cx="12"
                 cy="12"
                 r="7"
-                fill="black"
+                fill="var(--mask-hidden)"
               />
             </mask>
           </defs>

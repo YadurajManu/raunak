@@ -14,6 +14,7 @@ import "./event-actions.css";
 import "./checkin.css";
 import { GlobalNavbar } from "@/components/global-navbar";
 import { currentUser } from "@/server/auth/session";
+import { db } from "@/server/db/client";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
 
 const display = Instrument_Serif({
@@ -37,6 +38,12 @@ export default async function MarketingLayout({
   children: React.ReactNode;
 }) {
   const user = await currentUser();
+  const hasOrganization = user
+    ? !!(await db.organizationMember.findFirst({
+        where: { userId: user.id, status: "ACTIVE", org: { status: "ACTIVE" } },
+        select: { orgId: true },
+      }))
+    : false;
   return (
     <div className={`marketing ${display.variable} ${mono.variable}`}>
       <SmoothScroll />
@@ -44,6 +51,7 @@ export default async function MarketingLayout({
         <style>{`.marketing .m-reveal,.marketing .m-mini-bubble,.marketing .m-paid-stamp{opacity:1!important;transform:none!important}.marketing .m-word-mask>span{transform:none!important}`}</style>
       </noscript>
       <GlobalNavbar
+        hasOrganization={hasOrganization}
         user={
           user
             ? { name: user.name, email: user.email, avatarKey: user.avatarKey }

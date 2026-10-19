@@ -1,0 +1,128 @@
+/* Theme palette. Fixed artwork tokens keep poster scrims and QR surfaces independent of the page theme. */
+:root {
+  color-scheme: light;
+  --bg: #f5f0e6;
+  --surface: #ede6d8;
+  --surface-raised: #fbf8f1;
+  --text: #14120f;
+  --text-muted: #5e584d;
+  --text-subtle: #655e52;
+  --border: #82796b;
+  --border-strong: #82796b;
+  --accent: #ff4b2b;
+  --on-accent: #14120f;
+  --accent-text: #aa301b;
+  --focus-ring: #aa301b;
+  --success: #246642;
+  --success-bg: #daeedc;
+  --success-fg: #17592f;
+  --warning: #795500;
+  --warning-bg: #fff0c7;
+  --warning-fg: #715000;
+  --danger: #a52d25;
+  --danger-bg: #a52d25;
+  --danger-fg: #f5f0e6;
+  --chip-selected-bg: var(--text);
+  --chip-selected-fg: var(--bg);
+  --paper: var(--bg);
+  --paper-2: var(--surface);
+  --ink: var(--text);
+  --muted: var(--text-muted);
+  --line: var(--border);
+  --accent-ink: var(--accent-text);
+  --ok: var(--success);
+  --green: #244e3d;
+  --sun: #ffc53d;
+  --yellow: var(--sun);
+  --art-paper: #f5f0e6;
+  --art-ink: #14120f;
+  --art-muted: #5e584d;
+  --art-line: #b9b0a0;
+  --art-green: #244e3d;
+  --art-green-muted: #c7d5be;
+  --art-green-dark: #0c1717;
+  --art-green-mid: #213c36;
+  --art-success: #246642;
+  --art-success-bg: #daeedc;
+  --art-coral-muted: #f2b9a1;
+  --art-poster-dark: #191714;
+  --art-poster-muted: #c7c0b2;
+  --art-accent-text: #ff8d76;
+  --qr-paper: #ffffff;
+  --qr-ink: #14120f;
+  --scrim: #14120fe8;
+  --scrim-soft: #14120f66;
+  --backdrop: #000000b8;
+  --backdrop-dark: #000000eb;
+  --shadow-soft: #00000014;
+  --shadow: #00000026;
+  --shadow-strong: #00000040;
+  --poster-gradient: #14120fbd;
+  --overlay-border: #f5f0e680;
+  --overlay-hover: #f5f0e629;
+  --overlay-surface: #f5f0e614;
+  --glare: #ffffffeb;
+  --mask-opaque: #000000;
+  --mask-visible: #ffffff;
+  --mask-hidden: #000000;
+  --google-blue: #4285f4;
+  --google-red: #ea4335;
+  --google-yellow: #fbbc05;
+  --google-green: #34a853;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-marketing-theme]) {
+    color-scheme: dark;
+    --bg: #0f0e0c;
+    --surface: #191714;
+    --surface-raised: #211e1a;
+    --text: #f5f0e6;
+    --text-muted: #b5ae9f;
+    --text-subtle: #a9a294;
+    --border: #6c665b;
+    --border-strong: #8f8878;
+    --accent: #ff5a3c;
+    --accent-text: #ff8d76;
+    --focus-ring: #ff8d76;
+    --success: #87dcb0;
+    --success-bg: #173c2a;
+    --success-fg: #a9e8c5;
+    --warning: #f5d476;
+    --warning-bg: #3d3015;
+    --warning-fg: #f5d476;
+    --danger: #ff9c8f;
+    --danger-bg: #9c2c25;
+    --danger-fg: #f5f0e6;
+  }
+}
+:root[data-marketing-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f0e0c;
+  --surface: #191714;
+  --surface-raised: #211e1a;
+  --text: #f5f0e6;
+  --text-muted: #b5ae9f;
+  --text-subtle: #a9a294;
+  --border: #6c665b;
+  --border-strong: #8f8878;
+  --accent: #ff5a3c;
+  --accent-text: #ff8d76;
+  --focus-ring: #ff8d76;
+  --success: #87dcb0;
+  --success-bg: #173c2a;
+  --success-fg: #a9e8c5;
+  --warning: #f5d476;
+  --warning-bg: #3d3015;
+  --warning-fg: #f5d476;
+  --danger: #ff9c8f;
+  --danger-bg: #9c2c25;
+  --danger-fg: #f5f0e6;
+}
+body { background: var(--bg); color: var(--text); }
+::selection { background: var(--chip-selected-bg); color: var(--chip-selected-fg); }
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+input, select, textarea { color-scheme: inherit; accent-color: var(--accent-text); }
+input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1; }
+input:autofill { background: var(--surface-raised); color: var(--text); }
+input:-webkit-autofill { -webkit-text-fill-color: var(--text); -webkit-box-shadow: 0 0 0 1000px var(--surface-raised) inset; caret-color: var(--text); }
+* { scrollbar-color: var(--border-strong) var(--bg); }

@@ -72,6 +72,10 @@ export async function ticketPdf(ticketId: string) {
           fontSize: 10,
         }}
       >
+        <PdfImage
+          src={path.join(process.cwd(), "public/brand/icon-192.png")}
+          style={{ width: 34, height: 34, marginBottom: 5 }}
+        />
         <Text style={{ color: "#bd452c", fontSize: 22, marginBottom: 16 }}>
           raunak.
         </Text>

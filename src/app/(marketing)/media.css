@@ -10,7 +10,7 @@
 .marketing .r-upload-box input { font-size:.75rem; width:100%; }
 .marketing .r-upload-box input::file-selector-button { border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-right:8px; background:var(--paper); color:var(--ink); cursor:pointer; }
 .marketing .r-upload-box strong { display:block; overflow-wrap:anywhere; font-size:.78rem; }
-.marketing .r-upload-box p,.marketing .r-upload-box small { font-size:.7rem; color:var(--muted); }
+.marketing .r-upload-box p,.marketing .r-upload-box small { font-size:0.75rem; color:var(--muted); }
 .marketing .r-processing { width:100%; padding:12px; font-size:.75rem; color:var(--muted); }
 .marketing :is(.r-upload-box,.r-processing) progress { width:100%; height:7px; accent-color:var(--accent); display:block; margin-top:8px; }
 .marketing .r-media-manager picture { display:block; width:100%; height:100%; }
@@ -21,7 +21,7 @@
 .marketing :is(.r-upload-box,.r-processing) progress::-webkit-progress-bar { background:var(--line); border-radius:5px; }
 .marketing :is(.r-upload-box,.r-processing) progress::-webkit-progress-value { background:var(--accent); border-radius:5px; }
 .marketing :is(.r-upload-box,.r-processing) progress::-moz-progress-bar { background:var(--accent); }
-.marketing .r-crop-dialog::backdrop { background:#000b; }
+.marketing .r-crop-dialog::backdrop { background:var(--backdrop); }
 .marketing .r-crop-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .marketing .r-crop-heading h2 { font-size:1.3rem; margin:0; }
 .marketing .r-crop-heading button { width:36px; height:36px; font-size:1.5rem; }
@@ -43,22 +43,22 @@
 .marketing .r-scan-intro p,.marketing .r-scan-intro>span { font-size:.8rem; color:var(--muted); }
 .marketing .r-scan-grid { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:18px; }
 .marketing .r-camera-panel { padding:16px; border:1px solid var(--line); border-radius:14px; }
-.marketing .r-camera-frame { position:relative; overflow:hidden; border-radius:10px; background:#141310; }
+.marketing .r-camera-frame { position:relative; overflow:hidden; border-radius:10px; background:var(--art-poster-dark); }
 .marketing .r-camera-frame video { display:block; aspect-ratio:4/3; width:100%; max-height:340px; }
-.marketing .r-scan-target { position:absolute; width:46%; aspect-ratio:1; border:2px solid #ffcf38; border-radius:18px; top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 180px #0004; pointer-events:none; }
-.marketing .r-camera-placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; background:#141310; color:#f4f1eb; text-align:center; padding:16px; }
-.marketing .r-camera-placeholder>span { font-size:3rem; color:#ffcf38; }
+.marketing .r-scan-target { position:absolute; width:46%; aspect-ratio:1; border:2px solid var(--sun); border-radius:18px; top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 180px var(--shadow-strong); pointer-events:none; }
+.marketing .r-camera-placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; background:var(--art-poster-dark); color:var(--art-paper); text-align:center; padding:16px; }
+.marketing .r-camera-placeholder>span { font-size:3rem; color:var(--sun); }
 .marketing .r-camera-placeholder p { font-size:1rem; margin:10px 0 5px; }
-.marketing .r-camera-placeholder small { font-size:.75rem; color:#b7b1a5; }
-.marketing .r-camera-caption { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); white-space:nowrap; padding:7px 12px; background:#141310dd; color:#f4f1eb; border-radius:6px; font-size:.75rem; }
+.marketing .r-camera-placeholder small { font-size:.75rem; color:var(--art-poster-muted); }
+.marketing .r-camera-caption { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); white-space:nowrap; padding:7px 12px; background:var(--scrim); color:var(--art-paper); border-radius:6px; font-size:.75rem; }
 .marketing .r-scanner button { min-height:42px; font-size:.8rem; border-color:var(--line); }
 .marketing .r-camera-panel>p { color:var(--muted); font-size:.75rem; line-height:1.5; }
 .marketing .r-scan-result { border:1px solid var(--line); border-radius:14px; padding:22px; background:var(--paper-2); }
-.marketing .r-scan-result[data-result=VALID] { border:2px solid #46ad7d; }
+.marketing .r-scan-result[data-result=VALID] { border:2px solid var(--success); }
 .marketing .r-scan-result[data-result=ALREADY_USED] { border:2px solid var(--sun); }
 .marketing .r-scan-result[data-result=INVALID],.marketing .r-scan-result[data-result=ERROR] { border:2px solid var(--accent); }
-.marketing .r-scan-symbol { font-size:2.5rem; margin-top:16px; color:var(--accent); }
-.marketing .r-scan-result[data-result=VALID] .r-scan-symbol { color:#46ad7d; }
+.marketing .r-scan-symbol { font-size:2.5rem; margin-top:16px; color: var(--accent-text); }
+.marketing .r-scan-result[data-result=VALID] .r-scan-symbol { color:var(--success); }
 .marketing .r-scan-result[data-result=ALREADY_USED] .r-scan-symbol { color:var(--sun); }
-.marketing .r-scanner :is(button,input):focus-visible,.marketing .r-crop-dialog :is(button,input):focus-visible { outline:2px solid var(--sun); outline-offset:3px; }
+.marketing .r-scanner :is(button,input):focus-visible,.marketing .r-crop-dialog :is(button,input):focus-visible { outline:3px solid var(--focus-ring); outline-offset:3px; }
 @media(max-width:767px) { .marketing .r-scan-grid { grid-template-columns:1fr; } .marketing .r-scan-result { padding:18px; } .marketing .r-crop-sliders { grid-template-columns:1fr; } }

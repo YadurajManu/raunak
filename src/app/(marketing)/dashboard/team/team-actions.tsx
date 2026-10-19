@@ -81,7 +81,7 @@ export function TeamActions({
             <option value="FINANCE">Finance</option>
           </select>
         </div>
-        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
+        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-[var(--on-accent)]">
           Send invite
         </button>
       </form>
@@ -109,7 +109,7 @@ export function TeamActions({
               </select>
               <button
                 onClick={() => update(member.userId, "DELETE")}
-                className="text-red-600"
+                className="text-[var(--danger)]"
               >
                 Remove
               </button>

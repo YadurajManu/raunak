@@ -381,7 +381,7 @@ function TicketForm({
           Hide from public ticket list
         </label>
         <div className="flex gap-3">
-          <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white">
+          <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-[var(--on-accent)]">
             {busy ? "Saving…" : type ? "Save" : "Add ticket"}
           </button>
           {cancel && (

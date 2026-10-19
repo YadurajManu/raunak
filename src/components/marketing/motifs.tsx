@@ -119,7 +119,7 @@ export function FakeQR({ size = 88 }: { size?: number }) {
       aria-hidden="true"
       className="m-qr"
     >
-      <rect width="21" height="21" fill="white" />
+      <rect width="21" height="21" fill="var(--qr-paper)" />
       {cells.map((filled, index) =>
         filled ? (
           <rect
@@ -128,7 +128,7 @@ export function FakeQR({ size = 88 }: { size?: number }) {
             y={Math.floor(index / 21)}
             width="1"
             height="1"
-            fill="#14120F"
+            fill="var(--qr-ink)"
           />
         ) : null,
       )}

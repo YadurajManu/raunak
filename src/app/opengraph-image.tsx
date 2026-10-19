@@ -1,8 +1,11 @@
 import { ImageResponse } from "next/og";
 import { APP_NAME } from "@/lib/constants";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export default function Image() {
+export default async function Image() {
+  const logo = await readFile(join(process.cwd(), "public/brand/icon-192.png"));
   return new ImageResponse(
     <div
       style={{
@@ -16,7 +19,10 @@ export default function Image() {
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", width: "65%" }}>
-        <span style={{ fontSize: 36, letterSpacing: -2 }}>{APP_NAME}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img src={`data:image/png;base64,${logo.toString("base64")}`} width={48} height={48} alt="" />
+          <span style={{ fontSize: 36, letterSpacing: -2 }}>{APP_NAME}</span>
+        </div>
         <span
           style={{
             fontSize: 78,

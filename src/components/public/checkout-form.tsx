@@ -217,7 +217,7 @@ export function CheckoutForm({
         )}
         <button
           disabled={busy || (total > 0 && !ready)}
-          className="w-full rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[#14120f] disabled:opacity-50"
+          className="w-full rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--on-accent)] disabled:opacity-50"
         >
           {busy
             ? "Please wait…"
@@ -226,7 +226,7 @@ export function CheckoutForm({
               : "Confirm free tickets"}
         </button>
         {error && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-[var(--danger)]">
             {error}
           </p>
         )}

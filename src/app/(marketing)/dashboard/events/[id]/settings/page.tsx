@@ -60,7 +60,7 @@ export default async function EventSettings({
       </dl>
       {(membership.role === "OWNER" || membership.role === "ADMIN") &&
         event.status === "DRAFT" && (
-          <section className="mt-10 rounded-2xl border border-red-200 p-6 dark:border-red-900">
+          <section className="mt-10 rounded-2xl border border-[var(--danger)] p-6">
             <h2 className="text-xl font-semibold">Delete draft</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Drafts without orders can be removed from your workspace.

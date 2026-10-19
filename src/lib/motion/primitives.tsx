@@ -80,7 +80,7 @@ export function Tilt({
   const rotateY = useSpring(useMotionValue(0), { stiffness: 160, damping: 20 });
   const glareX = useMotionValue("50%");
   const glareY = useMotionValue("50%");
-  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,.22), transparent 60%)`;
+  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, var(--glare), transparent 60%)`;
   return (
     <motion.div
       className={className}

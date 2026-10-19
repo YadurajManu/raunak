@@ -48,7 +48,7 @@
   border-color: var(--line);
 }
 .marketing .r-account-sidebar .m-mono {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.07em;
   line-height: 1.6;
 }
@@ -168,7 +168,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .marketing .r-public-header {
     display: grid;

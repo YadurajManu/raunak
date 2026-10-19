@@ -7,6 +7,7 @@ import {
   QRCodeReader,
 } from "@zxing/library";
 import { APP_NAME } from "@/lib/constants";
+import { join } from "node:path";
 
 function escape(value: string) {
   return value.replace(
@@ -88,7 +89,7 @@ export async function renderTicketCard(input: {
     <rect width="1080" height="220" fill="#244e3d"/>
     <path d="M0 220H1080" stroke="#ff593a" stroke-width="8"/>
     <g font-family="Noto Sans,Arial,sans-serif">
-      <text x="54" y="92" font-family="Noto Serif,Georgia,serif" font-size="62" fill="#f5f0e6">${escape(APP_NAME)}</text>
+      <text x="138" y="92" font-family="Noto Serif,Georgia,serif" font-size="62" fill="#f5f0e6">${escape(APP_NAME)}</text>
       <text x="56" y="137" font-size="19" letter-spacing="3" fill="#ffcc4d">GOOD PEOPLE. GREAT EVENTS.</text>
       <text x="56" y="189" font-size="23" fill="#f5f0e6">${escape((input.organizer ? `Hosted by ${input.organizer}` : "A little less admin. A lot more event.").slice(0, 43))}</text>
       <text x="56" y="269" font-size="20" letter-spacing="2" fill="#a93622">${input.sample ? "PREVIEW ONLY · NOT VALID FOR ENTRY" : "BOOKED. YOU’RE ON THE LIST."}</text>
@@ -106,7 +107,11 @@ export async function renderTicketCard(input: {
       <text x="540" y="1330" text-anchor="middle" font-size="22" fill="#5c564c">${input.sample ? "Sample only. This QR does not grant admission." : "YOUR WAY IN · Show this QR at entry. Keep it private."}</text>
     </g></svg>`,
   );
-  const overlays: OverlayOptions[] = [];
+  const overlays: OverlayOptions[] = [{
+    input: await sharp(join(process.cwd(), "public/brand/icon-192.png")).resize(68, 68).png().toBuffer(),
+    top: 36,
+    left: 54,
+  }];
   if (input.poster) {
     try {
       overlays.push({

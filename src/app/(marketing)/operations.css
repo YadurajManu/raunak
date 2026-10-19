@@ -73,7 +73,7 @@
   flex-wrap: wrap;
 }
 .ops-links a {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .ops-live {
   color: var(--muted);
@@ -164,7 +164,7 @@
 .ops-bookings small,
 .ops-attendees small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 8px;
 }
