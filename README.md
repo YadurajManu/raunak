@@ -1,131 +1,106 @@
 <p align="center">
-  <img src=".github/assets/readme-banner.svg" alt="Raunak — Good people. Great events." width="100%" />
+  <img src="public/docs-assets/readme-banner.svg" alt="Raunak — Discover events. Sell tickets. Scan guests in." width="100%" />
 </p>
 
 <p align="center">
-  <strong>An India-first platform for discovering, hosting and showing up.</strong><br />
-  From the first invitation to the QR scan at the door.
+  Raunak brings event discovery, organizer tools, ticket bookings and QR check-in<br />
+  into one India-first platform. For college fests, workshops, community meetups,<br />
+  comedy nights and more.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-244E3D?style=flat-square" /></a>
-  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-171713?style=flat-square" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-typed-3178C6?style=flat-square" />
-  <img alt="PostgreSQL 16" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square" />
-  <img alt="Built for India" src="https://img.shields.io/badge/Built_for-India-FF5738?style=flat-square" />
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-244E3D?style=flat-square" /></a>
+  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-14120F?style=flat-square" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square" />
 </p>
 
 <p align="center">
-  <a href="https://raunak.yaduraj.me">Live website</a> ·
+  <a href="https://raunak.yaduraj.me">Open Raunak</a> ·
   <a href="#getting-started">Get started</a> ·
-  <a href="#features">Features</a> ·
+  <a href="docs/public/introduction.md">Documentation</a> ·
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
----
+## A plan, from discovery to the door
 
-## Meet Raunak
+![The Raunak Discover interface with date, category and location filters and clearly fictional sample events](public/docs-assets/discover.webp)
 
-Raunak brings event discovery, organizer workspaces, ticketing and admission into one application. Attendees can find a plan, book a ticket and open their QR at the entrance. Organizers can publish events, manage media and ticket inventory, track bookings and check guests in.
+<table>
+  <tr>
+    <td width="50%"><img src="public/docs-assets/organizer.webp" alt="Actual Raunak organizer interface with fictional sample event content" /></td>
+    <td width="50%"><img src="public/docs-assets/check-in.webp" alt="Raunak entrance check-in interface using fictional test attendees" /></td>
+  </tr>
+  <tr>
+    <td>Give every event its own home.</td>
+    <td>Find the booking. Check the ticket. Welcome the guest.</td>
+  </tr>
+</table>
 
-The interface pairs warm cream, dark ink, coral and deep green with editorial typography, responsive layouts and light/dark themes. **Eventra** was the working codename; some internal package, database and development identifiers retain that name.
+Screenshots show actual application components with fictional sample data. They are interface previews, not customer activity or performance evidence. No usable admission QR is included. See the [asset capture notes](docs/docs-maintenance.md).
 
-## Features
+## What Raunak does
 
-### For attendees
+Raunak connects the work of running an event with the experience of attending it. The interface uses warm cream, ink, vermilion and editorial typography, with responsive light and dark themes. The examples above illustrate possible uses; no customer or event-partner affiliation is implied.
 
-- **Discover real events:** server-backed search, event/venue/organizer suggestions, city autocomplete, recent cities and optional nearby search.
-- **Find the right plan:** date shortcuts, custom ranges, categories, free/paid filters, price ranges, event formats and sorting, with shareable URL filters.
-- **Keep your favorites:** persistent saved events and public organizer profiles.
-- **Book tickets:** free bookings and Cashfree hosted checkout, inventory holds and verified payment webhooks.
-- **Carry your tickets:** an account-owned wallet, individual admission QR codes, private PDF downloads and permitted resends.
-- **Share and remember:** WhatsApp links, clipboard copying, native sharing where available, Google Calendar, Outlook and ICS exports.
-- **Stay signed in:** Firebase email/password and Google authentication, remembered sessions, onboarding and a dedicated profile editor.
+**For attendees:** discover an event, choose available tickets, sign in, complete a free booking or configured Cashfree checkout, then open the booking's admission QR at the door. My plans brings tickets, saved events and orders together. Booking requires an account; knowing a reference number alone does not grant access to a ticket.
 
-### For organizers
+**For organizers:** create a workspace, add event details and media, configure ticket prices and inventory, and submit the event for platform review. Approved published public listings become discoverable. Manage bookings, delivery status and entrance staff from the same workspace.
 
-- **Separate workspaces:** team invitations, role-based access and assigned event staff.
-- **Create and publish:** timezone-aware schedules, venue pins, online/hybrid formats, validation and publication review guidance.
-- **Manage media:** upload progress, background processing, crop/aspect-ratio editing, galleries, lineup profiles and PDF attachments.
-- **Control tickets:** prices, sale windows, capacity and quantity limits.
-- **Run the event:** attendee search, CSV exports, booking/delivery status, QR/manual check-in and duplicate-entry protection.
-- **Handle changes:** event duplication, cancellation and payment/refund operations.
+## Core capabilities
 
-> **Integration status:** Cashfree, Resend/SMTP and WhatsApp delivery code is implemented. Actual payments and delivery require configured provider accounts. Official WhatsApp uses a production sender and approved templates; the optional Baileys gateway uses a deliberately linked number. Both require attendee consent. Real-phone Baileys acceptance is pending. Guest checkout and a platform moderation queue are not implemented.
+| Area | Included behavior |
+| --- | --- |
+| Discovery | Server-backed search, city suggestions, dates, categories, format and price filters, nearby discovery with permission, saved events and public organizer profiles. |
+| Hosting | Workspace roles, event drafts, media uploads/cropping, gallery and lineup management, ticket inventory, publication review and an admin queue. |
+| Booking | Account-owned orders, free tickets, Cashfree hosted checkout, inventory holds, payment validation and duplicate-confirmation handling. |
+| Delivery | Signed admission QR, PDF tickets, configurable email and optional WhatsApp delivery, retries and delivery logs. |
+| Entrance | Camera scanning, manual lookup, permission checks and duplicate/cancelled/refunded-ticket feedback. |
+| Reviews | One editable review per eligible attendee after an event ends, with real rating summaries and practical attendee tips. |
 
-## Stack
+Presence in this table means the behavior exists in the repository. Provider configuration and real-world acceptance are separate requirements, detailed below.
 
-| Layer           | Technology                                                |
-| --------------- | --------------------------------------------------------- |
-| Application     | Next.js 16 App Router, React 19, TypeScript               |
-| Interface       | Tailwind CSS 4, shared brand styles, Lucide icons         |
-| Motion          | Motion, GSAP and Lenis, with reduced-motion support       |
-| Database        | PostgreSQL 16, Prisma 7 with the PostgreSQL adapter       |
-| Authentication  | Firebase Auth and server-side session cookies             |
-| Background jobs | Redis 7 and BullMQ                                        |
-| Media           | S3-compatible storage, Sharp and HEIC conversion          |
-| Payments        | Cashfree hosted checkout and signed webhooks              |
-| Delivery        | Resend or SMTP; Meta Cloud API or private Baileys gateway |
-| Maps            | MapLibre GL and optional Geoapify geocoding               |
-| Tickets         | Signed QR codes, React PDF and ZXing scanning             |
-| Testing         | Vitest and Playwright                                     |
-
-### Architecture
+## How it works
 
 ```mermaid
-flowchart LR
-    Browser[Attendee or organizer] --> App[Next.js website and API]
-    App --> Auth[Firebase Auth]
-    App --> DB[(PostgreSQL / Prisma)]
-    App --> Storage[S3-compatible storage]
-    App --> Cashfree[Cashfree checkout]
-    Cashfree -->|Signed webhook| App
-    App --> Queue[(Redis / BullMQ)]
-    Queue --> Worker[Background worker]
-    Worker --> DB
-    Worker --> Storage
-    Worker --> Email[Resend / SMTP]
-    Worker --> WhatsApp[Meta WhatsApp]
+flowchart TD
+  Browser[Attendee or organizer browser] --> Web[Next.js pages and API]
+  Web --> Auth[Firebase Auth: sessions]
+  Web --> DB[(PostgreSQL via Prisma)]
+  Web --> Cashfree[Cashfree hosted checkout]
+  Cashfree -->|Signed webhook| Web
+  Web --> Queue[Redis / BullMQ]
+  Queue --> Worker[Separate worker process]
+  Worker --> DB
+  Worker --> Storage[S3-compatible media and PDFs]
+  Worker --> Delivery[Configured email / WhatsApp]
 ```
 
-The web process serves the interface and API. A separate worker processes artwork, prepares ticket PDFs, delivers notifications and maintains order expiry. Run both for the complete workflow.
+The web process handles pages, authorization, reservations and payment confirmation. Ticket records are issued in the booking/payment transaction; background jobs prepare PDFs, process images, deliver notifications and recover pending work. Expired holds return inventory. A browser redirect is not proof of payment. See the [architecture and booking lifecycle](docs/public/architecture.md) for transaction and queue boundaries.
 
 ## Getting started
 
-### Prerequisites
-
-- Node.js **24** and pnpm **10.12.4**.
-- Docker with Docker Compose.
-- A Firebase project for authenticated features.
-- Cashfree sandbox credentials when testing paid checkout.
-
-### 1. Clone and start local services
+Use a disposable development environment. You need **Node.js 24**, **pnpm 10.12.4**, Docker with Compose, and a Firebase development project. The local Compose file supplies PostgreSQL 16, Redis 7, S3-compatible LocalStack and Mailpit; it does not provision Firebase.
 
 ```bash
 git clone https://github.com/YadurajManu/raunak.git
 cd raunak
+corepack enable
+corepack prepare pnpm@10.12.4 --activate
 pnpm install --frozen-lockfile
 cp .env.example .env
 docker compose up -d
 ```
 
-The root Compose file starts development PostgreSQL, Redis, LocalStack S3 and Mailpit. Give services time to initialize before migrating or uploading files.
+Before opening the app, configure both public `NEXT_PUBLIC_FIREBASE_*` values and server `FIREBASE_*` credentials in `.env`. Enable Email/Password and any intended Google sign-in provider, and authorize `localhost` in Firebase. Keep the server private key out of browser variables. Firebase configuration is required for real sign-in and booking; there is no local auth bypass.
 
-### 2. Configure your environment
-
-Edit `.env` using [.env.example](.env.example) as the complete reference. Keep `APP_URL=http://localhost:3000` for the default port; origin checks require it to match your browser URL.
-
-Enable **Email/Password** and **Google** in Firebase Authentication, register its web app and authorize `localhost`. Add the four `NEXT_PUBLIC_FIREBASE_*` values and server service-account values. In the quoted `FIREBASE_PRIVATE_KEY`, represent line breaks as `\n`. Never put a service-account key in a `NEXT_PUBLIC_*` variable.
-
-Generate **separate** values for `TICKET_SIGNING_SECRET` and `ENCRYPTION_KEY`:
+Generate **two separate** secrets and paste them into `TICKET_SIGNING_SECRET` and `ENCRYPTION_KEY`:
 
 ```bash
-openssl rand -hex 32
+# Run twice; use a different output for each variable.
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-Paste a newly generated value into each setting. Keep local email on SMTP/Mailpit and payment testing on `CASHFREE_ENV=sandbox`.
-
-### 3. Prepare the database and run
+Then prepare the database and start the web process:
 
 ```bash
 pnpm exec prisma generate
@@ -133,117 +108,84 @@ pnpm db:migrate
 pnpm dev
 ```
 
-In another terminal:
+In another terminal, start the background worker:
 
 ```bash
 pnpm worker
 ```
 
-| Local service          | Address                          |
-| ---------------------- | -------------------------------- |
-| Application            | http://localhost:3000            |
-| Health endpoint        | http://localhost:3000/api/health |
-| Mailpit inbox          | http://localhost:8025            |
-| PostgreSQL             | `localhost:5433`                 |
-| Redis                  | `localhost:6379`                 |
-| S3-compatible endpoint | http://localhost:9000            |
+Open [localhost:3000](http://localhost:3000). Check the web process with `curl -f http://localhost:3000/api/health`; this reachability endpoint does not prove provider or worker readiness. The credential-independent documentation site is at [localhost:3000/docs](http://localhost:3000/docs). The [installation guide](docs/public/installation.md) covers services, environment setup and common failures.
 
-**Optional demo data:** run `pnpm db:seed` against a development database. It adds fictional events; it does not provision Firebase sign-in accounts. Never seed a production database.
+| Local service | Address |
+| --- | --- |
+| Web / documentation | `http://localhost:3000` / `http://localhost:3000/docs` |
+| PostgreSQL | `localhost:5433` |
+| Redis | `localhost:6379` |
+| S3 endpoint | `http://localhost:9000` |
+| Mailpit inbox / SMTP | `http://localhost:8025` / `localhost:1025` |
 
-## Configuration
+Seeding is optional and is excluded from this quick start. Inspect the current seed entry point before running it against a development database; database sample users do not create Firebase sign-in accounts. Never run sample seeding against customer data.
 
-The QR-linked WhatsApp extension uses a private, long-lived gateway pinned to `baileys@7.0.0-rc14`. Owners/admins link a dedicated number by QR or pairing code at `/dashboard/settings/whatsapp`, choose a mode, and edit workspace/event messages with ticket-card/PDF attachments. Auth is encrypted in PostgreSQL; Redis holds renewable ownership locks, expiring QR codes, caps and duplicate-send results. It is disabled by default and cannot run on serverless. See the [gateway runbook and phone QA checklist](docs/whatsapp-gateway.md).
+## Configuration and integration status
 
-**Unofficial connection risk:** WhatsApp may disconnect or restrict the linked number, and upstream changes can break delivery. Traffic controls are conservative heuristics, not protection guarantees. Email remains independent. The official Meta provider is preserved for approved-template delivery. No campaigns or group messaging are supported.
+| Integration | Required configuration and limits |
+| --- | --- |
+| Firebase | Browser project config and server service account for signed sessions. No guest checkout. |
+| Cashfree | Sandbox/production credentials, approved checkout domain and `/api/webhooks/cashfree`. Code supports checkout and verification; this documentation change does not verify live settlement. Organizer bank split payouts are not implemented. |
+| Media and PDFs | `S3_*` credentials, bucket policy and CORS. LocalStack is provided locally; production storage must be private where expected. |
+| Email | Local SMTP through Mailpit, or configured SMTP/Resend and a verified sender. Delivery code does not guarantee inbox placement. |
+| Official WhatsApp | Meta credentials, connected sender, attendee consent and approved template mapping. This is separate from the linked gateway. |
+| Optional linked WhatsApp | Private long-lived Baileys gateway, explicit enable flag and encrypted sessions. Automated tests do not establish real-phone acceptance; disconnection or account restrictions remain possible. |
+| Location | Geoapify for address lookup; manual entry remains available without a key. Retain map-provider attribution. |
+| Platform review | `/admin` uses the server-only `RAUNAK_ADMIN_FIREBASE_UIDS` allowlist; there is no public admin sign-up. |
 
-Event publishing uses a platform review queue at `/admin`. Access is restricted to verified Firebase accounts whose UIDs are listed in the server-only `RAUNAK_ADMIN_FIREBASE_UIDS` variable. See the [event review setup](docs/event-review.md) before enabling platform reviewers.
+See [integrations](docs/public/integrations.md) and the [environment reference](docs/public/reference.md). Keep `.env`, service credentials, signing keys and real ticket links out of commits. Provider accounts, domain approvals and costs are operator responsibilities. This task adds documentation, not activation of any provider.
 
-Set `WHATSAPP_PROVIDER=baileys`, configure `WA_GATEWAY_API_KEY`, `WA_GATEWAY_URL`, and a 32-byte `ENCRYPTION_KEY` (64 hex characters or base64), then deliberately enable `WA_UNOFFICIAL_ENABLED=true`. Run `pnpm --filter @raunak/wa-gateway start` alongside the existing worker. Production uses the private `whatsapp` Compose profile; never expose the gateway port through Caddy, Cloudflare Tunnel, or a public load balancer. Back up the encryption key separately; changing it without re-encrypting stored sessions requires re-linking. See the runbook for key rotation and runtime kill-switch steps.
+## Stack and repository
 
-| Area                    | Environment variables                                                                                                                     | Purpose                                                       |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Application             | `APP_URL`                                                                                                                                 | Canonical URL, origin checks and links                        |
-| Data                    | `DATABASE_URL`, `REDIS_URL`                                                                                                               | Database and background queues                                |
-| Browser authentication  | `NEXT_PUBLIC_FIREBASE_*`                                                                                                                  | Public Firebase web configuration                             |
-| Server authentication   | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`                                                                    | Session verification and account administration               |
-| Platform admin          | `RAUNAK_ADMIN_FIREBASE_UIDS`                                                                                                               | Comma-separated Firebase UIDs allowed to review listings      |
-| Payments                | `CASHFREE_ENV`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_API_VERSION`                                                          | Checkout and webhook verification                             |
-| Storage                 | `S3_*`, `AWS_REQUEST_CHECKSUM_CALCULATION`                                                                                                | Media uploads, variants and private files                     |
-| Email                   | `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` or `SMTP_*`                                                                              | Invitations, receipts and ticket delivery                     |
-| WhatsApp                | `WHATSAPP_*`                                                                                                                              | Sender credentials, webhook verification and template mapping |
-| Linked WhatsApp gateway | `WA_GATEWAY_*`, `WA_UNOFFICIAL_ENABLED`, `WA_MAX_DAILY`, `WA_PER_RECIPIENT_DAILY`, `WA_MIN_DELAY_MS`, `WA_MAX_DELAY_MS`, `WA_ADMIN_EMAIL` | Private engine, traffic controls and connection alerts        |
-| Location                | `GEOAPIFY_API_KEY`, `NEXT_PUBLIC_MAP_TILE_URL`, `NEXT_PUBLIC_MAP_ATTRIBUTION`                                                             | Address lookup and map rendering                              |
-| Signing                 | `TICKET_SIGNING_SECRET`, `ENCRYPTION_KEY`                                                                                                 | Server-side cryptographic configuration                       |
+| Layer | Repository stack |
+| --- | --- |
+| Application | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Data and authentication | Prisma 7, PostgreSQL 16, Firebase Auth |
+| Background work | Redis / BullMQ; separate Node.js worker |
+| Providers | Cashfree, S3-compatible storage, Resend/SMTP, optional Meta or Baileys WhatsApp |
 
-For production email, select `EMAIL_PROVIDER=resend` and use a sender on a verified domain. Payment and messaging providers need their corresponding configuration; credentials are not included.
+```text
+src/app/              Application pages, /docs and API routes
+src/components/       Shared, public, organizer and docs interfaces
+src/server/           Auth, events, checkout, admission and providers
+prisma/               Data model and migrations
+worker/               Media, PDF, notification and maintenance jobs
+docs/public/          Explicitly published Markdown guides
+public/docs-assets/   Checked-in banner and safe product screenshots
+tests/                Vitest and Playwright coverage
+deploy/               Existing production installation configuration
+```
 
-Without Geoapify, manual city entry and the map remain available. Choose a tile provider appropriate for your traffic and retain its required attribution.
+Raunak is the public product name. Some internal identifiers retain the original Eventra codename; no package or database rename is required to use the project.
 
-## Development and verification
+## Develop, verify and operate
 
 ```bash
 pnpm exec next typegen
 pnpm typecheck
 pnpm lint
-pnpm test
+pnpm exec vitest run tests/unit
 pnpm build
 pnpm exec playwright install chromium
-pnpm test:e2e
+pnpm exec playwright test tests/e2e/docs.spec.ts
 ```
 
-Database and storage integration tests require local services and a migrated **development/test database**. Browser tests start the development server unless `PLAYWRIGHT_BASE_URL` points to an existing instance. Some onboarding tests require opt-in fixture settings; check the test files before enabling them.
+`pnpm test` also includes integration tests, which need disposable services and provider test settings. Browser coverage has its own environment requirements; consult test files before enabling fixtures. A passing mocked payment test establishes code behavior, not live financial settlement, email deliverability or phone-camera performance.
 
-Additional local checks are in `scripts/verify-experience.ts`, `scripts/verify-site-polish.ts` and `scripts/verify-event-actions.ts`. They use disposable accounts or records and may require Firebase test-project credentials. Target the matching local environment. Generated screenshots and reports belong in the ignored `artifacts/` directory.
+Production needs `pnpm build` / `pnpm start`, a separate worker, applied migrations, HTTPS and provider configuration. The checked-in production Compose file describes a specific installation with private routing and storage assumptions. Use the [public deployment guide](docs/public/deployment.md) to understand requirements before adapting it. Back up persistent data and retain a rollback image.
 
-Tests exercise payment logic with injected providers. A passing suite does not establish live settlement, deliverability or physical-device camera behavior.
+The [documentation directory](docs/public/introduction.md) covers product workflows, architecture, integrations and operations. To change a page, update canonical Markdown and its explicit metadata entry; [maintainer instructions](docs/docs-maintenance.md) explain navigation, search, screenshots and verification.
 
-## Project structure
+## Contributing, security and license
 
-```text
-src/
-  app/                 Pages, shared layouts and API routes
-  components/          Marketing, attendee and organizer components
-  config/              Categories, cities, pricing and product configuration
-  lib/                 Shared validation, formatting and browser helpers
-  server/              Authentication, events, checkout, tickets and providers
-prisma/                Schema, migrations and optional development seed
-worker/                Media, ticket, notification and order-maintenance jobs
-tests/                 Unit, integration and Playwright tests
-scripts/               Verification and maintenance tools
-docker/                Development storage initialization
-deploy/                Production Compose and Caddy configuration
-docs/                  Design, architecture and integration notes
-```
+Focused improvements, accessibility fixes, bug reports and clearer guides are welcome. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and pull requests. Report sensitive issues through the private channel described in [SECURITY.md](SECURITY.md); do not post credentials, attendee information or admission links publicly.
 
-## Deployment
+Raunak's original source is available under the [MIT License](LICENSE). Third-party dependencies, fonts and assets retain their own license terms. Provider access and services are separate from the source license.
 
-Build and run the web process with `pnpm build` and `pnpm start`, and run `pnpm worker` separately. Apply migrations before starting code that depends on them. Configure HTTPS, Firebase authorized domains, provider webhooks, storage CORS and private access policies.
-
-The [Dockerfile](Dockerfile) and [production Compose file](deploy/compose.yml) describe the existing server deployment. That Compose file expects a Fleet network, Caddy routing and Garage storage configuration; it is not a generic one-click deployment. See the [deployment runbook](docs/deployment.md) for that installation.
-
-Keep environment files outside images and Git, back up database and storage, and retain the previous image before a release. Paid checkout requires Cashfree domain approval and its webhook at `/api/webhooks/cashfree`. Never use `docker compose down -v` on an installation whose data you need.
-
-## Documentation
-
-| Guide                                                   | Contents                                       |
-| ------------------------------------------------------- | ---------------------------------------------- |
-| [Brand foundation](docs/brand.md)                       | Colors, typography and visual patterns         |
-| [Navigation architecture](docs/universal-navigation.md) | Navbar, layout boundaries and Discover         |
-| [Discovery and wallet](docs/discovery-wallet.md)        | Search, bookmarks, ownership and ticket states |
-| [Media editor](docs/media-editor-redesign.md)           | Uploading, cropping, galleries and lineup      |
-| [Payments and delivery](docs/payments-whatsapp.md)      | Cashfree webhooks and WhatsApp activation      |
-| [Event operations](docs/event-operations.md)            | Organizer workflows and event management       |
-| [WhatsApp configuration](docs/whatsapp.md)              | Sender, webhook and template setup             |
-| [Deployment](docs/deployment.md)                        | Existing server installation and rollback      |
-
-## Contributing
-
-Bug reports, accessibility fixes, clearer documentation and focused improvements are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and pull-request expectations. For vulnerabilities, follow [SECURITY.md](SECURITY.md) rather than posting sensitive details in an issue.
-
-## License
-
-Raunak's original source code is available under the [MIT License](LICENSE). Third-party packages, fonts and assets retain their respective licenses. Provider accounts and services are separate from the source-code license.
-
----
-
-<p align="center"><strong>A little less admin. A lot more event.</strong><br />Made for getting together.</p>
+<p align="center"><strong>A little less admin. A lot more event.</strong></p>
