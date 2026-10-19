@@ -144,7 +144,13 @@ export default async function EventOverview({
             · {event.venueName || event.city || "Venue to be announced"}
           </p>
         </div>
-        {canManage && <EventActions eventId={id} status={event.status} />}
+        {canManage && (
+          <EventActions
+            eventId={id}
+            status={event.status}
+            reviewNote={event.reviewNote}
+          />
+        )}
       </header>
       <div className="ops-metrics">
         {[
@@ -166,6 +172,18 @@ export default async function EventOverview({
         pending or failed refunds. Financial totals include fees, before gateway
         charges and organizer settlements.
       </p>
+      {event.status === "PENDING_REVIEW" && (
+        <div className="ops-notice" role="status">
+          <h2>With the Raunak review team</h2>
+          <p>Your event is saved and will appear publicly after it is approved.</p>
+        </div>
+      )}
+      {(event.status === "NEEDS_CHANGES" || event.status === "REJECTED") && (
+        <div className="ops-notice" role="status">
+          <h2>{event.status === "REJECTED" ? "Review decision" : "A few updates are needed"}</h2>
+          <p>{event.reviewNote || "Open the event details, make the requested updates, then resubmit for review."}</p>
+        </div>
+      )}
       {event.status === "CANCELLED" && (
         <div className="ops-notice">
           <h2>Event cancelled</h2>

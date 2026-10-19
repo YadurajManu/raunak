@@ -8,7 +8,10 @@ import {
   duplicateEvent,
   listEvents,
   softDeleteEvent,
+  submitEventForReview,
 } from "@/server/events/service";
+import { decideEventReview } from "@/server/admin/reviews";
+import { publicEvent } from "@/server/public/events";
 import { createTicketType, updateTicketType } from "@/server/tickets/types";
 import { assignEventStaff } from "@/server/events/staff";
 import { requireEventAccessForUser } from "@/server/rbac/access";
@@ -111,7 +114,7 @@ describe("organizer event workflow", () => {
       data: { quantityHeld: 0 },
     });
     await expect(
-      changeEventStatus(managerId, eventId, "PUBLISHED"),
+      submitEventForReview(managerId, eventId),
     ).rejects.toThrow("poster");
     await db.eventImage.create({
       data: {
@@ -124,8 +127,14 @@ describe("organizer event workflow", () => {
         alt: "Poster",
       },
     });
-    const published = await changeEventStatus(managerId, eventId, "PUBLISHED");
+    const submitted = await submitEventForReview(managerId, eventId);
+    expect(submitted.status).toBe("PENDING_REVIEW");
+    expect(await publicEvent(event.slug)).toBeNull();
+    const published = await decideEventReview(ownerId, eventId, {
+      action: "APPROVE",
+    });
     expect(published.status).toBe("PUBLISHED");
+    expect(await publicEvent(event.slug)).not.toBeNull();
     expect((await changeEventStatus(managerId, eventId, "DRAFT")).status).toBe(
       "DRAFT",
     );

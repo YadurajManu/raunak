@@ -8,6 +8,7 @@ import {
   requireEventAccessForUser,
   requireOrgRoleForUser,
 } from "@/server/rbac/access";
+import { assertEventCanBePublished } from "@/server/events/publication";
 
 const inputSchema = z
   .object({
@@ -201,7 +202,7 @@ export async function changeEventStatus(
     "MANAGER",
   ]);
   const next = z
-    .enum(["DRAFT", "PUBLISHED", "CANCELLED", "ENDED"])
+    .enum(["DRAFT", "CANCELLED", "ENDED"])
     .parse(status);
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${eventId}::uuid FOR UPDATE`;
@@ -209,31 +210,7 @@ export async function changeEventStatus(
       where: { id: eventId },
       include: { ticketTypes: true, images: { where: { kind: "POSTER" } } },
     });
-    if (next === "PUBLISHED") {
-      if (event.status !== "DRAFT")
-        throw new Error("Only drafts can be published.");
-      if (event.startsAt <= new Date())
-        throw new Error("Event start must be in the future.");
-      if (event.endsAt <= event.startsAt)
-        throw new Error("Event end must be after its start.");
-      if (
-        event.mode !== "ONLINE" &&
-        (!event.city || !(event.address || event.venueName))
-      )
-        throw new Error("Add a city and venue or address before publishing.");
-      if (event.mode !== "IN_PERSON" && !event.onlineUrl)
-        throw new Error("Add the online joining link before publishing.");
-      if (!event.ticketTypes.length)
-        throw new Error("Add a ticket type before publishing.");
-      if (
-        event.capacity &&
-        event.ticketTypes.reduce((sum, type) => sum + type.quantityTotal, 0) >
-          event.capacity
-      )
-        throw new Error("Ticket inventory exceeds event capacity.");
-      if (!event.images.length || !event.images[0].variants)
-        throw new Error("Add a processed poster before publishing.");
-    } else if (next === "DRAFT" && event.status !== "PUBLISHED")
+    if (next === "DRAFT" && event.status !== "PUBLISHED")
       throw new Error("Only published events can be unpublished.");
     else if (next === "CANCELLED" && event.status !== "PUBLISHED")
       throw new Error("Only published events can be cancelled.");
@@ -246,7 +223,6 @@ export async function changeEventStatus(
       where: { id: eventId },
       data: {
         status: next,
-        publishedAt: next === "PUBLISHED" ? new Date() : event.publishedAt,
       },
     });
     await tx.auditLog.create({
@@ -266,6 +242,46 @@ export async function changeEventStatus(
           payload: { eventId: updated.id, trigger: "EVENT_CANCELLED" },
         },
       });
+    return updated;
+  });
+}
+
+export async function submitEventForReview(userId: string, eventId: string) {
+  const access = await requireEventAccessForUser(userId, eventId, [
+    "OWNER",
+    "ADMIN",
+    "MANAGER",
+  ]);
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${eventId}::uuid FOR UPDATE`;
+    const event = await tx.event.findUniqueOrThrow({
+      where: { id: eventId },
+      include: { ticketTypes: true, images: { where: { kind: "POSTER" } } },
+    });
+    if (event.deletedAt) throw new Error("Event not found.");
+    if (!["DRAFT", "NEEDS_CHANGES", "REJECTED"].includes(event.status))
+      throw new Error("Only a draft or returned event can be submitted.");
+    assertEventCanBePublished(event);
+    const submittedAt = new Date();
+    const updated = await tx.event.update({
+      where: { id: eventId },
+      data: {
+        status: "PENDING_REVIEW",
+        reviewSubmittedAt: submittedAt,
+        reviewedAt: null,
+        reviewedById: null,
+        reviewNote: null,
+      },
+    });
+    await tx.auditLog.create({
+      data: {
+        orgId: access.orgId,
+        actorId: userId,
+        action: "event.review.submitted",
+        entityType: "Event",
+        entityId: eventId,
+      },
+    });
     return updated;
   });
 }

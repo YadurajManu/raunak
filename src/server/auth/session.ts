@@ -62,6 +62,33 @@ export async function requireUser() {
   return user;
 }
 
+export class PlatformAdminError extends Error {
+  constructor(readonly status: 401 | 403) {
+    super(status === 401 ? "Authentication required." : "Platform admin access required.");
+    this.name = "PlatformAdminError";
+  }
+}
+
+export function isPlatformAdminUid(uid: string) {
+  return (process.env.RAUNAK_ADMIN_FIREBASE_UIDS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .includes(uid);
+}
+
+export async function currentPlatformAdmin() {
+  const user = await currentUser();
+  return user && isPlatformAdminUid(user.firebaseUid) ? user : null;
+}
+
+export async function requirePlatformAdmin() {
+  const user = await currentUser();
+  if (!user) throw new PlatformAdminError(401);
+  if (!isPlatformAdminUid(user.firebaseUid)) throw new PlatformAdminError(403);
+  return user;
+}
+
 export async function clearSession() {
   (await cookies()).delete(SESSION_COOKIE);
 }

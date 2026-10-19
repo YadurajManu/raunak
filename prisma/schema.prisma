@@ -49,7 +49,11 @@ enum FeeMode {
 }
 enum EventStatus {
   DRAFT
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  REJECTED
   PUBLISHED
+  SUSPENDED
   CANCELLED
   ENDED
 }
@@ -136,6 +140,7 @@ model User {
   checkedInTickets Ticket[] @relation("TicketChecker")
   auditLogs AuditLog[]
   savedEvents SavedEvent[]
+  reviewedEvents Event[] @relation("EventReviewer")
 }
 
 model Organization {
@@ -217,11 +222,16 @@ model Event {
   capacity Int?
   refundPolicy String?
   publishedAt DateTime? @db.Timestamptz(6)
+  reviewSubmittedAt DateTime? @db.Timestamptz(6)
+  reviewedAt DateTime? @db.Timestamptz(6)
+  reviewedById String? @db.Uuid
+  reviewNote String?
   isTest Boolean @default(false)
   deletedAt DateTime? @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
   org Organization @relation(fields: [orgId], references: [id])
+  reviewedBy User? @relation("EventReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   documents Json @default("[]")
   images EventImage[]
   people EventPerson[]
@@ -234,6 +244,7 @@ model Event {
   savedBy SavedEvent[]
   @@index([orgId, status, deletedAt])
   @@index([status, visibility, startsAt])
+  @@index([status, reviewSubmittedAt])
 }
 
 model SavedEvent {

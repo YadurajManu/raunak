@@ -74,7 +74,11 @@ export default async function EventsPage({
         >
           <option value="">All statuses</option>
           <option value="DRAFT">Draft</option>
+          <option value="PENDING_REVIEW">Awaiting review</option>
+          <option value="NEEDS_CHANGES">Changes requested</option>
+          <option value="REJECTED">Rejected</option>
           <option value="PUBLISHED">Published</option>
+          <option value="SUSPENDED">Suspended</option>
           <option value="CANCELLED">Cancelled</option>
           <option value="ENDED">Ended</option>
         </select>
@@ -105,7 +109,7 @@ export default async function EventsPage({
                 </div>
                 <div className="p-5">
                   <span className="text-xs font-medium uppercase tracking-wide text-[var(--accent)] dark:text-[var(--accent)]">
-                    {event.status}
+                    {eventStatusLabel(event.status)}
                   </span>
                   <h2 className="mt-2 text-xl font-semibold">{event.title}</h2>
                   <p className="mt-2 text-sm text-[var(--muted)]">
@@ -140,4 +144,18 @@ function imageUrl(variants: unknown): string | null {
   if (!variants || typeof variants !== "object") return null;
   const card = (variants as { card?: { jpeg?: string } }).card;
   return card?.jpeg ?? null;
+}
+
+function eventStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    DRAFT: "Draft",
+    PENDING_REVIEW: "Awaiting review",
+    NEEDS_CHANGES: "Changes requested",
+    REJECTED: "Rejected",
+    PUBLISHED: "Published",
+    SUSPENDED: "Paused by Raunak",
+    CANCELLED: "Cancelled",
+    ENDED: "Ended",
+  };
+  return labels[status] ?? status;
 }

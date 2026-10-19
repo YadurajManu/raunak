@@ -12,7 +12,7 @@ export function eventQuality(event: {
   onlineUrl: string | null;
   startsAt: Date;
   endsAt: Date;
-  ticketTypes: unknown[];
+  ticketTypes: { pricePaise?: number | null }[];
   images: {
     kind: string;
     width?: number | null;
@@ -70,6 +70,15 @@ export function eventQuality(event: {
     warnings.push(
       "Choose or review the category. Make sure it matches the actual experience.",
     );
+  if (!event.ticketTypes.length)
+    warnings.push("Add at least one ticket type with a price before publishing.");
+  else if (
+    !event.ticketTypes.some(
+      (ticket) =>
+        Number.isInteger(ticket.pricePaise) && (ticket.pricePaise ?? -1) >= 0,
+    )
+  )
+    warnings.push("Add a valid non-negative price to at least one ticket type.");
   if (
     !event.org.name.trim() ||
     (!event.org.supportEmail && !event.org.supportPhone)
@@ -84,5 +93,11 @@ export function eventQuality(event: {
     warnings.push("Add a city and venue/address before publishing.");
   if (event.mode !== "IN_PERSON" && !event.onlineUrl)
     warnings.push("Add the online joining link before publishing.");
+  if (
+    !Number.isFinite(event.startsAt.getTime()) ||
+    !Number.isFinite(event.endsAt.getTime()) ||
+    event.endsAt <= event.startsAt
+  )
+    warnings.push("Check that the event end is after its start.");
   return warnings;
 }

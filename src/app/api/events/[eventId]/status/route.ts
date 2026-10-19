@@ -1,6 +1,6 @@
 import { requireSameOrigin } from "@/server/auth/origin";
 import { requireUser } from "@/server/auth/session";
-import { changeEventStatus } from "@/server/events/service";
+import { changeEventStatus, submitEventForReview } from "@/server/events/service";
 import { z } from "zod";
 export async function POST(
   request: Request,
@@ -13,7 +13,11 @@ export async function POST(
     const { status } = z
       .object({ status: z.string() })
       .parse(await request.json());
-    return Response.json(await changeEventStatus(user.id, eventId, status));
+    const event =
+      status === "PUBLISHED"
+        ? await submitEventForReview(user.id, eventId)
+        : await changeEventStatus(user.id, eventId, status);
+    return Response.json(event);
   } catch (error) {
     return Response.json(
       {

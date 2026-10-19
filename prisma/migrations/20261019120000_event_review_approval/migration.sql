@@ -1,0 +1,16 @@
+ALTER TYPE "EventStatus" ADD VALUE IF NOT EXISTS 'PENDING_REVIEW';
+ALTER TYPE "EventStatus" ADD VALUE IF NOT EXISTS 'NEEDS_CHANGES';
+ALTER TYPE "EventStatus" ADD VALUE IF NOT EXISTS 'REJECTED';
+ALTER TYPE "EventStatus" ADD VALUE IF NOT EXISTS 'SUSPENDED';
+
+ALTER TABLE "Event"
+  ADD COLUMN "reviewSubmittedAt" TIMESTAMPTZ(6),
+  ADD COLUMN "reviewedAt" TIMESTAMPTZ(6),
+  ADD COLUMN "reviewedById" UUID,
+  ADD COLUMN "reviewNote" TEXT;
+
+ALTER TABLE "Event"
+  ADD CONSTRAINT "Event_reviewedById_fkey"
+  FOREIGN KEY ("reviewedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX "Event_status_reviewSubmittedAt_idx" ON "Event"("status", "reviewSubmittedAt");

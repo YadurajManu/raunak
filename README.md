@@ -156,6 +156,8 @@ The QR-linked WhatsApp extension uses a private, long-lived gateway pinned to `b
 
 **Unofficial connection risk:** WhatsApp may disconnect or restrict the linked number, and upstream changes can break delivery. Traffic controls are conservative heuristics, not protection guarantees. Email remains independent. The official Meta provider is preserved for approved-template delivery. No campaigns or group messaging are supported.
 
+Event publishing uses a platform review queue at `/admin`. Access is restricted to verified Firebase accounts whose UIDs are listed in the server-only `RAUNAK_ADMIN_FIREBASE_UIDS` variable. See the [event review setup](docs/event-review.md) before enabling platform reviewers.
+
 Set `WHATSAPP_PROVIDER=baileys`, configure `WA_GATEWAY_API_KEY`, `WA_GATEWAY_URL`, and a 32-byte `ENCRYPTION_KEY` (64 hex characters or base64), then deliberately enable `WA_UNOFFICIAL_ENABLED=true`. Run `pnpm --filter @raunak/wa-gateway start` alongside the existing worker. Production uses the private `whatsapp` Compose profile; never expose the gateway port through Caddy, Cloudflare Tunnel, or a public load balancer. Back up the encryption key separately; changing it without re-encrypting stored sessions requires re-linking. See the runbook for key rotation and runtime kill-switch steps.
 
 | Area                    | Environment variables                                                                                                                     | Purpose                                                       |
@@ -164,6 +166,7 @@ Set `WHATSAPP_PROVIDER=baileys`, configure `WA_GATEWAY_API_KEY`, `WA_GATEWAY_URL
 | Data                    | `DATABASE_URL`, `REDIS_URL`                                                                                                               | Database and background queues                                |
 | Browser authentication  | `NEXT_PUBLIC_FIREBASE_*`                                                                                                                  | Public Firebase web configuration                             |
 | Server authentication   | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`                                                                    | Session verification and account administration               |
+| Platform admin          | `RAUNAK_ADMIN_FIREBASE_UIDS`                                                                                                               | Comma-separated Firebase UIDs allowed to review listings      |
 | Payments                | `CASHFREE_ENV`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_API_VERSION`                                                          | Checkout and webhook verification                             |
 | Storage                 | `S3_*`, `AWS_REQUEST_CHECKSUM_CALCULATION`                                                                                                | Media uploads, variants and private files                     |
 | Email                   | `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` or `SMTP_*`                                                                              | Invitations, receipts and ticket delivery                     |

@@ -11,6 +11,7 @@ const serverSchema = z
     FIREBASE_PROJECT_ID: z.string().min(1),
     FIREBASE_CLIENT_EMAIL: z.email(),
     FIREBASE_PRIVATE_KEY: z.string().min(1),
+    RAUNAK_ADMIN_FIREBASE_UIDS: z.string().optional(),
     CASHFREE_ENV: z.enum(["sandbox", "production"]),
     CASHFREE_APP_ID: z.string().min(1),
     CASHFREE_SECRET_KEY: z.string().min(1),

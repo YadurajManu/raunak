@@ -5,9 +5,11 @@ import { useState } from "react";
 export function EventActions({
   eventId,
   status,
+  reviewNote,
 }: {
   eventId: string;
   status: string;
+  reviewNote?: string | null;
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -42,14 +44,31 @@ export function EventActions({
   }
   return (
     <div className="flex flex-wrap gap-2">
-      {status === "DRAFT" && (
+      {["DRAFT", "NEEDS_CHANGES", "REJECTED"].includes(status) && (
         <button
           disabled={busy}
           onClick={() => setStatus("PUBLISHED")}
           className="rounded-xl bg-[var(--accent)] px-4 py-2 text-white"
         >
-          Publish
+          {status === "DRAFT" ? "Submit for review" : "Resubmit for review"}
         </button>
+      )}
+      {status === "PENDING_REVIEW" && (
+        <p className="self-center text-sm text-[var(--muted)]" role="status">
+          Raunak is reviewing this event. It is not public yet.
+        </p>
+      )}
+      {(status === "NEEDS_CHANGES" || status === "REJECTED") && reviewNote && (
+        <p className="w-full rounded-xl border border-[var(--line)] px-4 py-3 text-sm text-[var(--muted)]">
+          <strong className="mr-1 text-[var(--ink)]">Raunak review:</strong>
+          {reviewNote}
+        </p>
+      )}
+      {status === "SUSPENDED" && (
+        <p className="self-center text-sm text-[var(--muted)]" role="status">
+          This event is paused and hidden from public discovery.
+          {reviewNote ? ` Review note: ${reviewNote}` : ""}
+        </p>
       )}
       {status === "PUBLISHED" && (
         <>

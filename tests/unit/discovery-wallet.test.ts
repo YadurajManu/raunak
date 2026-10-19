@@ -102,4 +102,28 @@ it("reports image and content review warnings without rejecting subjective choic
   expect(warnings.some((v) => v.includes("category"))).toBe(true);
   expect(warnings.some((v) => v.includes("contact"))).toBe(true);
   expect(warnings.some((v) => v.includes("joining link"))).toBe(true);
+  expect(warnings).toContain(
+    "Add at least one ticket type with a price before publishing.",
+  );
+});
+
+it("accepts a free ticket as valid pricing and warns about an invalid schedule", () => {
+  const warnings = eventQuality({
+    title: "A community night",
+    category: "Community & celebrations",
+    summary: "Meet neighbors and share a good evening.",
+    description: "A welcoming community evening with music, food, and time to meet new people.",
+    mode: "IN_PERSON",
+    city: "Pune",
+    venueName: "Community Hall",
+    address: "Main Street",
+    onlineUrl: null,
+    startsAt: new Date("2026-11-20T13:00:00Z"),
+    endsAt: new Date("2026-11-20T12:00:00Z"),
+    ticketTypes: [{ pricePaise: 0 }],
+    images: [{ kind: "COVER", width: 1280, height: 720, variants: { card: true } }],
+    org: { name: "Local Club", supportEmail: "hello@example.test", supportPhone: null },
+  });
+  expect(warnings.some((warning) => warning.toLowerCase().includes("price"))).toBe(false);
+  expect(warnings).toContain("Check that the event end is after its start.");
 });

@@ -30,6 +30,7 @@ describe("marketing price copy", () => {
 import { authNextPath } from "@/lib/auth-next";
 it("keeps account redirects inside known app routes", () => {
   expect(authNextPath("/my-tickets")).toBe("/my-tickets");
+  expect(authNextPath("/admin")).toBe("/admin");
   expect(authNextPath("//evil.test")).toBe("/account");
   expect(authNextPath("https://evil.test")).toBe("/account");
 });
