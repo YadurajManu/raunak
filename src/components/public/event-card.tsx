@@ -2,7 +2,7 @@ import Link from "next/link";
 import { EventImage } from "./event-image";
 import { SaveEvent } from "./save-event";
 import { whatsappEventUrl } from "@/lib/event-share";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Star } from "lucide-react";
 export function EventCard({
   event,
   saved = false,
@@ -20,6 +20,7 @@ export function EventCard({
     org: { name: string; slug: string };
     images: { kind: string; variants: unknown; alt: string }[];
     ticketTypes: { pricePaise: number }[];
+    reviewSummary?: { average: number | null; count: number } | null;
   };
   saved?: boolean;
 }) {
@@ -42,6 +43,13 @@ export function EventCard({
         <div>
           <span className="m-eyebrow">{event.category || "Get together"}</span>
           <h3>{event.title}</h3>
+          {event.reviewSummary && event.reviewSummary.count > 0 && event.reviewSummary.average !== null && (
+            <p className="mt-1 inline-flex items-center gap-1 text-sm" aria-label={`${event.reviewSummary.average.toFixed(1)} out of 5 from ${event.reviewSummary.count} verified attendee reviews`}>
+              <Star size={14} fill="currentColor" className="text-[var(--accent)]" aria-hidden="true" />
+              <strong>{event.reviewSummary.average.toFixed(1)}</strong>
+              <span className="text-[var(--muted)]">· {event.reviewSummary.count} verified</span>
+            </p>
+          )}
           <time dateTime={event.startsAt.toISOString()}>
             <CalendarDays size={14} aria-hidden="true" />
             {new Intl.DateTimeFormat("en-IN", {

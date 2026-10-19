@@ -20,6 +20,19 @@ describe("public event visibility", () => {
     const event = await db.event.create({ data: { orgId, slug: `unlisted-${key}`, title: "Private Concert", startsAt: new Date(Date.now() + 86400000), endsAt: new Date(Date.now() + 90000000), status: "PUBLISHED", visibility: "UNLISTED" } });
     expect((await publicEvent(event.slug))?.id).toBe(event.id);
     expect((await discoverEvents({ q: "Private Concert" })).some(item => item.id === event.id)).toBe(false);
+
+    const ended = await db.event.create({ data: {
+      orgId,
+      slug: `ended-${key}`,
+      title: "Past Public Gathering",
+      startsAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+      endsAt: new Date(Date.now() - 60 * 60 * 1000),
+      status: "ENDED",
+      visibility: "PUBLIC",
+    } });
+    expect((await publicEvent(ended.slug))?.id).toBe(ended.id);
+    expect((await discoverEvents({ q: "Past Public Gathering" })).some(item => item.id === ended.id)).toBe(false);
+
     await db.event.update({ where: { id: event.id }, data: { status: "DRAFT" } });
     expect(await publicEvent(event.slug)).toBeNull();
   });

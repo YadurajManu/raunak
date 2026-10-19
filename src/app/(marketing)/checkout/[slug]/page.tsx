@@ -14,7 +14,8 @@ export default async function CheckoutPage({
 }) {
   const { slug } = await params;
   const event = await publicEvent(slug);
-  if (!event) notFound();
+  if (!event || event.status !== "PUBLISHED" || event.endsAt <= new Date())
+    notFound();
   const user = await currentUser();
   const delivery = await Promise.all(
     (["ORDER_CONFIRMED", "TICKET_ISSUED"] as const).map(async (trigger) => {

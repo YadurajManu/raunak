@@ -11,7 +11,7 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
   return db.event.findFirst({
     where: {
       slug: parsed,
-      status: "PUBLISHED",
+      status: { in: ["PUBLISHED", "ENDED"] },
       deletedAt: null,
       isTest: false,
       org: { status: "ACTIVE" },
@@ -21,6 +21,7 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
         select: {
           name: true,
           slug: true,
+          status: true,
           supportEmail: true,
           supportPhone: true,
           brandColor: true,
@@ -99,22 +100,44 @@ export async function discoverPage(input: unknown) {
       Prisma.sql`SELECT count(*) AS total ${source}`,
     ),
   ]);
-  const events = await db.event.findMany({
-    where: { ...publicListing, id: { in: ids.map((v) => v.id) } },
-    include: {
-      org: { select: { name: true, slug: true } },
-      images: {
-        where: { kind: { in: ["POSTER", "COVER"] } },
-        orderBy: { kind: "desc" },
-        take: 2,
+  const [events, reviewSummaries] = await Promise.all([
+    db.event.findMany({
+      where: { ...publicListing, id: { in: ids.map((v) => v.id) } },
+      include: {
+        org: { select: { name: true, slug: true } },
+        images: {
+          where: { kind: { in: ["POSTER", "COVER"] } },
+          orderBy: { kind: "desc" },
+          take: 2,
+        },
+        ticketTypes: { where: { isHidden: false }, select: { pricePaise: true } },
       },
-      ticketTypes: { where: { isHidden: false }, select: { pricePaise: true } },
-    },
-  });
+    }),
+    ids.length
+      ? db.eventReview.groupBy({
+          by: ["eventId"],
+          where: { eventId: { in: ids.map((value) => value.id) } },
+          _avg: { rating: true },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+  ]);
+  const reviewsByEvent = new Map(
+    reviewSummaries.map((summary) => [summary.eventId, summary]),
+  );
   return {
     events: ids.flatMap((v) => {
       const event = events.find((e) => e.id === v.id);
-      return event ? [event] : [];
+      if (!event) return [];
+      const summary = reviewsByEvent.get(event.id);
+      return [
+        {
+          ...event,
+          reviewSummary: summary
+            ? { average: summary._avg.rating, count: summary._count._all }
+            : null,
+        },
+      ];
     }),
     total: Number(count[0].total),
     filters: f,

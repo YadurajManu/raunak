@@ -4,6 +4,7 @@ import { db } from "@/server/db/client";
 import { currentUser } from "@/server/auth/session";
 import { discoverPage, publicListing } from "@/server/public/events";
 import { EventCard } from "@/components/public/event-card";
+import { Star } from "lucide-react";
 export default async function OrganizerPage({
   params,
 }: {
@@ -12,10 +13,26 @@ export default async function OrganizerPage({
   const { slug } = await params;
   const org = await db.organization.findFirst({
     where: { slug, status: "ACTIVE", events: { some: publicListing } },
-    select: { name: true, slug: true, supportEmail: true, supportPhone: true },
+    select: { id: true, name: true, slug: true, supportEmail: true, supportPhone: true },
   });
   if (!org) notFound();
-  const result = await discoverPage({ organizer: slug });
+  const [result, reviewSummary] = await Promise.all([
+    discoverPage({ organizer: slug }),
+    db.eventReview.aggregate({
+      where: {
+        event: {
+          orgId: org.id,
+          status: { in: ["PUBLISHED", "ENDED"] },
+          visibility: "PUBLIC",
+          deletedAt: null,
+          isTest: false,
+          org: { status: "ACTIVE" },
+        },
+      },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+  ]);
   const user = await currentUser();
   const saved = user
     ? await db.savedEvent.findMany({
@@ -38,6 +55,13 @@ export default async function OrganizerPage({
                 org.supportPhone ||
                 "Contact details appear on each event."}
             </p>
+            {reviewSummary._count._all > 0 && reviewSummary._avg.rating !== null && (
+              <p className="mt-3 inline-flex items-center gap-2 text-sm">
+                <Star size={15} fill="currentColor" className="text-[var(--accent)]" aria-hidden="true" />
+                <strong>{reviewSummary._avg.rating.toFixed(1)}</strong>
+                <span>from {reviewSummary._count._all} verified attendee {reviewSummary._count._all === 1 ? "review" : "reviews"}</span>
+              </p>
+            )}
           </div>
         </header>
         <h2>Upcoming events</h2>

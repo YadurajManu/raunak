@@ -17,6 +17,8 @@ import { EventImage } from "@/components/public/event-image";
 import { EventGallery } from "@/components/public/event-gallery";
 import { publicEvent, discoverPage } from "@/server/public/events";
 import { TicketSelector } from "@/components/public/ticket-selector";
+import { EventReviews } from "@/components/public/event-reviews";
+import { eventReviewSnapshot } from "@/server/events/reviews";
 
 const base = process.env.APP_URL || "http://localhost:3000";
 function eventDate(date: Date, timezone: string) {
@@ -73,7 +75,12 @@ export default async function EventPage({
 }) {
   const event = await publicEvent((await params).slug);
   if (!event) notFound();
+  const eventHasEnded = event.status === "ENDED" || event.endsAt <= new Date();
   const user = await currentUser();
+  const reviews =
+    event.visibility === "PUBLIC"
+      ? await eventReviewSnapshot(event, user?.id ?? null)
+      : null;
   const saved = user
     ? Boolean(
         await db.savedEvent.findUnique({
@@ -130,7 +137,9 @@ export default async function EventPage({
     description: event.summary || event.description || "",
     startDate: event.startsAt.toISOString(),
     endDate: event.endsAt.toISOString(),
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus: eventHasEnded
+      ? "https://schema.org/EventCompleted"
+      : "https://schema.org/EventScheduled",
     eventAttendanceMode:
       event.mode === "ONLINE"
         ? "https://schema.org/OnlineEventAttendanceMode"
@@ -268,6 +277,14 @@ export default async function EventPage({
                 }))}
               />
             )}
+            {reviews && (
+              <EventReviews
+                eventId={event.id}
+                eventUrl={`${base}/e/${event.slug}`}
+                signedIn={Boolean(user)}
+                {...reviews}
+              />
+            )}
             {event.mode !== "ONLINE" && (
               <section className="mt-12" id="venue">
                 <h2 className="text-2xl font-semibold">Venue</h2>
@@ -321,26 +338,35 @@ export default async function EventPage({
             )}
           </article>
           <aside id="tickets">
-            <TicketSelector
-              eventId={event.id}
-              eventSlug={event.slug}
-              timezone={event.timezone}
-              startsAt={event.startsAt.toISOString()}
-              ticketTypes={event.ticketTypes.map((type) => ({
-                id: type.id,
-                name: type.name,
-                description: type.description,
-                pricePaise: type.pricePaise,
-                quantityTotal: type.quantityTotal,
-                quantitySold: type.quantitySold,
-                quantityHeld: type.quantityHeld,
-                saleStartsAt: type.saleStartsAt?.toISOString() || null,
-                saleEndsAt: type.saleEndsAt?.toISOString() || null,
-                minPerOrder: type.minPerOrder,
-                maxPerOrder: type.maxPerOrder,
-                isHidden: type.isHidden,
-              }))}
-            />
+            {eventHasEnded ? (
+              <div className="rounded-2xl border border-[var(--line)] p-5">
+                <h2 className="text-xl font-semibold">This event has ended</h2>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Attendees with a paid booking can share a review below.
+                </p>
+              </div>
+            ) : (
+              <TicketSelector
+                eventId={event.id}
+                eventSlug={event.slug}
+                timezone={event.timezone}
+                startsAt={event.startsAt.toISOString()}
+                ticketTypes={event.ticketTypes.map((type) => ({
+                  id: type.id,
+                  name: type.name,
+                  description: type.description,
+                  pricePaise: type.pricePaise,
+                  quantityTotal: type.quantityTotal,
+                  quantitySold: type.quantitySold,
+                  quantityHeld: type.quantityHeld,
+                  saleStartsAt: type.saleStartsAt?.toISOString() || null,
+                  saleEndsAt: type.saleEndsAt?.toISOString() || null,
+                  minPerOrder: type.minPerOrder,
+                  maxPerOrder: type.maxPerOrder,
+                  isHidden: type.isHidden,
+                }))}
+              />
+            )}
           </aside>
         </div>
       </div>
