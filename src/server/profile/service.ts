@@ -45,6 +45,27 @@ export const profileSchema = z.object({
     .default(null),
   location: locationSchema.nullable().default(null),
 });
+export const notificationPreferencesSchema = z
+  .object({
+    emailRemindersEnabled: z.boolean().optional(),
+    whatsappRemindersEnabled: z.boolean().optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0);
+
+export async function saveNotificationPreferences(userId: string, input: unknown) {
+  z.uuid().parse(userId);
+  const data = notificationPreferencesSchema.parse(input);
+  return db.user.update({
+    where: { id: userId },
+    data,
+    select: {
+      emailRemindersEnabled: true,
+      whatsappRemindersEnabled: true,
+    },
+  });
+}
+
 export async function saveProfile(userId: string, input: unknown) {
   z.uuid().parse(userId);
   const data = profileSchema.parse(input);

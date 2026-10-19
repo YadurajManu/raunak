@@ -12,7 +12,7 @@ for (const width of [390, 1440]) {
     await page.goto("/login");
     await page.evaluate(() => document.fonts.ready);
     const toggle = page
-      .getByRole("button", { name: "Use light theme" })
+      .getByRole("button", { name: "Switch to light mode" })
       .first();
     const rect = await toggle.boundingBox();
     expect(rect).not.toBeNull();
@@ -110,9 +110,9 @@ for (const width of [390, 1440]) {
     });
     await page.reload();
     await expect(
-      page.getByRole("button", { name: "Use dark theme" }).first(),
+      page.getByRole("button", { name: "Switch to dark mode" }).first(),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Use dark theme" }).first().focus();
+    await page.getByRole("button", { name: "Switch to dark mode" }).first().focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("html")).toHaveAttribute(
       "data-marketing-theme",
@@ -135,7 +135,7 @@ test("reveal preserves a scrolled page and navigation alignment", async ({
     reducedMotion: "no-preference",
   });
   await page.goto("/terms");
-  const toggle = page.getByRole("button", { name: "Use light theme" }).first();
+  const toggle = page.getByRole("button", { name: "Switch to light mode" }).first();
   await expect(toggle).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 400));
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(400);
@@ -157,7 +157,7 @@ test("reveal preserves a scrolled page and navigation alignment", async ({
   expect(await page.evaluate(() => scrollY)).toBe(400);
   expect(
     await page
-      .getByRole("button", { name: "Use dark theme" })
+      .getByRole("button", { name: "Switch to dark mode" })
       .first()
       .boundingBox(),
   ).toEqual(before);
@@ -184,7 +184,7 @@ for (const fallback of [
         };
     }, fallback);
     await page.goto("/login");
-    await page.getByRole("button", { name: "Use light theme" }).first().click();
+    await page.getByRole("button", { name: "Switch to light mode" }).first().click();
     await expect(page.locator("html")).toHaveAttribute(
       "data-marketing-theme",
       "light",
@@ -192,7 +192,7 @@ for (const fallback of [
     await expect(page.locator("html")).not.toHaveAttribute(
       "data-theme-revealing",
     );
-    await page.getByRole("button", { name: "Use dark theme" }).first().click();
+    await page.getByRole("button", { name: "Switch to dark mode" }).first().click();
     await expect(page.locator("html")).toHaveAttribute(
       "data-marketing-theme",
       "dark",

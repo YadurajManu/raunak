@@ -61,14 +61,14 @@ test("footer keeps every destination, accessible controls and theme behavior", a
     ),
   ).toBeGreaterThan(0);
   await footer
-    .getByRole("button", { name: "Use dark theme", exact: true })
+    .getByRole("button", { name: "Switch to dark mode", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-marketing-theme",
     "dark",
   );
   await footer
-    .getByRole("button", { name: "Use light theme", exact: true })
+    .getByRole("button", { name: "Switch to light mode", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-marketing-theme",

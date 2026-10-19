@@ -1,12 +1,23 @@
 import { z } from "zod";
 import { requireSameOrigin } from "@/server/auth/origin";
 import { requireUser } from "@/server/auth/session";
-import { saveProfile } from "@/server/profile/service";
+import {
+  saveNotificationPreferences,
+  saveProfile,
+} from "@/server/profile/service";
 export async function PATCH(request: Request) {
   try {
     requireSameOrigin(request);
     const user = await requireUser();
-    return Response.json(await saveProfile(user.id, await request.json()));
+    const input: unknown = await request.json();
+    if (
+      input &&
+      typeof input === "object" &&
+      ("emailRemindersEnabled" in input ||
+        "whatsappRemindersEnabled" in input)
+    )
+      return Response.json(await saveNotificationPreferences(user.id, input));
+    return Response.json(await saveProfile(user.id, input));
   } catch (error) {
     return Response.json(
       {

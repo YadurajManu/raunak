@@ -2,7 +2,12 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
-import { profileSchema, saveProfile } from "@/server/profile/service";
+import {
+  notificationPreferencesSchema,
+  profileSchema,
+  saveNotificationPreferences,
+  saveProfile,
+} from "@/server/profile/service";
 import { lookupLocation } from "@/server/location/service";
 import { postLoginPath } from "@/lib/auth-next";
 const key = randomUUID();
@@ -70,6 +75,30 @@ describe("personal onboarding", () => {
     expect(saved.latitude).toBeNull();
     expect(saved.locationConsentAt).toBeNull();
     expect(saved.gender).toBeNull();
+  });
+  it("persists reminder preferences without changing transactional ticket delivery", async () => {
+    const user = await db.user.create({
+      data: {
+        firebaseUid: `preferences-${key}`,
+        email: `preferences-${key}@example.test`,
+      },
+    });
+    ids.push(user.id);
+    expect(user.emailRemindersEnabled).toBe(true);
+    expect(user.whatsappRemindersEnabled).toBe(false);
+    expect(
+      notificationPreferencesSchema.safeParse({
+        whatsappRemindersEnabled: true,
+      }).success,
+    ).toBe(true);
+    expect(notificationPreferencesSchema.safeParse({}).success).toBe(false);
+    await saveNotificationPreferences(user.id, {
+      emailRemindersEnabled: false,
+      whatsappRemindersEnabled: true,
+    });
+    const saved = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(saved.emailRemindersEnabled).toBe(false);
+    expect(saved.whatsappRemindersEnabled).toBe(true);
   });
   it("rejects invalid phone, coordinate, gender and unconsented partial pins", () => {
     const base = { name: "Aditi", phone: "9876543210" };

@@ -3602,55 +3602,6 @@
   font-size: 0.75rem;
   font-weight: 550;
 }
-.marketing .r-profile-menu {
-  position: relative;
-  z-index: 10;
-}
-.marketing .r-profile-menu summary {
-  list-style: none;
-  cursor: pointer;
-}
-.marketing .r-profile-menu summary::-webkit-details-marker {
-  display: none;
-}
-.marketing .r-profile-menu summary > span {
-  width: 35px;
-  height: 35px;
-  border: 1px solid var(--ink);
-  background: var(--sun);
-  color: var(--art-ink);
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font: 1.3rem var(--font-display);
-}
-.marketing .r-profile-menu nav {
-  position: absolute;
-  right: 0;
-  top: 48px;
-  width: 230px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 4px 4px var(--ink);
-}
-.marketing .r-profile-menu nav > b {
-  display: block;
-  font-size: 0.8rem;
-  padding: 10px;
-  border-bottom: 1px solid var(--line);
-  overflow-wrap: anywhere;
-}
-.marketing .r-profile-menu nav > a {
-  display: block;
-  padding: 10px;
-  font-size: 0.75rem;
-  border-radius: 7px;
-}
-.marketing .r-profile-menu nav > a:hover {
-  background: var(--paper-2);
-}
 .marketing .r-account-grid {
   display: grid;
   grid-template-columns: 245px minmax(0, 1fr);

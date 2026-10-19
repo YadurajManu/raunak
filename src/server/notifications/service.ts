@@ -223,6 +223,12 @@ export async function processNotification(
       event: { include: { org: true } },
       order: {
         include: {
+          buyer: {
+            select: {
+              emailRemindersEnabled: true,
+              whatsappRemindersEnabled: true,
+            },
+          },
           tickets: {
             include: { ticketType: true },
             orderBy: [{ createdAt: "asc" }, { id: "asc" }],
@@ -232,6 +238,18 @@ export async function processNotification(
     },
   });
   if (log.status !== "QUEUED") return;
+  if (
+    (log.trigger === "REMINDER_24H" || log.trigger === "REMINDER_2H") &&
+    ((log.channel === "EMAIL" && !log.order.buyer.emailRemindersEnabled) ||
+      (log.channel === "WHATSAPP" &&
+        !log.order.buyer.whatsappRemindersEnabled))
+  ) {
+    await db.notificationLog.update({
+      where: { id },
+      data: { status: "SKIPPED", error: "Attendee disabled this reminder." },
+    });
+    return;
+  }
   const template = await resolvedTemplate(
     log.orgId,
     log.eventId,

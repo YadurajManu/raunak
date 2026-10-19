@@ -14,6 +14,7 @@ import { APP_NAME } from "@/lib/constants";
 import { formatInr } from "@/lib/money";
 import { variantUrl } from "@/lib/images";
 import { EventImage } from "@/components/public/event-image";
+import { EventGallery } from "@/components/public/event-gallery";
 import { publicEvent, discoverPage } from "@/server/public/events";
 import { TicketSelector } from "@/components/public/ticket-selector";
 
@@ -161,7 +162,7 @@ export default async function EventPage({
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-6 pt-3 sm:pt-5">
         <div className="overflow-hidden rounded-3xl">
           <EventImage
             variants={poster?.variants}
@@ -259,20 +260,13 @@ export default async function EventPage({
               </section>
             )}
             {gallery.length > 0 && (
-              <section className="mt-12" id="gallery">
-                <h2 className="text-2xl font-semibold">Gallery</h2>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {gallery.map((image) => (
-                    <EventImage
-                      key={image.id}
-                      variants={image.variants}
-                      alt={image.alt || event.title}
-                      size="card"
-                      className="aspect-[4/3] w-full rounded-2xl object-cover"
-                    />
-                  ))}
-                </div>
-              </section>
+              <EventGallery
+                photos={gallery.map((image) => ({
+                  id: image.id,
+                  variants: image.variants,
+                  alt: image.alt || event.title,
+                }))}
+              />
             )}
             {event.mode !== "ONLINE" && (
               <section className="mt-12" id="venue">

@@ -68,7 +68,7 @@ test("mobile navigation supports keyboard and leaves no horizontal overflow", as
     page.getByRole("button", { name: "Open navigation menu" }),
   ).toBeFocused();
   await expect(
-    page.getByRole("button", { name: "Use dark theme" }).first(),
+    page.getByRole("button", { name: "Switch to dark mode" }).first(),
   ).toBeVisible();
   expect(
     await page.evaluate(

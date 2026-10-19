@@ -11,17 +11,26 @@ import { APP_NAME } from "@/lib/constants";
 
 export function GlobalNavbar({
   user,
-  hasOrganization = false,
+  organizations = [],
+  preferences,
+  loading = false,
 }: {
   user: { name: string | null; email: string; avatarKey: string | null } | null;
-  hasOrganization?: boolean;
+  organizations?: { id: string; name: string }[];
+  preferences?: {
+    emailRemindersEnabled: boolean;
+    whatsappRemindersEnabled: boolean;
+  };
+  loading?: boolean;
 }) {
   const pathname = usePathname(),
     id = useId();
   const header = useRef<HTMLElement>(null),
     trigger = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState({ open: false, path: pathname });
+  const [signedOut, setSignedOut] = useState(false);
   const open = menu.open && menu.path === pathname;
+  const hasOrganization = organizations.length > 0;
   if (menu.path !== pathname) setMenu({ open: false, path: pathname });
   useEffect(() => {
     const dismiss = (event: PointerEvent) => {
@@ -31,6 +40,11 @@ export function GlobalNavbar({
     document.addEventListener("pointerdown", dismiss);
     return () => document.removeEventListener("pointerdown", dismiss);
   }, [pathname]);
+  useEffect(() => {
+    if (!signedOut) return;
+    const timeout = window.setTimeout(() => setSignedOut(false), 2800);
+    return () => window.clearTimeout(timeout);
+  }, [signedOut]);
   // Authentication, onboarding and signed admission links keep their focused shells.
   if (
     ["/login", "/signup", "/onboarding"].includes(pathname) ||
@@ -104,8 +118,15 @@ export function GlobalNavbar({
                 name={user.name || "You"}
                 email={user.email}
                 avatarUrl={user.avatarKey}
-                hasOrganization={hasOrganization}
+                organizations={organizations}
+                preferences={preferences || {
+                  emailRemindersEnabled: true,
+                  whatsappRemindersEnabled: false,
+                }}
+                onSignedOut={() => setSignedOut(true)}
               />
+            ) : loading ? (
+              <span className="gnav-session-skeleton" aria-label="Loading account" />
             ) : (
               <Link href="/login" className="gnav-signin">
                 Sign in
@@ -139,6 +160,11 @@ export function GlobalNavbar({
           </div>
         </div>
       </header>
+      {signedOut && (
+        <div className="gnav-toast" role="status" aria-live="polite">
+          Signed out
+        </div>
+      )}
     </>
   );
 }

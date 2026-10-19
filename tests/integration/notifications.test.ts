@@ -100,6 +100,35 @@ it("delivers edited templates and PDF attachments once, schedules reminders, and
     }),
   ).rejects.toThrow("Access denied");
   const email = vi.fn().mockResolvedValue(undefined);
+  const emailReminder = await db.notificationLog.findFirstOrThrow({
+    where: { orderId: order.id, channel: "EMAIL", trigger: "REMINDER_24H" },
+  });
+  await db.user.update({
+    where: { id: buyer.id },
+    data: { emailRemindersEnabled: false },
+  });
+  await processNotification(emailReminder.id, {
+    email: { send: email },
+    whatsapp: { sendTemplate: vi.fn() },
+  });
+  expect(email).not.toHaveBeenCalled();
+  expect(
+    (await db.notificationLog.findUniqueOrThrow({ where: { id: emailReminder.id } }))
+      .status,
+  ).toBe("SKIPPED");
+  const whatsappReminder = await db.notificationLog.findFirstOrThrow({
+    where: { orderId: order.id, channel: "WHATSAPP", trigger: "REMINDER_24H" },
+  });
+  const reminderWhatsApp = vi.fn();
+  await processNotification(whatsappReminder.id, {
+    email: { send: email },
+    whatsapp: { sendTemplate: reminderWhatsApp },
+  });
+  expect(reminderWhatsApp).not.toHaveBeenCalled();
+  expect(
+    (await db.notificationLog.findUniqueOrThrow({ where: { id: whatsappReminder.id } }))
+      .status,
+  ).toBe("SKIPPED");
   const log = await db.notificationLog.findFirstOrThrow({
     where: { orderId: order.id, channel: "EMAIL", trigger: "TICKET_ISSUED" },
   });

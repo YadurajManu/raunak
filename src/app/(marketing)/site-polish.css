@@ -52,20 +52,6 @@
   letter-spacing: 0.07em;
   line-height: 1.6;
 }
-.marketing .r-account-header .r-profile-menu nav > a {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
-.marketing .r-profile-menu nav {
-  max-width: calc(100vw - 32px);
-}
-.marketing .r-profile-menu summary {
-  min-width: 44px;
-  min-height: 44px;
-  display: grid;
-  place-items: center;
-}
 .marketing .r-organizer > h1 {
   font-size: clamp(30px, 3.5vw, 42px);
   line-height: 1.15;

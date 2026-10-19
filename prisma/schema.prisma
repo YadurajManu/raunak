@@ -122,6 +122,8 @@ model User {
   name String?
   phone String?
   avatarKey String?
+  emailRemindersEnabled Boolean @default(true)
+  whatsappRemindersEnabled Boolean @default(false)
   gender String?
   city String?
   region String?

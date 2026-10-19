@@ -1,4 +1,5 @@
 import { Instrument_Serif, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./marketing.css";
 import "./workspace.css";
 import "./discover.css";
@@ -32,32 +33,52 @@ const mono = Geist_Mono({
   display: "swap",
 });
 
-export default async function MarketingLayout({
+async function SignedInGlobalNavbar() {
+  const user = await currentUser();
+  const organizations = user
+    ? await db.organizationMember.findMany({
+        where: { userId: user.id, status: "ACTIVE", org: { status: "ACTIVE" } },
+        select: { orgId: true, org: { select: { name: true } } },
+        orderBy: { createdAt: "asc" },
+      })
+    : [];
+  return (
+    <GlobalNavbar
+      organizations={organizations.map(({ orgId, org }) => ({
+        id: orgId,
+        name: org.name,
+      }))}
+      preferences={
+        user
+          ? {
+              emailRemindersEnabled: user.emailRemindersEnabled,
+              whatsappRemindersEnabled: user.whatsappRemindersEnabled,
+            }
+          : undefined
+      }
+      user={
+        user
+          ? { name: user.name, email: user.email, avatarKey: user.avatarKey }
+          : null
+      }
+    />
+  );
+}
+
+export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await currentUser();
-  const hasOrganization = user
-    ? !!(await db.organizationMember.findFirst({
-        where: { userId: user.id, status: "ACTIVE", org: { status: "ACTIVE" } },
-        select: { orgId: true },
-      }))
-    : false;
   return (
     <div className={`marketing ${display.variable} ${mono.variable}`}>
       <SmoothScroll />
       <noscript>
         <style>{`.marketing .m-reveal,.marketing .m-mini-bubble,.marketing .m-paid-stamp{opacity:1!important;transform:none!important}.marketing .m-word-mask>span{transform:none!important}`}</style>
       </noscript>
-      <GlobalNavbar
-        hasOrganization={hasOrganization}
-        user={
-          user
-            ? { name: user.name, email: user.email, avatarKey: user.avatarKey }
-            : null
-        }
-      />
+      <Suspense fallback={<GlobalNavbar user={null} loading />}>
+        <SignedInGlobalNavbar />
+      </Suspense>
       <div id="site-content" tabIndex={-1}>
         {children}
       </div>

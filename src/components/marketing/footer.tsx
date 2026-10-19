@@ -26,11 +26,13 @@ function darkTheme() {
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
   const eclipseMask = useId();
+  const actionLabel = dark ? "Switch to light mode" : "Switch to dark mode";
   return (
     <button
       type="button"
       className={compact ? "gnav-theme" : "m-theme-toggle m-sticker"}
-      aria-label={dark ? "Use light theme" : "Use dark theme"}
+      aria-label={actionLabel}
+      title={actionLabel}
       onPointerDown={(event) => {
         if (event.button !== 0) return;
         // Focusing a sticky header must not scroll before the reveal is captured.
