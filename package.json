@@ -14,7 +14,7 @@
     "check:theme-colors": "tsx scripts/check-theme-colors.ts",
     "check:contrast": "tsx scripts/check-theme-contrast.ts && playwright test tests/e2e/theme-contrast.spec.ts",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node seed-raunak-events.js",
     "worker": "tsx worker/index.ts",
     "format": "prettier --write ."
   },

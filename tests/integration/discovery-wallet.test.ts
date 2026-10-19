@@ -193,6 +193,16 @@ it("persists saves idempotently and classifies owned admission tickets accuratel
   ).toBe(0);
   await db.ticket.update({
     where: { id: ticket.id },
+    data: { status: "USED" },
+  });
+  expect(
+    await db.ticket.count({ where: walletWhere(userId, "upcoming") }),
+  ).toBe(0);
+  expect(
+    await db.ticket.count({ where: walletWhere(userId, "past") }),
+  ).toBe(1);
+  await db.ticket.update({
+    where: { id: ticket.id },
     data: { status: "CANCELLED" },
   });
   expect(

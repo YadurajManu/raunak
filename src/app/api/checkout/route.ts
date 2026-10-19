@@ -1,20 +1,16 @@
 import { requireUser } from "@/server/auth/session";
 import { requireSameOrigin } from "@/server/auth/origin";
 import { createCheckout } from "@/server/checkout/service";
+import { checkoutSnapshot, checkoutError } from "@/server/checkout/response";
 export async function POST(request: Request) {
   try {
     requireSameOrigin(request);
     const user = await requireUser();
-    return Response.json(await createCheckout(user, await request.json()), {
+    const order = await createCheckout(user, await request.json());
+    return Response.json(await checkoutSnapshot(order.id, user.id), {
       status: 201,
     });
   } catch (error) {
-    return Response.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Could not create order.",
-      },
-      { status: 400 },
-    );
+    return checkoutError(error);
   }
 }

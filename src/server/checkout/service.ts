@@ -10,33 +10,19 @@ import {
 
 import { queueTicketDelivery } from "@/server/tickets/delivery";
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";
+import { checkoutInputSchema, orderedAttendeeNames } from "./input";
 
-const cartSchema = z.object({
-  eventId: z.uuid(),
-  items: z
-    .array(
-      z.object({
-        ticketTypeId: z.uuid(),
-        quantity: z.number().int().positive().max(10),
-      }),
-    )
-    .min(1)
-    .max(20),
-  buyerName: z.string().trim().min(2).max(100),
-  buyerPhone: z
-    .string()
-    .regex(/^[6-9]\d{9}$/, "Enter a 10-digit Indian mobile number.")
-    .refine(
-      (phone) => parsePhoneNumberFromString(phone, "IN")?.isValid(),
-      "Enter a valid Indian mobile number.",
-    ),
-  whatsappOptIn: z.boolean().default(false),
-  idempotencyKey: z.uuid(),
-});
 // Cashfree requires an expiry more than 15 minutes away; inventory uses the same deadline.
 const ORDER_MS = 20 * 60 * 1000;
 function ticketCode() {
   return randomBytes(5).toString("hex").toUpperCase();
+}
+
+function requireDemoSandbox(slug: string) {
+  if (slug.startsWith("raunak-demo-") && process.env.CASHFREE_ENV !== "sandbox")
+    throw new Error(
+      "Demo events accept sandbox bookings only. No real payment is permitted.",
+    );
 }
 
 async function issueTickets(
@@ -47,22 +33,29 @@ async function issueTickets(
     buyerName: string;
     buyerEmail: string;
     buyerPhone: string | null;
+    attendeeNames?: Prisma.JsonValue;
     items: { ticketTypeId: string; quantity: number }[];
   },
 ) {
-  for (const item of order.items)
-    for (let i = 0; i < item.quantity; i++)
+  let attendee = 0;
+  const names = Array.isArray(order.attendeeNames) ? order.attendeeNames : [];
+  for (const item of [...order.items].sort((a, b) =>
+    a.ticketTypeId.localeCompare(b.ticketTypeId),
+  ))
+    for (let i = 0; i < item.quantity; i++) {
+      const holder = names[attendee++];
       await tx.ticket.create({
         data: {
           orderId: order.id,
           eventId: order.eventId,
           ticketTypeId: item.ticketTypeId,
           code: ticketCode(),
-          holderName: order.buyerName,
+          holderName: typeof holder === "string" ? holder : order.buyerName,
           holderEmail: order.buyerEmail,
           holderPhone: order.buyerPhone,
         },
       });
+    }
 }
 
 export async function createCheckout(
@@ -70,20 +63,26 @@ export async function createCheckout(
   input: unknown,
   provider: PaymentProvider = cashfree,
 ) {
-  const data = cartSchema.parse(input);
+  const data = checkoutInputSchema.parse(input);
+  const attendeeNames = orderedAttendeeNames(data);
   const unique = new Set(data.items.map((item) => item.ticketTypeId));
   if (unique.size !== data.items.length)
     throw new Error("Duplicate ticket type in cart.");
   const existing = await db.order.findUnique({
     where: { idempotencyKey: data.idempotencyKey },
-    include: { items: true },
+    include: { items: true, event: { select: { slug: true } } },
   });
   if (existing) {
+    requireDemoSandbox(existing.event.slug);
     if (
       existing.buyerId !== buyer.id ||
       existing.eventId !== data.eventId ||
       existing.buyerName !== data.buyerName ||
-      existing.buyerPhone !== data.buyerPhone ||
+      (existing.buyerPhone
+        ? parsePhoneNumberFromString(existing.buyerPhone, "IN")?.number
+        : null) !== data.buyerPhone ||
+      JSON.stringify(existing.attendeeNames ?? null) !==
+        JSON.stringify(attendeeNames ?? null) ||
       existing.whatsappOptIn !== data.whatsappOptIn ||
       existing.items.length !== data.items.length ||
       existing.items.some(
@@ -114,6 +113,7 @@ export async function createCheckout(
           include: { org: true },
         });
         if (!event) throw new Error("Event is unavailable.");
+        requireDemoSandbox(event.slug);
         const types = await tx.ticketType.findMany({
           where: { eventId: data.eventId, id: { in: [...unique] } },
         });
@@ -164,6 +164,17 @@ export async function createCheckout(
           (event.org.feeMode === "PASS_TO_BUYER" ? feePaise : 0);
         if (totalPaise > 0 && totalPaise < 100)
           throw new Error("Paid bookings must total at least ₹1.");
+        if (
+          totalPaise &&
+          (!data.buyerPhone ||
+            parsePhoneNumberFromString(data.buyerPhone)?.country !== "IN" ||
+            !/^[6-9]\d{9}$/.test(
+              parsePhoneNumberFromString(data.buyerPhone)!.nationalNumber,
+            ))
+        )
+          throw new Error(
+            "Cashfree requires a valid Indian mobile number for paid bookings.",
+          );
         const expiresAt = new Date(now.getTime() + ORDER_MS);
         const result = await tx.order.create({
           data: {
@@ -172,6 +183,7 @@ export async function createCheckout(
             buyerName: data.buyerName,
             buyerEmail: buyer.email,
             buyerPhone: data.buyerPhone,
+            attendeeNames,
             whatsappOptIn: data.whatsappOptIn,
             whatsappOptInAt: data.whatsappOptIn ? now : null,
             idempotencyKey: data.idempotencyKey,
@@ -225,7 +237,11 @@ export async function createCheckout(
             replay.eventId === data.eventId &&
             replay.whatsappOptIn === data.whatsappOptIn &&
             replay.buyerName === data.buyerName &&
-            replay.buyerPhone === data.buyerPhone &&
+            (replay.buyerPhone
+              ? parsePhoneNumberFromString(replay.buyerPhone, "IN")?.number
+              : null) === data.buyerPhone &&
+            JSON.stringify(replay.attendeeNames ?? null) ===
+              JSON.stringify(attendeeNames ?? null) &&
             replay.items.length === data.items.length &&
             replay.items.every(
               (item) =>
@@ -259,7 +275,8 @@ export async function createCheckout(
       customerId: buyer.id,
       name: order.buyerName,
       email: order.buyerEmail,
-      phone: order.buyerPhone!,
+      phone: parsePhoneNumberFromString(order.buyerPhone!, "IN")!
+        .nationalNumber,
       returnUrl: `${envUrl}/orders/${order.id}`,
       notifyUrl: `${envUrl}/api/webhooks/cashfree`,
       expiresAt: order.expiresAt,

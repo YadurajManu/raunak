@@ -187,7 +187,7 @@ export function EventReviews({
               </select>
             </label>
           </div>
-          {error && <p className="mt-4 text-sm text-red-700 dark:text-red-300" role="alert">{error}</p>}
+          {error && <p className="mt-4 text-sm text-[var(--danger)]" role="alert">{error}</p>}
           {success && <p className="mt-4 text-sm text-[var(--muted)]" role="status">{success}</p>}
           <button className="mt-5 min-h-11 rounded-xl bg-[var(--accent)] px-5 font-semibold text-[var(--on-accent)] disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={saving || !rating}>
             {saving ? "Saving…" : hasSaved ? "Update review" : "Share review"}

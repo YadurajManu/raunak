@@ -380,6 +380,7 @@ model Order {
   buyerName String
   buyerEmail String
   buyerPhone String?
+  attendeeNames Json?
   whatsappOptIn Boolean @default(false)
   whatsappOptInAt DateTime? @db.Timestamptz(6)
   fulfilmentQueuedAt DateTime? @db.Timestamptz(6)

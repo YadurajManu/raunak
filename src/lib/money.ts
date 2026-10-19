@@ -15,3 +15,8 @@ export function formatInr(paise: number): string {
     currency: "INR",
   }).format(paise / 100);
 }
+
+export function formatMoney(paise: number): string {
+  if (paise === 0) return "Free";
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(paise / 100);
+}

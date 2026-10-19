@@ -46,3 +46,5 @@ next-env.d.ts
 
 /artifacts/
 /garage.toml
+/garba-match/
+ChatGPT Image*.png
