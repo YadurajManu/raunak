@@ -1,6 +1,10 @@
 import { requireSameOrigin } from "@/server/auth/origin";
 import { requireUser } from "@/server/auth/session";
-import { changeEventStatus, submitEventForReview } from "@/server/events/service";
+import {
+  changeEventStatus,
+  submitEventForReview,
+} from "@/server/events/service";
+import { sendEventReviewNotification } from "@/server/admin/review-notification";
 import { z } from "zod";
 export async function POST(
   request: Request,
@@ -17,6 +21,17 @@ export async function POST(
       status === "PUBLISHED"
         ? await submitEventForReview(user.id, eventId)
         : await changeEventStatus(user.id, eventId, status);
+    if (status === "PUBLISHED") {
+      try {
+        await sendEventReviewNotification(event.id);
+      } catch (error) {
+        console.error(
+          "Could not email the platform review inbox for event",
+          event.id,
+          error instanceof Error ? error.message : "Unknown email error.",
+        );
+      }
+    }
     return Response.json(event);
   } catch (error) {
     return Response.json(

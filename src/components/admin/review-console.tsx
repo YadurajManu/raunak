@@ -78,10 +78,12 @@ const reasonActions: ReviewAction[] = ["REQUEST_CHANGES", "REJECT", "SUSPEND"];
 
 export function ReviewConsole({
   initialEvents,
+  initialSelectedId,
   initialStatus = "PENDING_REVIEW",
   initialError = "",
 }: {
   initialEvents: ReviewEvent[];
+  initialSelectedId?: string;
   initialStatus?: QueueStatus;
   initialError?: string;
 }) {
@@ -90,7 +92,9 @@ export function ReviewConsole({
   const [counts, setCounts] = useState<Partial<Record<QueueStatus, number>>>(
     { [initialStatus]: initialEvents.length },
   );
-  const [selectedId, setSelectedId] = useState<string | null>(initialEvents[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialSelectedId ?? initialEvents[0]?.id ?? null,
+  );
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(initialError);

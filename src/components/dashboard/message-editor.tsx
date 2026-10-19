@@ -146,17 +146,49 @@ export function MessageEditor({
               ))}
             </select>
           </label>
-          <label className="block">
-            Channel
-            <select
-              className="mt-2 w-full rounded-lg border p-3 bg-transparent"
-              value={channel}
-              onChange={(e) => select(trigger, e.target.value)}
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium">Delivery channel</legend>
+            <div
+              className="grid grid-cols-2 gap-2"
+              role="group"
+              aria-label="Choose a delivery channel"
             >
-              <option>EMAIL</option>
-              <option>WHATSAPP</option>
-            </select>
-          </label>
+              {(["EMAIL", "WHATSAPP"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={channel === value}
+                  onClick={() => select(trigger, value)}
+                  className={`min-h-11 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${channel === value ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]" : "border-[var(--line)] bg-transparent text-[var(--muted)] hover:bg-[var(--paper-2)]"}`}
+                >
+                  {value === "EMAIL" ? "Email" : "WhatsApp"}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          {channel === "WHATSAPP" && (
+            <div className="space-y-2 rounded-xl border border-[var(--line)] bg-[var(--paper-2)] p-4 text-sm">
+              <p>
+                Save an enabled <strong>Ticket issued</strong> message to send
+                each buyer their ticket on WhatsApp after it is prepared. Buyers
+                need to provide a mobile number and opt in at checkout. Email
+                remains a separate channel.
+              </p>
+              {eventId && (
+                <p>
+                  To resend an existing paid booking, open{" "}
+                  <Link
+                    href={`/dashboard/events/${eventId}/attendees`}
+                    className="font-medium text-[var(--accent)] underline"
+                  >
+                    attendee bookings
+                  </Link>{" "}
+                  and choose <strong>Resend tickets</strong>. WhatsApp is sent
+                  when that buyer opted in.
+                </p>
+              )}
+            </div>
+          )}
           <label className="flex gap-3">
             <input
               type="checkbox"
