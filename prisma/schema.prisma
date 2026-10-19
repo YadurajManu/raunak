@@ -138,6 +138,7 @@ model User {
   memberships OrganizationMember[]
   invitesAccepted Invite[] @relation("InviteAcceptor")
   eventAssignments EventStaff[]
+  inAppNotifications InAppNotification[]
   orders Order[]
   checkedInTickets Ticket[] @relation("TicketChecker")
   auditLogs AuditLog[]
@@ -257,6 +258,21 @@ model SavedEvent {
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   @@id([userId, eventId])
   @@index([eventId])
+}
+
+model InAppNotification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  dedupeKey String @unique
+  kind String
+  title String
+  body String
+  href String
+  readAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+  @@index([userId, readAt, createdAt])
 }
 
 model EventImage {

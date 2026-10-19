@@ -34,6 +34,11 @@ import type { GatewayMessage } from "@raunak/wa-contracts";
 import sharp from "sharp";
 import { messageAccess } from "./access";
 import { attachmentSettingsSchema } from "@/lib/whatsapp";
+import {
+  notifyEventChanged,
+  notifyReminder,
+  notifyTicketsIssued,
+} from "./inbox";
 
 export async function resolvedTemplate(
   orgId: string,
@@ -141,6 +146,16 @@ export async function enqueueOrderNotifications(
     include: { event: true, tickets: true },
   });
   if (order.status !== "PAID") return;
+  try {
+    await notifyTicketsIssued({
+      userId: order.buyerId,
+      orderId: order.id,
+      title: order.event.title,
+      count: order.tickets.length,
+    });
+  } catch {
+    // Inbox delivery must not block the paid booking or its email/WhatsApp ticket delivery.
+  }
   await enqueueNotification(
     orderId,
     "ORDER_CONFIRMED",
@@ -197,9 +212,21 @@ export async function enqueueEventNotifications(
   }
   const orders = await db.order.findMany({
     where: { eventId, status: "PAID" },
-    select: { id: true },
+    select: { id: true, buyerId: true },
   });
   for (const order of orders) {
+    try {
+      await notifyEventChanged({
+        userId: order.buyerId,
+        orderId: order.id,
+        eventId: event.id,
+        title: event.title,
+        cancelled: trigger === "EVENT_CANCELLED",
+        revision: event.updatedAt.toISOString(),
+      });
+    } catch {
+      // Keep transactional delivery independent from optional in-app inbox writes.
+    }
     await enqueueNotification(
       order.id,
       trigger,
@@ -504,6 +531,21 @@ export async function processNotification(
       where: { id, status: "SENDING" },
       data: { status: "SENT", sentAt: new Date(), error: null },
     });
+    if (log.trigger === "TICKET_ISSUED" || log.trigger === "REMINDER_24H" || log.trigger === "REMINDER_2H") {
+      try {
+        if (log.trigger !== "TICKET_ISSUED") {
+          await notifyReminder({
+            userId: log.order.buyerId,
+            orderId: log.orderId,
+            title: log.event.title,
+            trigger: log.trigger,
+            startsAt: log.event.startsAt,
+          });
+        }
+      } catch {
+        // In-app notifications are optional and never block provider delivery.
+      }
+    }
   } catch (error) {
     if (error instanceof WaError) {
       const deferred =

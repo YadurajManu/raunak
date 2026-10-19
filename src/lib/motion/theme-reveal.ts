@@ -3,10 +3,11 @@
 import { flushSync } from "react-dom";
 
 let revealing = false;
+export type ThemePreference = "light" | "dark" | "system";
 
 export async function revealTheme(
   button: HTMLButtonElement,
-  theme: "light" | "dark",
+  theme: ThemePreference,
 ) {
   if (revealing) return;
   const root = document.documentElement;
@@ -16,7 +17,8 @@ export async function revealTheme(
     applied = true;
     // The incoming snapshot must include React's updated icons and labels too.
     flushSync(() => {
-      root.dataset.marketingTheme = theme;
+      if (theme === "system") delete root.dataset.marketingTheme;
+      else root.dataset.marketingTheme = theme;
       try {
         localStorage.setItem("raunak-theme", theme);
       } catch {}

@@ -8,10 +8,14 @@ import {
   LogOut,
   Mail,
   MessageCircle,
+  Monitor,
+  Moon,
+  Sun,
   UserRound,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { revealTheme, type ThemePreference } from "@/lib/motion/theme-reveal";
 
 type Organization = { id: string; name: string };
 type Preferences = {
@@ -42,12 +46,13 @@ export function ProfileControls({
   const panel = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState({ open: false, path: pathname });
   const open = menu.open && menu.path === pathname;
-  const setOpen = (value: boolean) => setMenu({ open: value, path: pathname });
+  const setOpen = useCallback((value: boolean) => setMenu({ open: value, path: pathname }), [pathname]);
   const [imageFailed, setImageFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [savedPreferences, setSavedPreferences] = useState(preferences);
   const [saving, setSaving] = useState<keyof Preferences | null>(null);
+  const [theme, setTheme] = useState<ThemePreference>("system");
   const initials = name
     .trim()
     .split(/\s+/)
@@ -72,6 +77,28 @@ export function ProfileControls({
     requestAnimationFrame(() => menuItems()[0]?.focus());
     return () => document.removeEventListener("pointerdown", closeOutside);
   }, [open, pathname]);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("raunak:profile-menu-state", { detail: open }));
+  }, [open]);
+
+  useEffect(() => {
+    const openFromTab = () => setOpen(true);
+    window.addEventListener("raunak:open-profile", openFromTab);
+    return () => window.removeEventListener("raunak:open-profile", openFromTab);
+  }, [setOpen]);
+
+  useEffect(() => {
+    const readTheme = () => {
+      try {
+        const stored = localStorage.getItem("raunak-theme");
+        setTheme(stored === "light" || stored === "dark" ? stored : "system");
+      } catch { setTheme("system"); }
+    };
+    readTheme();
+    window.addEventListener("raunak-theme", readTheme);
+    return () => window.removeEventListener("raunak-theme", readTheme);
+  }, []);
 
   function closeAndRestoreFocus() {
     setOpen(false);
@@ -141,6 +168,11 @@ export function ProfileControls({
     } finally {
       setSaving(null);
     }
+  }
+
+  async function chooseTheme(next: ThemePreference, button: HTMLButtonElement) {
+    setTheme(next);
+    await revealTheme(button, next);
   }
 
   async function logout() {
@@ -352,6 +384,28 @@ export function ProfileControls({
               <span>Help &amp; contact</span>
               <span className="r-profile-link-arrow" aria-hidden="true">→</span>
             </Link>
+          </div>
+          <div className="r-profile-theme-group" role="group" aria-label="Theme">
+            <span className="r-profile-group-label" role="presentation">Appearance</span>
+            <div className="r-profile-theme-options">
+              {([
+                ["light", Sun, "Light"],
+                ["dark", Moon, "Dark"],
+                ["system", Monitor, "System"],
+              ] as const).map(([value, Icon, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={theme === value}
+                  className="r-profile-theme-option"
+                  onClick={(event) => void chooseTheme(value, event.currentTarget)}
+                >
+                  <Icon size={15} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <div className="r-profile-signout-group" role="group" aria-label="Session">
             <button

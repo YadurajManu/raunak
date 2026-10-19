@@ -17,6 +17,8 @@ import { GlobalNavbar } from "@/components/global-navbar";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { SmoothScroll } from "@/lib/motion/smooth-scroll";
+import { ticketToken } from "@/server/tickets/qr";
+import { navigationFor } from "@/config/nav";
 
 const display = Instrument_Serif({
   weight: "400",
@@ -35,19 +37,75 @@ const mono = Geist_Mono({
 
 async function SignedInGlobalNavbar() {
   const user = await currentUser();
-  const organizations = user
+  const membershipRows = user
     ? await db.organizationMember.findMany({
         where: { userId: user.id, status: "ACTIVE", org: { status: "ACTIVE" } },
-        select: { orgId: true, org: { select: { name: true } } },
+        select: { orgId: true, role: true, org: { select: { name: true } } },
         orderBy: { createdAt: "asc" },
       })
     : [];
+  const memberships = membershipRows.map(({ orgId, role, org }) => ({
+    id: orgId,
+    name: org.name,
+    role,
+  }));
+  const checkinAssignment = user
+    ? await db.eventStaff.findFirst({
+        where: {
+          userId: user.id,
+          role: "CHECKIN",
+          event: { status: "PUBLISHED", deletedAt: null },
+        },
+        select: { eventId: true },
+        orderBy: { event: { startsAt: "asc" } },
+      })
+    : null;
+  const now = new Date();
+  const ticketWindowEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const [todayTicketCount, firstTodayTicket, unreadCount] = user
+    ? await Promise.all([
+        db.ticket.count({
+          where: {
+            status: "VALID",
+            order: { buyerId: user.id, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
+            event: { startsAt: { lte: ticketWindowEnd }, endsAt: { gt: now } },
+          },
+        }),
+        db.ticket.findFirst({
+          where: {
+            status: "VALID",
+            order: { buyerId: user.id, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
+            event: { startsAt: { lte: ticketWindowEnd }, endsAt: { gt: now } },
+          },
+          select: { id: true, eventId: true, event: { select: { title: true } } },
+          orderBy: { event: { startsAt: "asc" } },
+        }),
+        db.inAppNotification.count({ where: { userId: user.id, readAt: null } }),
+      ])
+    : [0, null, 0];
+  let ticketHref = "/my-tickets?tab=upcoming";
+  if (firstTodayTicket) {
+    try {
+      ticketHref = `/t/${ticketToken(firstTodayTicket.id, firstTodayTicket.eventId)}`;
+    } catch {
+      ticketHref = `/my-tickets/${firstTodayTicket.id}`;
+    }
+  }
+  const todayTicket = firstTodayTicket
+    ? { count: todayTicketCount, title: firstTodayTicket.event.title, href: ticketHref }
+    : null;
+  const navigation = navigationFor({
+    signedIn: Boolean(user),
+    memberships,
+    assignedCheckInEventId: checkinAssignment?.eventId,
+  });
   return (
     <GlobalNavbar
-      organizations={organizations.map(({ orgId, org }) => ({
-        id: orgId,
-        name: org.name,
-      }))}
+      organizations={memberships.map(({ id, name }) => ({ id, name }))}
+      navigation={navigation}
+      city={user?.city || null}
+      todayTicket={todayTicket}
+      initialUnreadCount={unreadCount}
       preferences={
         user
           ? {

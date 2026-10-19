@@ -6,6 +6,7 @@ import {
 } from "@/server/providers/email/provider";
 import { emailMarkup } from "@/server/notifications/email-markup";
 import { formatInr } from "@/lib/money";
+import { notifyRefundUpdated } from "@/server/notifications/inbox";
 
 export async function processOperationsEmail(
   payload: unknown,
@@ -35,6 +36,19 @@ export async function processOperationsEmail(
     key !== `refund-${refund!.id}-${refund!.status}`
   )
     return;
+  if (data.kind === "REFUND_UPDATED") {
+    try {
+      await notifyRefundUpdated({
+        userId: order.buyerId,
+        orderId: order.id,
+        refundId: refund!.id,
+        title: order.event.title,
+        status: refund!.status,
+      });
+    } catch {
+      // Inbox availability must not block the existing refund email.
+    }
+  }
   const text =
     data.kind === "BOOKING_CANCELLED"
       ? `Hi ${order.buyerName}, your booking has been cancelled and its entry tickets are no longer valid.${order.totalPaise ? (order.status === "REFUNDED" ? " Your refund has been confirmed by Cashfree; your bank may take additional time to credit it." : " Your refund has been requested; it is not complete until confirmed by the payment provider.") : " This was a free booking, so no payment refund is needed."}`

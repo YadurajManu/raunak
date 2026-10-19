@@ -53,6 +53,37 @@ export const notificationPreferencesSchema = z
   .strict()
   .refine((value) => Object.keys(value).length > 0);
 
+const cityPreferenceSchema = z.union([
+  z.object({
+    city: z.string().trim().min(1).max(120),
+    region: z.string().trim().max(120).default(""),
+    countryCode: z.string().regex(/^[A-Z]{2}$/),
+    label: z.string().trim().max(500).optional(),
+  }).strict(),
+  z.null(),
+]);
+
+export async function saveCityPreference(userId: string, input: unknown) {
+  z.uuid().parse(userId);
+  const location = cityPreferenceSchema.parse(input);
+  return db.user.update({
+    where: { id: userId },
+    data: {
+      city: location?.city || null,
+      region: location?.region || null,
+      countryCode: location?.countryCode || null,
+      locationLabel: location
+        ? location.label || [location.city, location.region, location.countryCode].filter(Boolean).join(", ")
+        : null,
+      // Discovery stores a city-level hub only in the browser; never persist the device pin here.
+      latitude: null,
+      longitude: null,
+      locationConsentAt: null,
+    },
+    select: { city: true, region: true, countryCode: true, locationLabel: true },
+  });
+}
+
 export async function saveNotificationPreferences(userId: string, input: unknown) {
   z.uuid().parse(userId);
   const data = notificationPreferencesSchema.parse(input);

@@ -1,5 +1,6 @@
 import { db } from "@/server/db/client";
 import { publicListing } from "@/server/public/events";
+import { citySuggestions } from "@/config/cities";
 export async function GET(request: Request) {
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (q.length < 2 || q.length > 100) return Response.json({ suggestions: [] });
@@ -28,27 +29,17 @@ export async function GET(request: Request) {
       orderBy: { startsAt: "asc" },
       take: 8,
     });
-    const suggestions = events.flatMap((event) => [
-      { label: event.title, kind: "Event", href: `/e/${event.slug}` },
-      ...(event.venueName?.toLowerCase().includes(q.toLowerCase())
-        ? [
-            {
-              label: event.venueName,
-              kind: "Venue",
-              href: `/discover?q=${encodeURIComponent(event.venueName)}`,
-            },
-          ]
-        : []),
-      ...(event.org.name.toLowerCase().includes(q.toLowerCase())
-        ? [
-            {
-              label: event.org.name,
-              kind: "Organizer",
-              href: `/organizers/${event.org.slug}`,
-            },
-          ]
-        : []),
-    ]);
+    const needle = q.toLocaleLowerCase("en-IN");
+    const suggestions = [
+      ...events.filter((event) => event.title.toLocaleLowerCase("en-IN").includes(needle)).slice(0, 3).map((event) => ({ label: event.title, kind: "Event", href: `/e/${event.slug}` })),
+      ...events.filter((event) => event.venueName?.toLocaleLowerCase("en-IN").includes(needle)).slice(0, 2).map((event) => ({ label: event.venueName!, kind: "Venue", href: `/discover?q=${encodeURIComponent(event.venueName!)}` })),
+      ...events.filter((event) => event.org.name.toLocaleLowerCase("en-IN").includes(needle)).slice(0, 2).map((event) => ({ label: event.org.name, kind: "Organizer", href: `/organizers/${event.org.slug}` })),
+      ...citySuggestions(q).slice(0, 3).map((place) => ({
+        label: place.city,
+        kind: "City",
+        href: `/discover?city=${encodeURIComponent(place.city)}`,
+      })),
+    ];
     return Response.json(
       {
         suggestions: suggestions

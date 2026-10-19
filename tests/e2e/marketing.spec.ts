@@ -54,19 +54,16 @@ test("mobile navigation supports keyboard and leaves no horizontal overflow", as
   await page.setViewportSize({ width: 375, height: 812 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const navigation = page.getByRole("navigation", { name: "Main navigation" });
-  await page.getByRole("button", { name: "Open navigation menu" }).click();
-  const discover = navigation.getByRole("link", { name: "Discover events" });
-  await expect(discover).toBeVisible();
-  await discover.focus();
-  await page.keyboard.press("Tab");
-  await expect(
-    navigation.getByRole("link", { name: "My tickets" }),
-  ).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(
-    page.getByRole("button", { name: "Open navigation menu" }),
-  ).toBeFocused();
+  await expect(page.locator(".gnav-links")).toBeHidden();
+  const tabs = page.getByRole("navigation", { name: "Quick navigation" });
+  await expect(tabs.getByRole("link", { name: "Discover" })).toBeVisible();
+  await expect(tabs.getByRole("link", { name: "Get started" })).toBeVisible();
+  await tabs.getByRole("button", { name: "Search events" }).click();
+  const search = page.getByRole("dialog", { name: "Search Raunak events" });
+  await expect(search).toBeVisible();
+  await search.getByRole("textbox", { name: "Search events, venues or organizers" }).fill("dance");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/discover\?q=dance/);
   await expect(
     page.getByRole("button", { name: "Switch to dark mode" }).first(),
   ).toBeVisible();

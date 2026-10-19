@@ -4,12 +4,20 @@ import { requireUser } from "@/server/auth/session";
 import {
   saveNotificationPreferences,
   saveProfile,
+  saveCityPreference,
 } from "@/server/profile/service";
 export async function PATCH(request: Request) {
   try {
     requireSameOrigin(request);
     const user = await requireUser();
     const input: unknown = await request.json();
+    if (
+      input &&
+      typeof input === "object" &&
+      Object.keys(input).length === 1 &&
+      "location" in input
+    )
+      return Response.json(await saveCityPreference(user.id, input.location));
     if (
       input &&
       typeof input === "object" &&

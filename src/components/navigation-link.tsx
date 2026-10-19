@@ -15,8 +15,9 @@ export function NavigationLink({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const route = href.startsWith("/") ? href.split(/[?#]/, 1)[0] || "/" : href;
   const selected = pathname
-    ? pathname === href || (!exact && pathname.startsWith(`${href}/`))
+    ? pathname === route || (!exact && pathname.startsWith(`${route}/`))
     : active;
   return (
     <Link

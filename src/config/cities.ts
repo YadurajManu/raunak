@@ -15,6 +15,7 @@ export const cities: Place[] = [
   ["Lucknow", "Uttar Pradesh", 26.8467, 80.9462],
   ["Ghaziabad", "Uttar Pradesh", 28.6692, 77.4538],
   ["Noida", "Uttar Pradesh", 28.5355, 77.3910],
+  ["Greater Noida", "Uttar Pradesh", 28.4744, 77.5040],
   ["Gurugram", "Haryana", 28.4595, 77.0266],
   ["Chandigarh", "Chandigarh", 30.7333, 76.7794],
   ["Indore", "Madhya Pradesh", 22.7196, 75.8577],
