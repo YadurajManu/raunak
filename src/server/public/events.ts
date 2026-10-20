@@ -19,6 +19,7 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
     include: {
       org: {
         select: {
+          id: true,
           name: true,
           slug: true,
           status: true,
@@ -28,6 +29,11 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
           platformFeeBps: true,
           platformFeeFixedPaise: true,
           feeMode: true,
+          logoKey: true,
+          coverKey: true,
+          coverPosition: true,
+          tagline: true,
+          bio: true,
         },
       },
       images: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
@@ -104,7 +110,7 @@ export async function discoverPage(input: unknown) {
     db.event.findMany({
       where: { ...publicListing, id: { in: ids.map((v) => v.id) } },
       include: {
-        org: { select: { name: true, slug: true } },
+        org: { select: { name: true, slug: true, logoKey: true } },
         images: {
           where: { kind: { in: ["POSTER", "COVER"] } },
           orderBy: { kind: "desc" },

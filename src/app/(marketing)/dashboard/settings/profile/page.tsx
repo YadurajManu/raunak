@@ -78,6 +78,14 @@ export default async function ProfileSettingsPage({
           supportEmail: org.supportEmail || "",
           supportPhone: org.supportPhone || "",
           profileVisible: org.profileVisible,
+          logoKey: org.logoKey || "",
+          coverKey: org.coverKey || "",
+          coverPosition: org.coverPosition || "center",
+          highlights: (org.highlights || []) as Array<{
+            id: string;
+            url: string;
+            caption?: string;
+          }>,
         }}
       />
     </>

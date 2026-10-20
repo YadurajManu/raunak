@@ -14,6 +14,12 @@ const socialLinksSchema = z
   })
   .optional();
 
+const highlightItemSchema = z.object({
+  id: z.string(),
+  url: z.string().min(1),
+  caption: z.string().max(200).optional(),
+});
+
 const profileSchema = z.object({
   tagline: z.string().max(160).optional(),
   bio: z.string().max(2000).optional(),
@@ -22,7 +28,9 @@ const profileSchema = z.object({
   supportPhone: z.string().max(20).or(z.literal("")).optional(),
   profileVisible: z.boolean().optional(),
   coverKey: z.string().max(500).or(z.literal("")).optional(),
+  coverPosition: z.string().max(50).optional(),
   logoKey: z.string().max(500).or(z.literal("")).optional(),
+  highlights: z.array(highlightItemSchema).max(20).optional(),
 });
 
 export async function PATCH(
@@ -57,8 +65,12 @@ export async function PATCH(
       data.profileVisible = body.profileVisible;
     if (body.coverKey !== undefined)
       data.coverKey = body.coverKey.trim() || null;
+    if (body.coverPosition !== undefined)
+      data.coverPosition = body.coverPosition.trim() || "center";
     if (body.logoKey !== undefined)
       data.logoKey = body.logoKey.trim() || null;
+    if (body.highlights !== undefined)
+      data.highlights = body.highlights;
 
     const org = await db.organization.update({
       where: { id: orgId },

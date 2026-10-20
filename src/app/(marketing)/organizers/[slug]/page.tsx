@@ -4,6 +4,8 @@ import { db } from "@/server/db/client";
 import { currentUser } from "@/server/auth/session";
 import { discoverPage, publicListing } from "@/server/public/events";
 import { EventCard } from "@/components/public/event-card";
+import { FollowOrganizerButton } from "@/components/public/follow-organizer-button";
+import { OrganizerEventsSection } from "@/components/public/organizer-events-section";
 import { MarketingFooter } from "@/components/marketing/footer";
 import {
   Star,
@@ -14,6 +16,7 @@ import {
   Globe,
   BadgeCheck,
   ExternalLink,
+  Heart,
 } from "lucide-react";
 import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
@@ -25,6 +28,12 @@ type SocialLinks = {
   youtube?: string;
   website?: string;
   linkedin?: string;
+};
+
+type HighlightItem = {
+  id: string;
+  url: string;
+  caption?: string;
 };
 
 const base = process.env.APP_URL || "http://localhost:3000";
@@ -72,6 +81,8 @@ export default async function OrganizerPage({
       bio: true,
       socialLinks: true,
       coverKey: true,
+      coverPosition: true,
+      highlights: true,
       profileVisible: true,
       brandColor: true,
       supportEmail: true,
@@ -89,7 +100,7 @@ export default async function OrganizerPage({
   );
   if (!hasPublicEvents) notFound();
 
-  const [upcomingResult, pastEvents, reviewSummary, topReviews, totalAttendees, user] =
+  const [upcomingResult, pastEvents, reviewSummary, topReviews, totalAttendees, user, followerCount] =
     await Promise.all([
       discoverPage({ organizer: slug }),
       db.event.findMany({
@@ -105,7 +116,7 @@ export default async function OrganizerPage({
         include: {
           images: { where: { kind: "POSTER" }, take: 1 },
           ticketTypes: { where: { isHidden: false }, select: { pricePaise: true } },
-          org: { select: { name: true, slug: true } },
+          org: { select: { name: true, slug: true, logoKey: true } },
         },
       }),
       db.eventReview.aggregate({
@@ -151,19 +162,33 @@ export default async function OrganizerPage({
         },
       }),
       currentUser(),
+      db.organizationFollower.count({ where: { orgId: org.id } }),
     ]);
 
-  const saved = user
-    ? await db.savedEvent.findMany({
-        where: {
-          userId: user.id,
-          eventId: {
-            in: upcomingResult.events.map((event) => event.id),
+  const [saved, isFollowing] = await Promise.all([
+    user
+      ? db.savedEvent.findMany({
+          where: {
+            userId: user.id,
+            eventId: {
+              in: upcomingResult.events.map((event) => event.id),
+            },
           },
-        },
-        select: { eventId: true },
-      })
-    : [];
+          select: { eventId: true },
+        })
+      : [],
+    user
+      ? Boolean(
+          await db.organizationFollower.findUnique({
+            where: { userId_orgId: { userId: user.id, orgId: org.id } },
+          }),
+        )
+      : false,
+  ]);
+
+  const highlights = (Array.isArray(org.highlights)
+    ? org.highlights
+    : []) as HighlightItem[];
 
   const totalEventsHosted = await db.event.count({
     where: {
@@ -202,6 +227,7 @@ export default async function OrganizerPage({
               src={org.coverKey}
               alt={`${org.name} cover`}
               className="org-hero-cover"
+              style={{ objectPosition: org.coverPosition || "center" }}
             />
           ) : (
             <div
@@ -233,6 +259,13 @@ export default async function OrganizerPage({
               <h1>{org.name}</h1>
               {org.tagline && <p>{org.tagline}</p>}
             </div>
+            <div className="org-hero-actions">
+              <FollowOrganizerButton
+                orgId={org.id}
+                initialFollowersCount={followerCount}
+                initialIsFollowing={isFollowing}
+              />
+            </div>
           </div>
         </section>
 
@@ -252,6 +285,11 @@ export default async function OrganizerPage({
             <CalendarDays size={18} className="org-stat-icon" aria-hidden="true" />
             <strong>{totalEventsHosted}</strong>
             <span>{totalEventsHosted === 1 ? "event" : "events"} hosted</span>
+          </div>
+          <div className="org-stat">
+            <Users size={18} className="org-stat-icon" aria-hidden="true" />
+            <strong>{followerCount.toLocaleString("en-IN")}</strong>
+            <span>{followerCount === 1 ? "follower" : "followers"}</span>
           </div>
           {reviewSummary._count._all > 0 &&
             reviewSummary._avg.rating !== null && (
@@ -364,40 +402,29 @@ export default async function OrganizerPage({
           </div>
         )}
 
-        {/* Upcoming Events */}
-        {upcomingResult.events.length > 0 && (
-          <section className="org-events-section">
-            <div className="org-events-header">
-              <h2>Upcoming events</h2>
-              <Link
-                href={`/discover?organizer=${encodeURIComponent(slug)}`}
-              >
-                View all ↗
-              </Link>
-            </div>
-            <ul className="market-grid">
-              {upcomingResult.events.map((event) => (
-                <EventCard
-                  event={event}
-                  key={event.id}
-                  saved={saved.some((item) => item.eventId === event.id)}
-                />
-              ))}
-            </ul>
-          </section>
-        )}
+        {/* Events with tabs */}
+        <OrganizerEventsSection
+          upcomingEvents={upcomingResult.events}
+          pastEvents={pastEvents}
+          savedEventIds={saved.map((item) => item.eventId)}
+          organizerSlug={org.slug}
+        />
 
-        {/* Past Highlights */}
-        {pastEvents.length > 0 && (
-          <section className="org-events-section">
-            <div className="org-events-header">
-              <h2>Past highlights</h2>
+        {/* Event Highlights Photo Gallery */}
+        {highlights.length > 0 && (
+          <section className="org-highlights-section" id="highlights">
+            <div className="org-highlights-header">
+              <p className="org-about-label">EVENT HIGHLIGHTS</p>
+              <h2>Moments from previous gatherings</h2>
             </div>
-            <ul className="market-grid">
-              {pastEvents.map((event) => (
-                <EventCard event={event} key={event.id} saved={false} />
+            <div className="org-highlights-grid">
+              {highlights.map((hl) => (
+                <figure key={hl.id} className="org-highlight-item">
+                  <img src={hl.url} alt={hl.caption || "Event moment"} loading="lazy" />
+                  {hl.caption && <figcaption>{hl.caption}</figcaption>}
+                </figure>
               ))}
-            </ul>
+            </div>
           </section>
         )}
 

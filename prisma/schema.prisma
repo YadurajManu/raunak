@@ -145,6 +145,7 @@ model User {
   savedEvents SavedEvent[]
   reviewedEvents Event[] @relation("EventReviewer")
   eventReviews EventReview[]
+  followedOrgs OrganizationFollower[]
 }
 
 model Organization {
@@ -156,6 +157,8 @@ model Organization {
   bio String? @db.VarChar(2000)
   socialLinks Json @default("{}")
   coverKey String?
+  coverPosition String? @default("center")
+  highlights Json @default("[]")
   profileVisible Boolean @default(true)
   whatsappMode WhatsAppMode @default(DISABLED)
   whatsappSessions WhatsAppSession[]
@@ -175,6 +178,20 @@ model Organization {
   messageTemplates MessageTemplate[]
   notificationLogs NotificationLog[]
   auditLogs AuditLog[]
+  followers OrganizationFollower[]
+}
+
+model OrganizationFollower {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  orgId String @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+  @@index([userId])
 }
 
 model OrganizationMember {

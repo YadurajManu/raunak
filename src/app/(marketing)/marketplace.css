@@ -105,6 +105,17 @@
   display: flex;
   align-items: center;
 }
+.market-card-org {
+  gap: 8px;
+}
+.market-card-org-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+}
 .save-action {
   position: relative;
 }

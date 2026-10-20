@@ -17,7 +17,7 @@ export function EventCard({
     venueName: string | null;
     category: string | null;
     mode: string;
-    org: { name: string; slug: string };
+    org: { name: string; slug: string; logoKey?: string | null };
     images: { kind: string; variants: unknown; alt: string }[];
     ticketTypes: { pricePaise: number }[];
     reviewSummary?: { average: number | null; count: number } | null;
@@ -82,7 +82,16 @@ export function EventCard({
         </div>
       </Link>
       <footer>
-        <Link href={`/organizers/${event.org.slug}`}>{event.org.name}</Link>
+        <Link href={`/organizers/${event.org.slug}`} className="market-card-org">
+          {event.org.logoKey && (
+            <img
+              src={event.org.logoKey}
+              alt=""
+              className="market-card-org-logo"
+            />
+          )}
+          <span>{event.org.name}</span>
+        </Link>
         <SaveEvent eventId={event.id} initial={saved} />
         <a
           href={whatsappEventUrl(

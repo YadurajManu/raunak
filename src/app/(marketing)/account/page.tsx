@@ -87,7 +87,7 @@ export default async function AccountPage({
         event: {
           include: {
             images: { where: { kind: { in: ["POSTER", "COVER"] } }, take: 2 },
-            org: { select: { name: true, slug: true } },
+            org: { select: { name: true, slug: true, logoKey: true } },
           },
         },
         ticketType: true,
@@ -115,7 +115,7 @@ export default async function AccountPage({
       include: {
         event: {
           include: {
-            org: { select: { name: true, slug: true } },
+            org: { select: { name: true, slug: true, logoKey: true } },
             images: { where: { kind: { in: ["POSTER", "COVER"] } }, take: 2 },
             ticketTypes: {
               where: { isHidden: false },

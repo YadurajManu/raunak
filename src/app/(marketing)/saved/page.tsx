@@ -42,7 +42,7 @@ export default async function SavedPage({
       include: {
         event: {
           include: {
-            org: { select: { name: true, slug: true } },
+            org: { select: { name: true, slug: true, logoKey: true } },
             images: { where: { kind: { in: ["POSTER", "COVER"] } } },
             ticketTypes: {
               where: { isHidden: false },

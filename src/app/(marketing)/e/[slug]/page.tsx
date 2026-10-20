@@ -15,6 +15,8 @@ import { formatInr } from "@/lib/money";
 import { variantUrl } from "@/lib/images";
 import { EventImage } from "@/components/public/event-image";
 import { EventGallery } from "@/components/public/event-gallery";
+import Link from "next/link";
+import { FollowOrganizerButton } from "@/components/public/follow-organizer-button";
 import { publicEvent, discoverPage } from "@/server/public/events";
 import { TicketSelector } from "@/components/public/ticket-selector";
 import { EventReviews } from "@/components/public/event-reviews";
@@ -108,6 +110,18 @@ export default async function EventPage({
         select: { eventId: true },
       })
     : [];
+  const [followerCount, isFollowing] = await Promise.all([
+    db.organizationFollower.count({ where: { orgId: event.org.id } }),
+    user
+      ? Boolean(
+          await db.organizationFollower.findUnique({
+            where: {
+              userId_orgId: { userId: user.id, orgId: event.org.id },
+            },
+          }),
+        )
+      : false,
+  ]);
   const poster = event.images.find((image) => image.kind === "POSTER");
   const gallery = event.images.filter(
     (image) => image.kind === "GALLERY" || image.kind === "COVER",
@@ -336,6 +350,65 @@ export default async function EventPage({
                 </p>
               </section>
             )}
+            <section
+              className="mt-12 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 dark:border-[var(--line)]"
+              id="host"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
+                Hosted by
+              </p>
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4 min-w-0">
+                  <Link href={`/organizers/${event.org.slug}`} className="shrink-0">
+                    {event.org.logoKey ? (
+                      <img
+                        src={event.org.logoKey}
+                        alt={event.org.name}
+                        className="h-16 w-16 rounded-2xl border-2 border-[var(--line)] object-cover shadow-sm"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[var(--line)] bg-[var(--surface-raised)] font-serif text-2xl font-bold text-[var(--accent)]">
+                        {event.org.name.charAt(0)}
+                      </div>
+                    )}
+                  </Link>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/organizers/${event.org.slug}`}
+                      className="text-lg font-semibold hover:underline"
+                    >
+                      {event.org.name}
+                    </Link>
+                    {event.org.tagline && (
+                      <p className="mt-0.5 line-clamp-1 text-sm text-[var(--muted)]">
+                        {event.org.tagline}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      {followerCount} {followerCount === 1 ? "follower" : "followers"} ·{" "}
+                      <Link
+                        href={`/organizers/${event.org.slug}`}
+                        className="text-[var(--accent)] hover:underline"
+                      >
+                        View profile →
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <FollowOrganizerButton
+                    orgId={event.org.id}
+                    initialFollowersCount={followerCount}
+                    initialIsFollowing={isFollowing}
+                  />
+                </div>
+              </div>
+              {event.org.bio && (
+                <p className="mt-4 border-t border-[var(--line)] pt-4 text-sm leading-relaxed text-[var(--muted)]">
+                  {event.org.bio}
+                </p>
+              )}
+            </section>
           </article>
           <aside id="tickets">
             {eventHasEnded ? (
