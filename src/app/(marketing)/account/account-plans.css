@@ -869,6 +869,7 @@
   border-top: 1px solid var(--line);
   padding-top: 20px;
 }
+.marketing .plans-page .plans-host-cta,
 .marketing .plans-host-cta {
   display: inline-flex;
   align-items: center;
@@ -878,14 +879,22 @@
   padding: 10px 18px;
   border-radius: 10px;
   background: var(--ink);
-  color: var(--paper);
+  color: var(--paper) !important;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   box-shadow: 2px 2px 0 var(--accent);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.marketing .plans-page .plans-host-cta span,
+.marketing .plans-host-cta span,
+.marketing .plans-page .plans-host-cta svg,
+.marketing .plans-host-cta svg {
+  color: var(--paper) !important;
+}
+.marketing .plans-page .plans-host-cta:hover,
 .marketing .plans-host-cta:hover {
+  color: var(--paper) !important;
   transform: translate(-1px, -1px);
   box-shadow: 3px 3px 0 var(--accent);
 }

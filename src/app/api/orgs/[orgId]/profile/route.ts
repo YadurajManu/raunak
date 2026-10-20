@@ -21,6 +21,8 @@ const profileSchema = z.object({
   supportEmail: z.string().email().or(z.literal("")).optional(),
   supportPhone: z.string().max(20).or(z.literal("")).optional(),
   profileVisible: z.boolean().optional(),
+  coverKey: z.string().max(500).or(z.literal("")).optional(),
+  logoKey: z.string().max(500).or(z.literal("")).optional(),
 });
 
 export async function PATCH(
@@ -53,6 +55,10 @@ export async function PATCH(
       data.supportPhone = body.supportPhone.trim() || null;
     if (body.profileVisible !== undefined)
       data.profileVisible = body.profileVisible;
+    if (body.coverKey !== undefined)
+      data.coverKey = body.coverKey.trim() || null;
+    if (body.logoKey !== undefined)
+      data.logoKey = body.logoKey.trim() || null;
 
     const org = await db.organization.update({
       where: { id: orgId },

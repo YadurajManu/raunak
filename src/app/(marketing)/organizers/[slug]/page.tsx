@@ -207,9 +207,10 @@ export default async function OrganizerPage({
             <div
               className="org-hero-gradient"
               style={
-                org.brandColor
+                org.brandColor &&
+                !org.brandColor.toLowerCase().includes("4f46e5")
                   ? {
-                      background: `linear-gradient(135deg, ${org.brandColor} 0%, var(--surface) 100%)`,
+                      background: `linear-gradient(135deg, ${org.brandColor} 0%, var(--art-poster-dark) 100%)`,
                     }
                   : undefined
               }

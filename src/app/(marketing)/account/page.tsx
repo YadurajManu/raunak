@@ -882,7 +882,6 @@ export default async function AccountPage({
 
                   <article className="plans-host-card">
                     <div className="plans-host-badge">
-                      <Sparkles size={14} aria-hidden="true" />
                       <span>FIRST EVENT IS FREE TO HOST</span>
                     </div>
                     <div className="plans-host-body">

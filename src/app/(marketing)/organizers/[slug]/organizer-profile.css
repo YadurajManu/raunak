@@ -9,12 +9,15 @@
 /* ── Hero banner ── */
 .org-hero {
   position: relative;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  min-height: 200px;
+  min-height: 220px;
   display: flex;
   align-items: flex-end;
   margin-top: 0.75rem;
+  background: var(--art-poster-dark);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 24px var(--shadow-soft);
 }
 .org-hero-cover {
   position: absolute;
@@ -28,14 +31,17 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--surface) 100%);
+  background:
+    radial-gradient(ellipse 60% 80% at 10% 20%, var(--scrim-soft) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 85% 90%, var(--overlay-surface) 0%, transparent 60%),
+    linear-gradient(145deg, var(--art-poster-dark) 0%, var(--surface-raised) 55%, var(--art-poster-dark) 100%);
 }
 .org-hero-scrim {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, var(--scrim) 0%, var(--scrim-soft) 50%, transparent 100%);
+  background: linear-gradient(to top, var(--scrim) 0%, var(--scrim-soft) 40%, transparent 100%);
 }
 .org-hero-content {
   position: relative;
@@ -43,32 +49,35 @@
   display: flex;
   align-items: flex-end;
   gap: 1.25rem;
-  padding: 2rem 2rem 1.75rem;
+  padding: 2.25rem 2.25rem 2rem;
   width: 100%;
   color: var(--art-paper); /* theme-override: always light text over cover image */
 }
 .org-hero-logo {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 16px;
-  border: 3px solid var(--overlay-border); /* theme-override */
+  border: 2px solid var(--overlay-border); /* theme-override */
   object-fit: cover;
   flex-shrink: 0;
-  background: var(--overlay-surface); /* theme-override */
+  background: var(--surface);
+  box-shadow: 0 4px 16px var(--shadow-strong);
 }
 .org-hero-logo-fallback {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 16px;
-  border: 3px solid var(--overlay-border); /* theme-override */
+  border: 2px solid var(--overlay-border); /* theme-override */
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
-  background: var(--overlay-surface); /* theme-override */
-  color: var(--art-paper); /* theme-override */
+  font-family: var(--font-display), Georgia, serif;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 4px 16px var(--shadow-strong);
 }
 .org-hero-text h1 {
   font-size: 2rem;
