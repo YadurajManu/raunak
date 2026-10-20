@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 import { requireUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { WhatsAppIntegration } from "@/components/dashboard/whatsapp-integration";
@@ -27,20 +28,26 @@ export default async function WhatsAppSettings({
     (!query.org ? memberships[0] : undefined);
   return (
     <>
-      <nav
-        className="wa-workspaces"
-        aria-label="Workspace integration settings"
-      >
-        {memberships.map(({ org }) => (
-          <Link
-            key={org.id}
-            href={`/dashboard/settings/whatsapp?org=${org.id}`}
-            aria-current={org.id === selected?.orgId ? "page" : undefined}
-          >
-            {org.name}
-          </Link>
-        ))}
-      </nav>
+      <div className="wa-workspace-bar">
+        <span className="wa-workspace-tag">
+          <Building2 size={14} aria-hidden="true" />
+          <span>Workspace</span>
+        </span>
+        <nav
+          className="wa-workspaces"
+          aria-label="Workspace integration settings"
+        >
+          {memberships.map(({ org }) => (
+            <Link
+              key={org.id}
+              href={`/dashboard/settings/whatsapp?org=${org.id}`}
+              aria-current={org.id === selected?.orgId ? "page" : undefined}
+            >
+              {org.name}
+            </Link>
+          ))}
+        </nav>
+      </div>
       {selected ? (
         <WhatsAppIntegration key={selected.orgId} orgId={selected.orgId} />
       ) : (

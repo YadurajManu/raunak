@@ -8,12 +8,15 @@ import {
   Ticket,
   SlidersHorizontal,
   BriefcaseBusiness,
+  Star,
+  Sparkles,
 } from "lucide-react";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { discoverPage, publicListing } from "@/server/public/events";
 import { EventImage } from "@/components/public/event-image";
 import { EventCard } from "@/components/public/event-card";
+import { SaveEvent } from "@/components/public/save-event";
 import { AccountCity } from "@/components/onboarding/account-city";
 import { walletWhere } from "@/lib/wallet";
 import { discoveryUrl } from "@/lib/discovery";
@@ -711,27 +714,249 @@ export default async function AccountPage({
             </div>
             <AccountCity initial={hub?.city || "all"} />
           </div>
-          {suggestions.length ? (
-            <>
-              <ul className="plans-discover-grid">
-                {suggestions.map((event) => (
-                  <EventCard
-                    event={event}
-                    key={event.id}
-                    saved={savedSuggestions.some(
-                      (item) => item.eventId === event.id,
-                    )}
-                  />
-                ))}
-              </ul>
-              <Link
-                className="plans-discovery-link"
-                href={discoveryUrl(nearby?.total ? discoveryInput : {})}
-              >
-                Explore more events <ArrowRight size={16} />
-              </Link>
-            </>
-          ) : (
+          {suggestions.length === 1 ? (
+            (() => {
+              const single = suggestions[0];
+              const singleImage =
+                single.images.find((v) => v.kind === "COVER" && v.variants) ||
+                single.images.find((v) => v.kind === "POSTER" && v.variants) ||
+                single.images.find((v) => v.variants);
+              const minimum = single.ticketTypes.length
+                ? Math.min(...single.ticketTypes.map((v) => v.pricePaise))
+                : null;
+              const formattedDate = new Intl.DateTimeFormat("en-IN", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZone: single.timezone,
+              }).format(single.startsAt);
+              const isSaved = savedSuggestions.some(
+                (item) => item.eventId === single.id,
+              );
+              return (
+                <div className="plans-spotlight-wrapper">
+                  <article className="plans-spotlight-card">
+                    <div className="plans-spotlight-media">
+                      <Link
+                        href={`/e/${single.slug}`}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      >
+                        <EventImage
+                          variants={singleImage?.variants}
+                          alt={singleImage?.alt || single.title}
+                          size="card"
+                          className="plans-spotlight-cover"
+                        />
+                      </Link>
+                      <div className="plans-spotlight-badge-row">
+                        <span className="plans-badge plans-badge-category">
+                          {single.category || "Get together"}
+                        </span>
+                        {single.mode === "ONLINE" && (
+                          <span className="plans-badge plans-badge-mode">
+                            Online
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="plans-spotlight-content">
+                      <div className="plans-spotlight-header">
+                        <div className="plans-spotlight-eyebrow">
+                          <span
+                            className="plans-pulse-dot"
+                            aria-hidden="true"
+                          />
+                          <span>FEATURED SPOTLIGHT</span>
+                        </div>
+                        <h3 className="plans-spotlight-title">
+                          <Link href={`/e/${single.slug}`}>{single.title}</Link>
+                        </h3>
+                        {single.reviewSummary &&
+                          single.reviewSummary.count > 0 &&
+                          single.reviewSummary.average !== null && (
+                            <p
+                              className="plans-spotlight-rating"
+                              aria-label={`${single.reviewSummary.average.toFixed(1)} out of 5 from ${single.reviewSummary.count} reviews`}
+                            >
+                              <Star
+                                size={14}
+                                fill="currentColor"
+                                aria-hidden="true"
+                              />
+                              <strong>
+                                {single.reviewSummary.average.toFixed(1)}
+                              </strong>
+                              <span>
+                                ({single.reviewSummary.count} verified reviews)
+                              </span>
+                            </p>
+                          )}
+                        <p className="plans-spotlight-synopsis">
+                          {single.summary ||
+                            single.description?.slice(0, 160) ||
+                            "Join this handpicked gathering curated for great people and memorable conversations."}
+                        </p>
+                      </div>
+
+                      <div className="plans-spotlight-meta-grid">
+                        <div className="plans-meta-chip">
+                          <CalendarDays size={16} aria-hidden="true" />
+                          <div>
+                            <span className="plans-meta-label">When</span>
+                            <strong>{formattedDate}</strong>
+                          </div>
+                        </div>
+                        <div className="plans-meta-chip">
+                          <MapPin size={16} aria-hidden="true" />
+                          <div>
+                            <span className="plans-meta-label">Where</span>
+                            <strong>
+                              {single.mode === "ONLINE"
+                                ? "Live online stream"
+                                : [single.venueName, single.city]
+                                    .filter(Boolean)
+                                    .join(" · ") || "Venue to be announced"}
+                            </strong>
+                          </div>
+                        </div>
+                        <div className="plans-meta-chip">
+                          <Ticket size={16} aria-hidden="true" />
+                          <div>
+                            <span className="plans-meta-label">Admission</span>
+                            <strong>
+                              {minimum === null
+                                ? "Tickets soon"
+                                : minimum === 0
+                                  ? "Free entrance"
+                                  : `From ${new Intl.NumberFormat("en-IN", {
+                                      style: "currency",
+                                      currency: "INR",
+                                      maximumFractionDigits: 0,
+                                    }).format(Math.round(minimum / 100))}`}
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="plans-spotlight-actions">
+                        <Link
+                          href={`/e/${single.slug}`}
+                          className="m-button plans-spotlight-btn"
+                        >
+                          Book tickets{" "}
+                          <ArrowRight size={16} aria-hidden="true" />
+                        </Link>
+                        <div className="plans-spotlight-subactions">
+                          <Link
+                            href={`/organizers/${single.org.slug}`}
+                            className="plans-spotlight-org"
+                          >
+                            by <strong>{single.org.name}</strong>
+                          </Link>
+                          <div className="plans-spotlight-action-icons">
+                            <SaveEvent
+                              eventId={single.id}
+                              initial={isSaved}
+                              labeled
+                            />
+                            <a
+                              href={whatsappEventUrl(
+                                single.title,
+                                `${process.env.APP_URL}/e/${single.slug}`,
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="plans-spotlight-share"
+                              aria-label={`Share ${single.title} on WhatsApp`}
+                            >
+                              Share ↗
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="plans-host-card">
+                    <div className="plans-host-badge">
+                      <Sparkles size={14} aria-hidden="true" />
+                      <span>FIRST EVENT IS FREE TO HOST</span>
+                    </div>
+                    <div className="plans-host-body">
+                      <h3>Have an idea worth gathering for?</h3>
+                      <p>
+                        Host intimate dinners, rooftop sessions, workshops, live
+                        comedy or community meetups. Raunak gives you tickets,
+                        instant UPI payouts, and verified attendee lists.
+                      </p>
+                      <ul className="plans-host-features">
+                        <li>
+                          <span className="plans-host-check" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>Zero upfront cost — publish in 3 minutes</span>
+                        </li>
+                        <li>
+                          <span className="plans-host-check" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>Direct UPI & WhatsApp ticket delivery</span>
+                        </li>
+                        <li>
+                          <span className="plans-host-check" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>Built-in discovery across your city</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="plans-host-footer">
+                      <Link
+                        href={
+                          memberships.length ? "/dashboard" : "/organizer/setup"
+                        }
+                        className="plans-host-cta"
+                      >
+                        <span>
+                          {memberships.length
+                            ? "Open host dashboard"
+                            : "Host your first event — free"}
+                        </span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </Link>
+                      <span className="plans-host-note">
+                        No credit card required · Instant onboarding
+                      </span>
+                    </div>
+                  </article>
+                </div>
+              );
+            })()
+          ) : suggestions.length > 1 ? (
+            <ul className="plans-discover-grid">
+              {suggestions.map((event) => (
+                <EventCard
+                  event={event}
+                  key={event.id}
+                  saved={savedSuggestions.some(
+                    (item) => item.eventId === event.id,
+                  )}
+                />
+              ))}
+            </ul>
+          ) : null}
+          {suggestions.length > 0 && (
+            <Link
+              className="plans-discovery-link"
+              href={discoveryUrl(nearby?.total ? discoveryInput : {})}
+            >
+              Explore more events <ArrowRight size={16} />
+            </Link>
+          )}
+          {!suggestions.length && (
             <div className="plans-empty-inline">
               <div>
                 <h3>Good plans are on their way.</h3>

@@ -366,16 +366,27 @@
   gap: 18px;
 }
 .marketing .plans-discover-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
 }
 .marketing .plans-page .market-cover {
-  height: 190px;
+  height: 200px;
   aspect-ratio: 16/10;
-  object-fit: contain;
-  background: var(--paper-2);
+  object-fit: cover;
+  background: var(--surface);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .marketing .plans-page .market-card {
-  max-width: 380px;
+  max-width: none;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.marketing .plans-page .market-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--scrim-soft);
+}
+.marketing .plans-page .market-card:hover .market-cover {
+  transform: scale(1.03);
 }
 .marketing .plans-page .market-card h3 {
   font-size: 19px;
@@ -483,32 +494,419 @@
 }
 .marketing .plans-discovery {
   border-top: 1px solid var(--line);
-  padding-top: 28px;
+  padding-top: 32px;
+}
+.marketing .plans-discovery .plans-section-heading h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 34px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-weight: 400;
+  margin: 0 0 6px;
 }
 .marketing .plans-discovery .m-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--accent-ink);
+  margin: 0 0 6px;
 }
 .marketing .plans-discovery-link {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 .marketing .plans-city {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
 }
 .marketing .plans-city select {
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 9999px;
   background: var(--paper);
   color: var(--ink);
   font-size: 13px;
+  font-weight: 600;
+  min-height: 40px;
+  padding: 6px 34px 6px 14px;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.marketing .plans-city select:hover {
+  border-color: var(--accent-ink);
+  box-shadow: 3px 3px 0 var(--accent-ink);
+}
+.marketing .plans-spotlight-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(310px, 1fr);
+  gap: 22px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+.marketing .plans-spotlight-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--scrim-soft);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.marketing .plans-spotlight-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 30px var(--scrim-soft);
+}
+.marketing .plans-spotlight-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--surface);
+  overflow: hidden;
+}
+.marketing .plans-spotlight-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.marketing .plans-spotlight-card:hover .plans-spotlight-cover {
+  transform: scale(1.03);
+}
+.marketing .plans-spotlight-badge-row {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.marketing .plans-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+}
+.marketing .plans-badge-category {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px var(--scrim-soft);
+}
+.marketing .plans-badge-mode {
+  background: var(--green);
+  color: var(--art-paper);
+}
+.marketing .plans-spotlight-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+  gap: 20px;
+  flex: 1;
+}
+.marketing .plans-spotlight-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--accent-ink);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.marketing .plans-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  box-shadow: 0 0 0 3px var(--surface);
+  animation: plansPulse 2s infinite ease-in-out;
+}
+@keyframes plansPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+.marketing .plans-spotlight-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(24px, 2.5vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+  margin: 0 0 10px;
+}
+.marketing .plans-spotlight-title a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.marketing .plans-spotlight-title a:hover {
+  color: var(--accent-ink);
+}
+.marketing .plans-spotlight-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+.marketing .plans-spotlight-rating strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.marketing .plans-spotlight-rating span {
+  color: var(--muted);
+}
+.marketing .plans-spotlight-synopsis {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.marketing .plans-spotlight-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.marketing .plans-meta-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--ink);
+}
+.marketing .plans-meta-chip svg {
+  color: var(--accent-ink);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.marketing .plans-meta-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.marketing .plans-meta-chip strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.marketing .plans-spotlight-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.marketing .plans-spotlight-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+.marketing .plans-spotlight-subactions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.marketing .plans-spotlight-org {
+  color: var(--muted);
+  text-decoration: none;
+}
+.marketing .plans-spotlight-org strong {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .plans-spotlight-action-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.marketing .plans-spotlight-action-icons .save-action-labeled button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.marketing .plans-spotlight-action-icons .save-action-labeled button:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.marketing .plans-spotlight-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.marketing .plans-spotlight-share:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.marketing .plans-host-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--paper-2);
+  border: 1px dashed var(--accent);
+  border-radius: 16px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-style 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.marketing .plans-host-card:hover {
+  border-style: solid;
+  border-color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+.marketing .plans-host-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  box-shadow: 2px 2px 0 var(--ink);
+  align-self: flex-start;
+  margin-bottom: 16px;
+}
+.marketing .plans-host-body h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.marketing .plans-host-body p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.marketing .plans-host-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.marketing .plans-host-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.marketing .plans-host-check {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.marketing .plans-host-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.marketing .plans-host-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 44px;
-  padding: 8px 30px 8px 12px;
-  max-width: 220px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 2px 2px 0 var(--accent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.marketing .plans-host-cta:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--accent);
+}
+.marketing .plans-host-note {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .marketing .plans-spotlight-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .marketing .plans-spotlight-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .marketing .plans-spotlight-content {
+    padding: 18px;
+  }
 }
 .marketing .plans-browse {
   display: flex;

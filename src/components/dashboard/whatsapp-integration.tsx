@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import Image from "next/image";
-import { LoaderCircle, MessageCircle, X } from "lucide-react";
+import { LoaderCircle, MessageCircle, X, QrCode, ShieldAlert } from "lucide-react";
 import { waErrorMessages } from "@/lib/whatsapp";
 import type { integrationStatus } from "@/server/whatsapp/integration";
 
@@ -163,11 +163,13 @@ export function WhatsAppIntegration({ orgId }: { orgId: string }) {
           </section>
           <section className="wa-panel">
             <div className="wa-heading">
-              <MessageCircle size={22} />
+              <MessageCircle size={22} aria-hidden="true" />
               <h2>Your number</h2>
               <span className={`wa-badge ${connected ? "is-connected" : ""}`}>
-                {status.connection?.status.replaceAll("_", " ") ||
-                  "Not connected"}
+                <span className={`wa-dot ${connected ? "is-connected" : ""}`} aria-hidden="true" />
+                {connected
+                  ? "Connected"
+                  : status.connection?.status.replaceAll("_", " ") || "Not connected"}
               </span>
             </div>
             <p>
@@ -191,15 +193,20 @@ export function WhatsAppIntegration({ orgId }: { orgId: string }) {
             )}
             <div className="wa-actions">
               <button
+                type="button"
+                className="wa-connect-btn"
                 disabled={busy || !status.enabled}
                 onClick={async () => {
                   if (await act({ action: "connect" })) setOpen(true);
                 }}
               >
-                {connected ? "Connection details" : "Connect number"}
+                <QrCode size={16} aria-hidden="true" />
+                <span>{connected ? "Connection details" : "Connect number with QR code"}</span>
               </button>
               {status.connection && (
                 <button
+                  type="button"
+                  className="wa-disconnect-btn"
                   disabled={busy}
                   onClick={() => {
                     if (
@@ -214,14 +221,30 @@ export function WhatsAppIntegration({ orgId }: { orgId: string }) {
                 </button>
               )}
             </div>
-            <label htmlFor="wa-usage">
-              Today: {status.sent} / {status.cap} sends
-            </label>
-            <progress id="wa-usage" max={status.cap} value={status.sent} />
-            <p className="wa-muted">
-              Warm-up day {status.day}: limit {status.cap}/day. These limits do
-              not guarantee protection from restrictions.
-            </p>
+            <div className="wa-progress-section">
+              <div className="wa-progress-label">
+                <span>Today: <strong>{status.sent}</strong> / {status.cap} sends</span>
+                <span className="wa-progress-day">Warm-up day {status.day} (limit {status.cap}/day)</span>
+              </div>
+              <div
+                className="wa-progress-track"
+                role="progressbar"
+                aria-valuenow={status.sent}
+                aria-valuemin={0}
+                aria-valuemax={status.cap}
+                aria-label={`WhatsApp sends today: ${status.sent} of ${status.cap}`}
+              >
+                <div
+                  className="wa-progress-fill"
+                  style={{
+                    width: `${Math.min(100, Math.round((status.sent / Math.max(1, status.cap)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="wa-muted">
+                Warm-up limits protect your number from delivery restrictions as traffic scales.
+              </p>
+            </div>
           </section>
           {connected && (
             <form
@@ -273,11 +296,21 @@ export function WhatsAppIntegration({ orgId }: { orgId: string }) {
           )}
         </>
       )}
-      <aside className="wa-notice">
-        This links a normal WhatsApp number using an unofficial method. Use a
-        dedicated number, not your personal one. WhatsApp can restrict numbers
-        that send unwanted messages, so only message people who bought tickets.
-        Email delivery is always the backup.
+      <aside className="wa-advisory">
+        <div className="wa-advisory-icon">
+          <ShieldAlert size={20} aria-hidden="true" />
+        </div>
+        <div className="wa-advisory-content">
+          <strong>Best practices for dedicated event numbers</strong>
+          <ul>
+            <li>
+              <strong>Use a dedicated SIM:</strong> Keep your personal daily WhatsApp separate from automated ticket broadcast messages.
+            </li>
+            <li>
+              <strong>Dual-channel guarantee:</strong> Ticket confirmation emails are always delivered automatically as an instant backup.
+            </li>
+          </ul>
+        </div>
       </aside>
       <dialog
         ref={dialog}

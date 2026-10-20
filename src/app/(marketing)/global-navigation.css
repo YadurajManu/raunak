@@ -459,25 +459,101 @@ html:has(.gnav) {
 .marketing .r-account-sidebar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px var(--site-gutter);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px var(--site-gutter);
   border: 0;
   border-bottom: 1px solid var(--line);
+  background: var(--paper);
   overflow-x: auto;
+  scrollbar-width: none;
 }
-.marketing .r-account-sidebar > a {
-  margin: 0;
+.marketing .r-account-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
   flex-shrink: 0;
-  min-height: 44px;
-  padding: 10px 14px;
 }
-.marketing .r-account-sidebar > p {
-  margin: 0 16px 0 0;
+.marketing .r-account-nav-label {
+  font: 11px var(--font-mono), monospace;
+  letter-spacing: 0.1em;
+  color: var(--muted);
   white-space: nowrap;
-  font-size: 12px;
+  padding-right: 8px;
+  border-right: 1px solid var(--line);
 }
-.marketing .r-account-sidebar > a > span {
-  display: none;
+.marketing .r-account-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+}
+.marketing .r-account-nav-tabs > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.marketing .r-account-nav-tabs > a:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+.marketing .r-account-nav-tabs > a.is-active,
+.marketing .r-account-nav-tabs > a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: 0 1px 3px var(--scrim-soft);
+}
+.marketing .r-account-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+.marketing .r-account-nav-cta:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--accent-ink);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+@media (max-width: 768px) {
+  .marketing .r-account-sidebar {
+    padding: 8px 16px;
+    gap: 10px;
+  }
+  .marketing .r-account-nav-label {
+    display: none;
+  }
+  .marketing .r-account-nav-tabs > a {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
 }
 .marketing .m-hero {
   padding-top: 44px;
