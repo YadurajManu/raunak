@@ -152,6 +152,11 @@ model Organization {
   name String
   slug String @unique
   logoKey String?
+  tagline String? @db.VarChar(160)
+  bio String? @db.VarChar(2000)
+  socialLinks Json @default("{}")
+  coverKey String?
+  profileVisible Boolean @default(true)
   whatsappMode WhatsAppMode @default(DISABLED)
   whatsappSessions WhatsAppSession[]
   whatsappSuppressions WhatsAppSuppression[]

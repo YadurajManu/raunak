@@ -1,0 +1,305 @@
+/* ── Organizer public profile ─────────────────────────── */
+
+.org-profile {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 6rem;
+}
+
+/* ── Hero banner ── */
+.org-hero {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-end;
+  margin-top: 0.75rem;
+}
+.org-hero-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.org-hero-gradient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--surface) 100%);
+}
+.org-hero-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, var(--scrim) 0%, var(--scrim-soft) 50%, transparent 100%);
+}
+.org-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.25rem;
+  padding: 2rem 2rem 1.75rem;
+  width: 100%;
+  color: var(--art-paper); /* theme-override: always light text over cover image */
+}
+.org-hero-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  border: 3px solid var(--overlay-border); /* theme-override */
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--overlay-surface); /* theme-override */
+}
+.org-hero-logo-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  border: 3px solid var(--overlay-border); /* theme-override */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  background: var(--overlay-surface); /* theme-override */
+  color: var(--art-paper); /* theme-override */
+}
+.org-hero-text h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-display), Georgia, serif;
+  line-height: 1.2;
+  text-shadow: 0 2px 12px var(--shadow-strong);
+}
+.org-hero-text p {
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  opacity: 0.9;
+  text-shadow: 0 1px 6px var(--shadow);
+}
+@media (max-width: 640px) {
+  .org-hero { min-height: 160px; }
+  .org-hero-content { padding: 1.25rem; gap: 1rem; }
+  .org-hero-logo, .org-hero-logo-fallback { width: 56px; height: 56px; }
+  .org-hero-text h1 { font-size: 1.5rem; }
+}
+
+/* ── Stats row ── */
+.org-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.25rem 0;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.org-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.org-stat strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.org-stat-icon {
+  color: var(--accent);
+}
+
+/* ── About section ── */
+.org-about {
+  margin-top: 2.5rem;
+}
+.org-about-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.org-about h2 {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-display), Georgia, serif;
+}
+.org-about-body {
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.75;
+  color: var(--muted);
+  max-width: 48rem;
+}
+
+/* ── Social links ── */
+.org-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+.org-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: border-color 0.2s, background 0.2s;
+}
+.org-social-link:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+/* ── Events grid section ── */
+.org-events-section {
+  margin-top: 3rem;
+}
+.org-events-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.org-events-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-display), Georgia, serif;
+}
+.org-events-header a {
+  font-size: 0.8125rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Reviews section ── */
+.org-reviews-section {
+  margin-top: 3rem;
+  border-top: 1px solid var(--line);
+  padding-top: 2rem;
+}
+.org-reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.org-reviews-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-display), Georgia, serif;
+}
+.org-reviews-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.org-review-card {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.org-review-card:last-child {
+  border-bottom: none;
+}
+.org-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+}
+.org-review-meta strong {
+  font-size: 0.875rem;
+}
+.org-review-stars {
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+}
+.org-review-body {
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+.org-review-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+.org-review-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+/* ── Contact section ── */
+.org-contact {
+  margin-top: 3rem;
+  border-top: 1px solid var(--line);
+  padding-top: 2rem;
+}
+.org-contact h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-display), Georgia, serif;
+  margin-bottom: 1rem;
+}
+.org-contact-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.org-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+/* ── Edit profile banner ── */
+.org-edit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  margin-top: 1.5rem;
+  border-radius: 12px;
+  border: 1px dashed var(--accent);
+  background: var(--surface);
+  font-size: 0.8125rem;
+}
+.org-edit-banner a {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ── Empty profile state ── */
+.org-empty-bio {
+  margin-top: 1rem;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.875rem;
+}

@@ -26,6 +26,9 @@ export function AccountShell({
                 <NavigationLink href="/dashboard/settings/messages">
                   Message defaults
                 </NavigationLink>
+                <NavigationLink href="/dashboard/settings/profile">
+                  Public profile
+                </NavigationLink>
               </div>
             </div>
             <Link href="/organizer/setup" className="r-account-nav-cta">
