@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PageHeader, SettingsNavigation } from "@/components/ui";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
@@ -34,16 +34,8 @@ export default async function TeamPage({
   });
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-8">
-      <header className="flex items-center justify-between border-b border-[var(--line)] pb-6 dark:border-[var(--line)]">
-        <Link href={`/dashboard/events?org=${orgId}`} className="r-back-link">
-          ← Workspace events
-        </Link>
-        <span>{org.name}</span>
-      </header>
-      <h1 className="mt-12 text-3xl font-semibold">Team</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Members of {org.name}
-      </p>
+      <PageHeader backHref={`/dashboard/events?org=${orgId}`} backLabel="Workspace events" title="Team" description={`Members of ${org.name}`} />
+      <SettingsNavigation orgId={orgId} current="team" className="ui-settings-horizontal" />
       {membership.role === "OWNER" || membership.role === "ADMIN" ? (
         <TeamActions
           orgId={orgId}
@@ -55,7 +47,7 @@ export default async function TeamPage({
           }))}
         />
       ) : null}
-      <ul className="mt-8 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)]">
+      <ul className="mt-8 divide-y divide-[var(--line)]">
         {members.map(({ userId, role, user }) => (
           <li key={userId} className="flex justify-between gap-4 p-4">
             <span>

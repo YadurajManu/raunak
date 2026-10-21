@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { NavigationLink } from "@/components/navigation-link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
@@ -61,9 +62,9 @@ export default async function EventLayout({
       <header className="flex items-center justify-between gap-4 border-b border-[var(--line)] pb-3">
         <Link
           href={`/dashboard/events?org=${event.orgId}`}
-          className="text-sm text-[var(--muted)] whitespace-nowrap"
+          className="inline-flex min-h-11 items-center gap-2 text-sm text-[var(--muted)] whitespace-nowrap"
         >
-          ← Workspace events
+          <ArrowLeft size={16} aria-hidden="true" /> Workspace events
         </Link>
         <span className="truncate text-sm">{event.title}</span>
       </header>
@@ -76,7 +77,7 @@ export default async function EventLayout({
             key={label}
             href={`/dashboard/events/${id}${suffix}`}
             exact
-            className="rounded-lg px-3 py-2 text-sm hover:bg-[var(--surface)] dark:hover:bg-[var(--surface)]"
+            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-[var(--surface)] dark:hover:bg-[var(--surface)]"
           >
             {label}
           </NavigationLink>

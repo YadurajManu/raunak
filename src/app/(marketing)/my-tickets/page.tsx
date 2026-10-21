@@ -3,6 +3,7 @@ import { EventImage } from "@/components/public/event-image";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { walletWhere, walletTabs } from "@/lib/wallet";
+import { PageHeader } from "@/components/ui";
 export const metadata = {
   title: "My tickets | Raunak",
   robots: { index: false, follow: false },
@@ -22,10 +23,9 @@ export default async function MyTickets({
     return (
       <>
         <main className="market-page">
-          <h1>Your plans, all in one place.</h1>
-          <p>Sign in with the account used to book your tickets.</p>
+          <PageHeader title="My tickets" description="Sign in with the account used to book your tickets." />
           <Link href="/login?next=/my-tickets" className="m-button">
-            Sign in to your wallet ↗
+            Sign in to your wallet →
           </Link>
           <Link href="/my-tickets/recover" className="r-quiet-button">
             Find a booking
@@ -84,16 +84,11 @@ export default async function MyTickets({
   return (
     <>
       <main className="market-page wallet-page">
-        <header className="wallet-heading">
-          <div>
-            <p className="m-eyebrow">YOUR PLANS, READY WHEN YOU ARE</p>
-            <h1>My tickets</h1>
-            <p>Open your ticket, show the QR, make a good memory.</p>
-          </div>
+        <PageHeader title="My tickets" description="Open your ticket and show the QR at the entrance." actions={
           <Link href="/my-tickets/recover" className="r-quiet-button">
             Find a booking
           </Link>
-        </header>
+        } />
         <nav className="wallet-tabs" aria-label="Ticket status">
           {walletTabs.map((v, i) => (
             <Link

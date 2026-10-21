@@ -2,10 +2,11 @@ import Link from "next/link";
 import { EventImage } from "./event-image";
 import { SaveEvent } from "./save-event";
 import { whatsappEventUrl } from "@/lib/event-share";
-import { CalendarDays, MapPin, Star } from "lucide-react";
+import { CalendarDays, MapPin, Share2, Star } from "lucide-react";
 export function EventCard({
   event,
   saved = false,
+  variant = "default",
 }: {
   event: {
     id: string;
@@ -23,6 +24,7 @@ export function EventCard({
     reviewSummary?: { average: number | null; count: number } | null;
   };
   saved?: boolean;
+  variant?: "default" | "saved";
 }) {
   const image =
     event.images.find((v) => v.kind === "COVER" && v.variants) ||
@@ -31,14 +33,16 @@ export function EventCard({
   const minimum = event.ticketTypes.length
     ? Math.min(...event.ticketTypes.map((v) => v.pricePaise))
     : null;
+  const price = minimum === null ? "Tickets soon" : minimum === 0 ? "Free" : `From ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(minimum / 100))}`;
   return (
-    <li className="market-card">
+    <li className={`market-card${variant === "saved" ? " market-card-saved" : ""}`}>
       <Link href={`/e/${event.slug}`} className="market-main">
         <EventImage
           variants={image?.variants}
           alt={image?.alt || event.title}
           size="card"
           className="market-cover"
+          backdrop
         />
         <div>
           <span className="m-eyebrow">{event.category || "Get together"}</span>
@@ -68,20 +72,12 @@ export function EventCard({
               : [event.venueName, event.city].filter(Boolean).join(" · ") ||
                 "Venue to be announced"}
           </p>
-          <strong>
-            {minimum === null
-              ? "Tickets soon"
-              : minimum === 0
-                ? "Free"
-                : `From ${new Intl.NumberFormat("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                    maximumFractionDigits: 0,
-                  }).format(Math.round(minimum / 100))}`}
-          </strong>
+          {variant !== "saved" && <strong className="market-price">{price}</strong>}
         </div>
       </Link>
+      {variant === "saved" && <><span className="market-date-chip">{new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: event.timezone }).format(event.startsAt)}</span><div className="market-save-overlay"><SaveEvent eventId={event.id} initial={saved} undoable /></div></>}
       <footer>
+        {variant === "saved" && <strong className="market-price-footer">{price}</strong>}
         <Link href={`/organizers/${event.org.slug}`} className="market-card-org">
           {event.org.logoKey && (
             <img
@@ -90,9 +86,9 @@ export function EventCard({
               className="market-card-org-logo"
             />
           )}
-          <span>{event.org.name}</span>
+          <span>{variant === "saved" ? "by " : ""}{event.org.name}</span>
         </Link>
-        <SaveEvent eventId={event.id} initial={saved} />
+        {variant !== "saved" && <SaveEvent eventId={event.id} initial={saved} />}
         <a
           href={whatsappEventUrl(
             event.title,
@@ -102,7 +98,7 @@ export function EventCard({
           rel="noopener noreferrer"
           aria-label={`Share ${event.title} on WhatsApp`}
         >
-          Share ↗
+          {variant === "saved" ? <Share2 size={18} aria-hidden="true" /> : "Share ↗"}
         </a>
       </footer>
     </li>

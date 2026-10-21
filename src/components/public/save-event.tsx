@@ -1,20 +1,51 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, LoaderCircle } from "lucide-react";
 export function SaveEvent({
   eventId,
   initial,
   labeled = false,
+  undoable = false,
 }: {
   eventId: string;
   initial: boolean;
   labeled?: boolean;
+  undoable?: boolean;
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [removed, setRemoved] = useState(false);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); }, []);
+  async function update(next: boolean) {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    const previous = saved;
+    const previousRemoved = removed;
+    setBusy(true);
+    setError("");
+    setSaved(next);
+    setRemoved(undoable && !next);
+    try {
+      const r = await fetch(`/api/events/${eventId}/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ saved: next }) });
+      if (r.status === 401) {
+        setSaved(previous);
+        setRemoved(previousRemoved);
+        router.push(`/login?next=${encodeURIComponent(location.pathname + location.search)}`);
+        return;
+      }
+      if (!r.ok) throw new Error();
+      // Give the attendee eight seconds to undo before refreshing the collection.
+      if (undoable && !next) refreshTimer.current = setTimeout(() => router.refresh(), 8000);
+      else if (!undoable) router.refresh();
+    } catch {
+      setSaved(previous);
+      setRemoved(previousRemoved);
+      setError("Could not update saved event. Retry.");
+    } finally { setBusy(false); }
+  }
   return (
     <span className={`save-action${labeled ? " save-action-labeled" : ""}`}>
       <button
@@ -22,31 +53,8 @@ export function SaveEvent({
         disabled={busy}
         aria-pressed={saved}
         aria-busy={busy}
-        aria-label={saved ? "Unsave event" : "Save event"}
-        onClick={async () => {
-          setBusy(true);
-          setError("");
-          try {
-            const r = await fetch(`/api/events/${eventId}/save`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ saved: !saved }),
-            });
-            if (r.status === 401) {
-              router.push(
-                `/login?next=${encodeURIComponent(location.pathname + location.search)}`,
-              );
-              return;
-            }
-            if (!r.ok) throw new Error("Could not save. Try again.");
-            setSaved(!saved);
-            router.refresh();
-          } catch {
-            setError("Could not update saved event. Retry.");
-          } finally {
-            setBusy(false);
-          }
-        }}
+        aria-label={saved ? undoable ? "Remove from saved" : "Unsave event" : "Save event"}
+        onClick={() => update(!saved)}
       >
         {busy ? (
           <LoaderCircle size={18} aria-hidden="true" />
@@ -63,6 +71,7 @@ export function SaveEvent({
         {saved ? "Event saved" : "Event not saved"}
       </span>
       {error && <small role="alert">{error}</small>}
+      {removed && <span className="saved-undo" role="status">Removed from saved <button type="button" disabled={busy} onClick={() => update(true)}>Undo</button></span>}
     </span>
   );
 }

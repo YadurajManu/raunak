@@ -48,10 +48,7 @@ export default async function MessagesPage({
   }));
   return (
     <main className="py-10">
-      <h1 className="text-3xl font-semibold">Messages</h1>
-      <p className="mb-8 mt-3">
-        A thoughtful hello, a ticket, and a reminder. Make each one yours.
-      </p>
+      <PageHeader title="Messages" description="Customize booking and ticket delivery messages." />
       <MessageEditor
         eventId={id}
         orgId={event.orgId}
@@ -83,3 +80,4 @@ export default async function MessagesPage({
     </main>
   );
 }
+import { PageHeader } from "@/components/ui";

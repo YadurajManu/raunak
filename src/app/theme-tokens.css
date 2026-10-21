@@ -1,5 +1,17 @@
 /* Theme palette. Fixed artwork tokens keep poster scrims and QR surfaces independent of the page theme. */
 :root {
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --type-helper: 13px;
+  --type-body: 14px;
+  --type-section: 24px;
+  --type-title: 40px;
   color-scheme: light;
   --bg: #f5f0e6;
   --surface: #ede6d8;

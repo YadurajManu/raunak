@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { ProfileEditor } from "@/components/dashboard/profile-editor";
+import { PageHeader } from "@/components/ui";
 
 export const metadata = {
   title: "Edit organizer profile",
@@ -39,11 +40,16 @@ export default async function ProfileSettingsPage({
 
   if (!selected)
     return (
-      <>
-        <h1>Organizer profile</h1>
-        <p>Choose a workspace you own or administer.</p>
+      <main className="pe-restricted">
+        <PageHeader
+          title="Organizer profile"
+          description="Only workspace owners and administrators can edit organizer profiles."
+        />
+        <p>
+          Choose a workspace you own or administer, or ask its owner for access.
+        </p>
         <Link href="/dashboard">Back to workspaces</Link>
-      </>
+      </main>
     );
 
   const org = selected.org;

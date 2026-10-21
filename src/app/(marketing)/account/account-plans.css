@@ -369,32 +369,31 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 20px;
 }
-.marketing .plans-page .market-cover {
+.marketing .plans-discover-grid .market-cover {
   height: 200px;
   aspect-ratio: 16/10;
   object-fit: cover;
   background: var(--surface);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.marketing .plans-page .market-card {
+.marketing .plans-discover-grid .market-card {
   max-width: none;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.marketing .plans-page .market-card:hover {
-  border-color: var(--accent);
+.marketing .plans-discover-grid .market-card:hover {
+  border-color: var(--border-strong);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--scrim-soft);
 }
-.marketing .plans-page .market-card:hover .market-cover {
+.marketing .plans-discover-grid .market-card:hover .market-cover {
   transform: scale(1.03);
 }
-.marketing .plans-page .market-card h3 {
+.marketing .plans-discover-grid .market-card h3 {
   font-size: 19px;
 }
-.marketing .plans-page .market-card footer {
+.marketing .plans-discover-grid .market-card footer {
   font-size: 12px;
 }
-.marketing .plans-page .market-main > div {
+.marketing .plans-discover-grid .market-main > div {
   padding: 14px;
 }
 .marketing .plans-orders {
@@ -977,98 +976,7 @@
     grid-column: auto;
   }
 }
-.marketing .plans-saved-preview {
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-.marketing .plans-saved-preview .market-card {
-  max-width: none;
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--paper);
-}
-.marketing .plans-saved-preview .market-main {
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
-  gap: 0;
-}
-.marketing .plans-saved-preview .market-main picture {
-  display: block;
-  height: 100%;
-}
-.marketing .plans-saved-preview .market-cover {
-  width: 80px;
-  height: 100%;
-  min-height: 135px;
-  aspect-ratio: auto;
-  object-fit: contain;
-}
-.marketing .plans-saved-preview .market-main > div {
-  padding: 13px 14px;
-}
-.marketing .plans-saved-preview .market-main h3 {
-  font-size: 17px;
-  margin: 5px 0 7px;
-  line-height: 1.25;
-}
-.marketing .plans-saved-preview .market-main .m-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.04em;
-}
-.marketing .plans-saved-preview .market-main time,
-.marketing .plans-saved-preview .market-main p {
-  font-size: 12px;
-  margin: 3px 0;
-  line-height: 1.4;
-}
-.marketing .plans-saved-preview .market-main strong {
-  font-size: 13px;
-  margin-top: 6px;
-  display: block;
-}
-.marketing .plans-saved-preview .market-card footer {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  align-items: center;
-  padding: 10px;
-  border: 0;
-  border-left: 1px solid var(--line);
-  max-width: 84px;
-}
-.marketing .plans-saved-preview .market-card footer > a:first-child {
-  font-size: 12px;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  text-align: center;
-}
-.marketing .plans-saved-preview .market-card footer > a:last-child {
-  font-size: 12px;
-}
 @media (max-width: 900px) {
-  .marketing .plans-saved-preview .market-card {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .marketing .plans-saved-preview .market-card footer {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    max-width: none;
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    gap: 8px 12px;
-    padding: 6px 12px;
-  }
-  .marketing .plans-saved-preview .market-card footer > a:first-child {
-    flex: 1;
-    min-width: 80px;
-    text-align: left;
-    font-size: 12px;
-  }
   .marketing .plans-secondary-grid {
     grid-template-columns: minmax(0, 1fr) 210px;
     gap: 24px;
@@ -1099,15 +1007,6 @@
   }
   .marketing .plans-discover-grid > li:nth-child(3) {
     display: none;
-  }
-  .marketing .plans-saved-grid {
-    grid-template-columns: 1fr;
-  }
-  .marketing .plans-saved-grid > li {
-    max-width: none;
-  }
-  .marketing .plans-saved-grid .market-cover {
-    height: 170px;
   }
 }
 @media (max-width: 650px) {
@@ -1261,10 +1160,10 @@
   .marketing .plans-discover-grid > li:nth-child(3) {
     display: list-item;
   }
-  .marketing .plans-page .market-card {
+  .marketing .plans-discover-grid .market-card {
     max-width: none;
   }
-  .marketing .plans-page .market-cover {
+  .marketing .plans-discover-grid .market-cover {
     height: 210px;
   }
   .marketing .plans-empty-inline {

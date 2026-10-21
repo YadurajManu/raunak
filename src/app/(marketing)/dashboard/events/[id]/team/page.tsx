@@ -39,11 +39,7 @@ export default async function EventTeamPage({
   });
   return (
     <main className="max-w-3xl py-10">
-      <h1 className="text-3xl font-semibold">Event team</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Assigned managers can edit this event. Check-in staff can access its
-        guest list and scanner.
-      </p>
+      <PageHeader title="Event team" description="Managers can edit this event. Check-in staff can access its guest list and scanner." />
       <EventTeam
         eventId={id}
         canManage={membership.role === "OWNER" || membership.role === "ADMIN"}
@@ -63,3 +59,4 @@ export default async function EventTeamPage({
     </main>
   );
 }
+import { PageHeader } from "@/components/ui";

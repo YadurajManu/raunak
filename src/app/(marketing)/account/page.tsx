@@ -9,7 +9,6 @@ import {
   SlidersHorizontal,
   BriefcaseBusiness,
   Star,
-  Sparkles,
 } from "lucide-react";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
@@ -22,6 +21,7 @@ import { walletWhere } from "@/lib/wallet";
 import { discoveryUrl } from "@/lib/discovery";
 import { cities } from "@/config/cities";
 import { whatsappEventUrl } from "@/lib/event-share";
+import { PageHeader, SectionHeader } from "@/components/ui";
 
 export const metadata = {
   title: "My plans | Raunak",
@@ -207,16 +207,11 @@ export default async function AccountPage({
   function renderOrders() {
     return (
       <section className="plans-section" aria-labelledby="plans-orders-title">
-        <div className="plans-section-heading">
-          <h2 id="plans-orders-title">
-            {tab === "orders" ? "Your orders" : "Recent orders"}
-          </h2>
-          {tab !== "orders" && orders.length > 0 && (
+        <SectionHeader id="plans-orders-title" title={tab === "orders" ? "Your orders" : "Recent orders"} count={orderCount} actions={tab !== "orders" && orders.length > 0 && (
             <Link href="/account?tab=orders">
               View orders <ArrowRight size={16} />
             </Link>
-          )}
-        </div>
+          )} />
         {orders.length ? (
           <div className="plans-orders">
             {orders.map((order) => (
@@ -275,33 +270,22 @@ export default async function AccountPage({
   function renderSaved() {
     return (
       <section className="plans-section" aria-labelledby="plans-saved-title">
-        <div className="plans-section-heading">
-          <h2 id="plans-saved-title">
-            Saved for later <span>{savedCount}</span>
-          </h2>
-          {savedCount > 0 && (
+        <SectionHeader id="plans-saved-title" title="Saved for later" count={savedCount} actions={savedCount > 0 && (
             <Link href="/saved">
               View all saved <ArrowRight size={16} />
             </Link>
-          )}
-        </div>
+          )} />
         {saved.length ? (
-          <ul
-            className={`plans-saved-grid${tab === "saved" ? "" : " plans-saved-preview"}`}
-          >
+          <ul className="plans-saved-grid">
             {saved.map((item) => (
-              <EventCard key={item.eventId} event={item.event} saved />
+              <EventCard key={item.eventId} event={item.event} saved variant="saved" />
             ))}
           </ul>
         ) : (
           <div className="plans-empty-inline">
             <Heart size={22} aria-hidden="true" />
             <div>
-              <h3>Keep a little room for a good plan.</h3>
-              <p>
-                Save events with the heart button. Find your upcoming favourites
-                here.
-              </p>
+              <p>Tap the heart on any event to keep it here.</p>
             </div>
             <Link href="/discover">
               Discover events <ArrowRight size={16} />
@@ -313,23 +297,11 @@ export default async function AccountPage({
   }
   return (
     <main className="plans-page" data-tab={tab}>
-      <header className="plans-heading">
-        <div>
-          <p className="m-eyebrow">YOUR LITTLE CORNER</p>
-          <h1>
-            Hey, {user.name?.trim().split(/\s+/)[0] || "there"}.{" "}
-            <em>Make a good plan.</em>
-          </h1>
-          <p>
-            {upcomingCount} upcoming{" "}
-            {upcomingCount === 1 ? "ticket" : "tickets"} · {savedCount} saved{" "}
-            {savedCount === 1 ? "event" : "events"}
-          </p>
-        </div>
+      <PageHeader title="My plans" description={`${upcomingCount} upcoming ${upcomingCount === 1 ? "ticket" : "tickets"} · ${savedCount} saved ${savedCount === 1 ? "event" : "events"}`} actions={
         <Link href="/discover" className="plans-button plans-primary">
           Explore events <ArrowRight size={17} />
         </Link>
-      </header>
+      } />
       <nav className="plans-tabs" aria-label="My plans">
         {tabs.map((value) => (
           <Link

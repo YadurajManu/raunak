@@ -26,10 +26,7 @@ export default async function TicketsPage({
   });
   return (
     <main className="py-10">
-      <h1 className="text-3xl font-semibold">Tickets</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Set prices, sale windows, and inventory for {event.title}.
-      </p>
+      <PageHeader title="Tickets" description={`Set prices, sale windows, and inventory for ${event.title}.`} />
       <TicketEditor
         eventId={id}
         timezone={event.timezone}
@@ -60,3 +57,4 @@ export default async function TicketsPage({
     </main>
   );
 }
+import { PageHeader } from "@/components/ui";

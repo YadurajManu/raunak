@@ -4,6 +4,7 @@ import { requireEventAccessForUser } from "@/server/rbac/access";
 import { db } from "@/server/db/client";
 import { utcToLocalEventTime } from "@/lib/dates";
 import { EventForm } from "@/components/dashboard/event-form";
+import { PageHeader } from "@/components/ui";
 
 export default async function EventDetails({
   params,
@@ -21,10 +22,7 @@ export default async function EventDetails({
   const event = await db.event.findUniqueOrThrow({ where: { id } });
   return (
     <main className="r-event-create">
-      <h1 className="text-3xl font-semibold">Event details</h1>
-      <p className="mt-2 text-[var(--muted)] dark:text-[var(--muted)]">
-        Edit the information guests see on your event page.
-      </p>
+      <PageHeader title="Event details" description="Edit the information guests see on your event page." />
       <EventForm
         event={{
           id,

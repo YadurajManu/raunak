@@ -13,6 +13,7 @@ import "./global-navigation.css";
 import "./discovery-premium.css";
 import "./event-actions.css";
 import "./checkin.css";
+import "./calm-ui.css";
 import { GlobalNavbar } from "@/components/global-navbar";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";

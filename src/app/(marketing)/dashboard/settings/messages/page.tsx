@@ -4,6 +4,7 @@ import { db } from "@/server/db/client";
 import { MessageEditor } from "@/components/dashboard/message-editor";
 import { defaultBodies } from "@/server/notifications/templates";
 import { attachmentSettingsSchema } from "@/lib/whatsapp";
+import { PageHeader, SettingsNavigation } from "@/components/ui";
 export const metadata = {
   title: "Workspace message defaults",
   robots: { index: false, follow: false },
@@ -29,8 +30,7 @@ export default async function WorkspaceMessages({
   if (!selected)
     return (
       <>
-        <h1>Workspace messages</h1>
-        <p>Choose a workspace you own or administer.</p>
+        <PageHeader title="Workspace messages" description="Choose a workspace you own or administer." />
         <Link href="/dashboard">Back to workspaces</Link>
       </>
     );
@@ -69,10 +69,8 @@ export default async function WorkspaceMessages({
           </Link>
         ))}
       </nav>
-      <h1>Workspace messages</h1>
-      <p className="mb-6">
-        Defaults for {org.name}. An event’s own settings take precedence.
-      </p>
+      <SettingsNavigation orgId={org.id} current="messages" className="ui-settings-horizontal" />
+      <PageHeader title="Workspace messages" description={`Defaults for ${org.name}. An event’s own settings take precedence.`} />
       <MessageEditor
         key={org.id}
         orgId={org.id}

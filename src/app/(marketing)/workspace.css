@@ -3,7 +3,7 @@
 .marketing .r-account-content { padding:28px clamp(20px,3vw,42px) 48px; }
 .marketing .r-account-sidebar { padding:28px 18px; }
 .marketing .r-compact-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin:12px 0 22px; }
-.marketing .r-settings .r-compact-heading h1,.marketing .r-organizer .r-compact-heading h1 { font-size:2rem; letter-spacing:-.045em; line-height:1.15; margin:0 0 6px; }
+.marketing .r-settings .r-compact-heading h1,.marketing .r-organizer .r-compact-heading h1 { font-size:2rem; letter-spacing:0; line-height:1.15; margin:0 0 6px; }
 .marketing .r-compact-heading p { margin:0; font-size:.85rem; color:var(--muted); line-height:1.5; }
 .marketing .r-settings>form { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); align-items:start; gap:18px; }
 .marketing .r-settings .r-settings-card { padding:22px; margin-top:0; border-radius:14px; }
@@ -43,7 +43,7 @@
 .marketing .r-create-steps strong { color: var(--accent-text); }
 .marketing .r-form-section { padding:20px 0; border-bottom:1px solid var(--line); }
 .marketing .r-section-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
-.marketing .r-section-heading h2 { font-size:1rem; font-weight:650; letter-spacing:-.02em; margin:0; }
+.marketing .r-section-heading h2 { font-size:1rem; font-weight:650; letter-spacing:0; margin:0; }
 .marketing .r-section-heading small,.marketing .r-form-section>small { font-size:0.75rem; color:var(--muted); line-height:1.5; }
 .marketing .r-form-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; margin-top:14px; }
 .marketing .r-field-wide { grid-column:1/-1; }
@@ -65,7 +65,7 @@
 .marketing .r-form-message { margin-top:12px; font-size:.8rem; color: var(--accent-text); }
 .marketing .r-event-preview { position:sticky; top:20px; border:1px solid var(--line); border-radius:14px; padding:18px; background:var(--paper-2); overflow-wrap:anywhere; }
 .marketing .r-preview-art { height:105px; background:var(--green); color:var(--sun); display:grid; place-items:center; font-size:3.4rem; border-radius:8px; margin:12px 0; }
-.marketing .r-event-preview h2 { font-size:1.35rem; line-height:1.15; letter-spacing:-.04em; margin:12px 0 8px; }
+.marketing .r-event-preview h2 { font-size:1.35rem; line-height:1.15; letter-spacing:0; margin:12px 0 8px; }
 .marketing .r-event-preview p:not(.m-eyebrow) { font-size:.75rem; line-height:1.6; color:var(--muted); }
 .marketing .r-event-preview dl { border-top:1px solid var(--line); margin-top:16px; padding-top:8px; }
 .marketing .r-event-preview dl>div { padding:8px 0; }

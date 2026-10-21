@@ -3,6 +3,7 @@ import { EventCard } from "@/components/public/event-card";
 import { currentUser } from "@/server/auth/session";
 import { publicListing } from "@/server/public/events";
 import { db } from "@/server/db/client";
+import { PageHeader } from "@/components/ui";
 export const metadata = {
   title: "Saved events | Raunak",
   robots: { index: false },
@@ -17,10 +18,9 @@ export default async function SavedPage({
     return (
       <>
         <main className="market-page">
-          <h1>Keep good plans close.</h1>
-          <p>Sign in to see your saved events across devices.</p>
+          <PageHeader title="Saved events" description="Sign in to see your saved events across devices." />
           <Link href="/login?next=/saved" className="m-button">
-            Sign in ↗
+            Sign in →
           </Link>
         </main>
       </>
@@ -56,30 +56,19 @@ export default async function SavedPage({
   ]);
   return (
     <>
-      <main className="market-page">
-        <header className="wallet-heading">
-          <div>
-            <p className="m-eyebrow">KEEP A LITTLE ROOM</p>
-            <h1>Saved events</h1>
-            <p>
-              Your saved upcoming plans. Unavailable or private events are
-              hidden.
-            </p>
-          </div>
-          <Link href="/discover">Discover more ↗</Link>
-        </header>
+      <main className="market-page saved-page">
+        <PageHeader title="Saved events" description="Your saved upcoming plans. Unavailable or private events are hidden." actions={<Link href="/discover">Discover more →</Link>} />
         {saved.length ? (
-          <ul className="market-grid">
+          <ul className="market-grid calm-saved-grid">
             {saved.map((v) => (
-              <EventCard key={v.eventId} event={v.event} saved />
+              <EventCard key={v.eventId} event={v.event} saved variant="saved" />
             ))}
           </ul>
         ) : (
           <section className="market-empty">
-            <h2>Your next plan is waiting.</h2>
-            <p>Tap the heart on an event to save it here.</p>
+            <p>Tap the heart on any event to keep it here.</p>
             <Link href="/discover" className="m-button">
-              Explore events ↗
+              Discover events →
             </Link>
           </section>
         )}

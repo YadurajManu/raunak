@@ -6,6 +6,7 @@ import { DeleteEventButton } from "@/components/dashboard/delete-event-button";
 import { EventShare } from "@/components/dashboard/event-share";
 import { TestEventToggle } from "@/components/dashboard/test-event-toggle";
 import { variantUrl } from "@/lib/images";
+import { PageHeader } from "@/components/ui";
 
 export default async function EventSettings({
   params,
@@ -34,7 +35,7 @@ export default async function EventSettings({
   });
   return (
     <main className="max-w-3xl py-10">
-      <h1 className="text-3xl font-semibold">Settings</h1>
+      <PageHeader title="Settings" description="Manage this event’s link, visibility and draft." />
       <TestEventToggle eventId={id} isTest={event.isTest} />
       <EventShare
         eventId={id}

@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/components/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import Image from "next/image";
@@ -108,11 +109,7 @@ export function WhatsAppIntegration({ orgId }: { orgId: string }) {
   const connected = status?.connection?.status === "CONNECTED";
   return (
     <div className="wa-integration">
-      <header>
-        <p className="m-eyebrow">SETTINGS / INTEGRATIONS</p>
-        <h1>WhatsApp delivery</h1>
-        <p>Connect your event messages. Email remains the backup.</p>
-      </header>
+      <PageHeader title="WhatsApp delivery" description="Connect your event messages. Email remains the backup." />
       {(error || loadError) && (
         <div role="alert" className="wa-feedback">
           {error || loadError}{" "}

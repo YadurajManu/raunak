@@ -5,11 +5,13 @@ export function EventImage({
   alt,
   size = "hero",
   className = "",
+  backdrop = false,
 }: {
   variants: unknown;
   alt: string;
   size?: "thumb" | "card" | "hero" | "og";
   className?: string;
+  backdrop?: boolean;
 }) {
   const jpeg = variantUrl(variants, size, "jpeg");
   const widths = { thumb: 320, card: 640, hero: 1280 } as const;
@@ -35,7 +37,7 @@ export function EventImage({
         ✦
       </div>
     );
-  return (
+  const picture = (
     <picture>
       <source srcSet={srcSet("avif")} sizes={sizes} type="image/avif" />
       <source srcSet={srcSet("webp")} sizes={sizes} type="image/webp" />
@@ -50,4 +52,5 @@ export function EventImage({
       />
     </picture>
   );
+  return backdrop ? <span className="event-image-fit"><img className="event-image-backdrop" src={jpeg} alt="" aria-hidden="true" loading="lazy" />{picture}</span> : picture;
 }

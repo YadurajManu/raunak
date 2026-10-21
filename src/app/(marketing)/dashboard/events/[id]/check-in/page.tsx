@@ -66,12 +66,7 @@ export default async function CheckinPage({
     event.org.status === "ACTIVE";
   return (
     <main className="ops-page">
-      <header className="gate-page-heading">
-        <div>
-          <h1>Guest check-in</h1>
-          <p>{event.title} · One ticket, one welcome.</p>
-        </div>
-      </header>
+      <PageHeader title="Guest check-in" description={event.title} />
       <div className="gate-summary" aria-label="Entry totals">
         <article>
           <p>Guests admitted</p>
@@ -136,3 +131,4 @@ export default async function CheckinPage({
     </main>
   );
 }
+import { PageHeader } from "@/components/ui";

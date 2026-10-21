@@ -1,9 +1,9 @@
 "use client";
+import { PageHeader } from "@/components/ui";
 export default function Error({ reset }: { reset(): void }) {
   return (
     <main className="market-page">
-      <h1>Your wallet could not load.</h1>
-      <p>This does not mean your bookings are missing. Please try again.</p>
+      <PageHeader title="Your wallet could not load" description="This does not mean your bookings are missing. Please try again." />
       <button className="m-button" onClick={reset}>
         Reload wallet
       </button>

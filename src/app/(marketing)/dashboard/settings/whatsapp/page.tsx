@@ -4,6 +4,7 @@ import { requireUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { WhatsAppIntegration } from "@/components/dashboard/whatsapp-integration";
 import "./whatsapp.css";
+import { PageHeader, SettingsNavigation } from "@/components/ui";
 export const metadata = {
   title: "WhatsApp integration",
   robots: { index: false, follow: false },
@@ -49,14 +50,10 @@ export default async function WhatsAppSettings({
         </nav>
       </div>
       {selected ? (
-        <WhatsAppIntegration key={selected.orgId} orgId={selected.orgId} />
+        <><SettingsNavigation orgId={selected.orgId} current="whatsapp" className="ui-settings-horizontal" /><WhatsAppIntegration key={selected.orgId} orgId={selected.orgId} /></>
       ) : (
         <section>
-          <h1>WhatsApp integrations</h1>
-          <p>
-            Only workspace owners and administrators can manage WhatsApp
-            connections.
-          </p>
+          <PageHeader title="WhatsApp integrations" description="Only workspace owners and administrators can manage WhatsApp connections." />
           <Link href="/dashboard">Back to workspaces</Link>
         </section>
       )}
