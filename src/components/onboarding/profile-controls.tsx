@@ -48,6 +48,7 @@ export function ProfileControls({
   const open = menu.open && menu.path === pathname;
   const setOpen = useCallback((value: boolean) => setMenu({ open: value, path: pathname }), [pathname]);
   const [imageFailed, setImageFailed] = useState(false);
+  const [liveAvatar, setLiveAvatar] = useState<string|null|undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [savedPreferences, setSavedPreferences] = useState(preferences);
@@ -66,6 +67,15 @@ export function ProfileControls({
         '[role^="menuitem"]:not([aria-disabled="true"]):not(:disabled)',
       ) ?? [],
     ).filter((item) => item.getClientRects().length > 0);
+
+  useEffect(() => {
+    const updateAvatar = (event: Event) => { setLiveAvatar((event as CustomEvent<string|null>).detail); setImageFailed(false); };
+    const updatePreferences = (event: Event) => setSavedPreferences((event as CustomEvent<Preferences>).detail);
+    window.addEventListener("raunak:avatar", updateAvatar);
+    window.addEventListener("raunak:preferences", updatePreferences);
+    return () => { window.removeEventListener("raunak:avatar", updateAvatar); window.removeEventListener("raunak:preferences", updatePreferences); };
+  }, []);
+  const currentAvatar = liveAvatar === undefined ? avatarUrl : liveAvatar;
 
   useEffect(() => {
     if (!open) return;
@@ -223,16 +233,16 @@ export function ProfileControls({
         onClick={() => setOpen(!open)}
       >
         <span className="r-profile-avatar">
-          {(avatarUrl?.startsWith("https://") ||
-            avatarUrl?.startsWith("avatars/")) &&
+          {(currentAvatar?.startsWith("https://") || currentAvatar?.startsWith("/api/profile/avatar") ||
+            currentAvatar?.startsWith("avatars/")) &&
           !imageFailed ? (
             // Firebase supplies remote profile images; a failed image falls back to initials.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={
-                avatarUrl.startsWith("avatars/")
+                currentAvatar.startsWith("avatars/")
                   ? "/api/profile/avatar"
-                  : avatarUrl
+                  : currentAvatar
               }
               alt=""
               referrerPolicy="no-referrer"
@@ -260,12 +270,12 @@ export function ProfileControls({
           </div>
           <div className="r-profile-header" role="group" aria-label="Signed-in account">
             <span className="r-profile-avatar r-profile-avatar-large">
-              {(avatarUrl?.startsWith("https://") ||
-                avatarUrl?.startsWith("avatars/")) &&
+              {(currentAvatar?.startsWith("https://") || currentAvatar?.startsWith("/api/profile/avatar") ||
+                currentAvatar?.startsWith("avatars/")) &&
               !imageFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={avatarUrl.startsWith("avatars/") ? "/api/profile/avatar" : avatarUrl}
+                  src={currentAvatar.startsWith("avatars/") ? "/api/profile/avatar" : currentAvatar}
                   alt=""
                   referrerPolicy="no-referrer"
                   onError={() => setImageFailed(true)}

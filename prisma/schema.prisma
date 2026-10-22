@@ -124,6 +124,10 @@ model User {
   avatarKey String?
   emailRemindersEnabled Boolean @default(true)
   whatsappRemindersEnabled Boolean @default(false)
+  interestCategories String[] @default([])
+  deletionRequestedAt DateTime? @db.Timestamptz(6)
+  deletionNotificationSentAt DateTime? @db.Timestamptz(6)
+  deletionNotificationAttemptAt DateTime? @db.Timestamptz(6)
   gender String?
   city String?
   region String?

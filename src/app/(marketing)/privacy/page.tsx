@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal";
 import { APP_NAME } from "@/lib/constants";
 export const metadata: Metadata = {
@@ -27,7 +28,9 @@ export default function PrivacyPage() {
         Geoapify address lookup and OpenStreetMap tiles. Browser location is
         requested only after you choose to share it. We store only your city and
         region unless you separately choose to save the exact pin. You can
-        remove these details in your profile.
+        remove these details in your profile. If you select event interests, we
+        store those categories in your account so you can revisit them across
+        devices. You can change or clear them in your profile.
       </p>
       <h2>Who helps provide the service</h2>
       <p>
@@ -41,7 +44,8 @@ export default function PrivacyPage() {
       <p>
         We use an essential session cookie to keep you signed in. Your browser
         may also store your theme preference and ticket selection. These support
-        the service and are not advertising cookies.
+        the service and are not advertising cookies. Optional email and WhatsApp
+        reminder preferences are saved in your account.
       </p>
       <h2>Retention and security</h2>
       <p>
@@ -51,10 +55,13 @@ export default function PrivacyPage() {
       </p>
       <h2>Your choices</h2>
       <p>
-        You can choose whether to create an account or book an event. For
-        event-specific questions, contact the organizer shown on the event page.
-        The operator identity, retention schedule and privacy request contact
-        will be finalized before public launch.
+        When signed in, open <Link href="/account/profile?section=privacy">Privacy
+        &amp; security</Link> to download your account and booking summary as JSON
+        or request account deletion. Deletion requests are reviewed manually;
+        submitting a request does not immediately delete your account. Booking
+        and transaction records may be retained for transaction records and
+        applicable legal obligations. For event-specific questions, contact the
+        organizer shown on the event page.
       </p>
     </LegalPage>
   );

@@ -12,6 +12,12 @@ export default async function ProfilePage() {
         initial={profileValues(user)}
         email={user.email}
         avatarKey={user.avatarKey}
+        preferences={{
+          emailRemindersEnabled: user.emailRemindersEnabled,
+          whatsappRemindersEnabled: user.whatsappRemindersEnabled,
+        }}
+        interestCategories={user.interestCategories}
+        deletionRequestedAt={user.deletionRequestedAt?.toISOString() || null}
       />
     </AccountShell>
   );

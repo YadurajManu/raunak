@@ -1,6 +1,34 @@
 import { z } from "zod";
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 import { db } from "@/server/db/client";
+import { eventCategories } from "@/config/event-options";
+
+export const interestsSchema = z
+  .object({
+    interestCategories: z
+      .array(
+        z
+          .string()
+          .refine(
+            (value) => eventCategories.includes(value),
+            "Choose an available event category.",
+          ),
+      )
+      .max(eventCategories.length),
+  })
+  .strict()
+  .transform(({ interestCategories }) => ({
+    interestCategories: [...new Set(interestCategories)],
+  }));
+
+export async function saveInterests(userId: string, input: unknown) {
+  z.uuid().parse(userId);
+  return db.user.update({
+    where: { id: userId },
+    data: interestsSchema.parse(input),
+    select: { interestCategories: true },
+  });
+}
 
 export const locationSchema = z
   .object({
