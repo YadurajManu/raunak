@@ -141,8 +141,8 @@ export function MessageEditor({
               value={trigger}
               onChange={(e) => select(e.target.value, channel)}
             >
-              {Object.keys(defaults).map((t) => (
-                <option key={t}>{t}</option>
+              {Object.keys(defaults).filter((t) => t !== "ATTENDEE_BROADCAST").map((t) => (
+                <option key={t} value={t}>{t.replaceAll("_", " ")}</option>
               ))}
             </select>
           </label>
@@ -436,7 +436,7 @@ export function MessageEditor({
                 .filter((x) => filter === "ALL" || x.status === filter)
                 .map((log) => (
                   <tr key={log.id} className="border-t">
-                    <td className="p-3">{log.trigger}</td>
+                    <td className="p-3">{log.trigger === "ATTENDEE_BROADCAST" ? "Attendee update" : log.trigger.replaceAll("_", " ")}</td>
                     <td className="p-3">
                       {log.channel === "WHATSAPP"
                         ? `••••${log.toAddress.slice(-4)}`

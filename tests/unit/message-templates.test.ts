@@ -3,6 +3,7 @@ import {
   renderTemplate,
   escapeHtml,
   defaultBodies,
+  validateBroadcastBody,
 } from "@/server/notifications/templates";
 it("renders only approved variables and escapes email HTML", () => {
   expect(
@@ -14,6 +15,16 @@ it("renders only approved variables and escapes email HTML", () => {
   expect(escapeHtml('<img src=x onerror="x">')).toBe(
     "&lt;img src=x onerror=&quot;x&quot;&gt;",
   );
+});
+it("limits attendee broadcasts to event and attendee details, excluding private ticket variables", () => {
+  expect(
+    validateBroadcastBody(
+      "Hi {{attendee_name}} — {{event_title}} is at {{venue}}. {{event_url}}",
+    ),
+  ).toContain("{{event_url}}");
+  expect(() =>
+    validateBroadcastBody("Your private QR is {{ticket_url}}"),
+  ).toThrow("Use only attendee and event details");
 });
 it("includes real event, organizer, booking and support details in branded ticket messages", () => {
   const values = {

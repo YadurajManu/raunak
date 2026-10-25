@@ -29,6 +29,7 @@ export const transactionalTriggers = [
   "PAYMENT_FAILED",
   "EVENT_CANCELLED",
   "EVENT_UPDATED",
+  "ATTENDEE_BROADCAST",
   "REMINDER_2H",
   "REMINDER_24H",
 ] as const;

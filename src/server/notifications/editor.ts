@@ -4,7 +4,7 @@ import { messageAccess } from "./access";
 import {
   defaultBodies,
   renderTemplate,
-  triggerSchema,
+  messageTemplateTriggerSchema,
   whatsappTemplate,
 } from "./templates";
 import { resolvedTemplate } from "./service";
@@ -24,7 +24,7 @@ export async function resetMessageTemplate(
 ) {
   const event = await messageAccess(userId, eventId, orgId);
   const data = z
-    .object({ channel: z.enum(["EMAIL", "WHATSAPP"]), trigger: triggerSchema })
+    .object({ channel: z.enum(["EMAIL", "WHATSAPP"]), trigger: messageTemplateTriggerSchema })
     .parse(input);
   await db.$transaction(async (tx) => {
     await tx.messageTemplate.deleteMany({
@@ -63,7 +63,7 @@ export async function sendMessageTest(
   if (count > 3)
     throw new Error("Please wait a minute before sending another test.");
   const data = z
-    .object({ channel: z.enum(["EMAIL", "WHATSAPP"]), trigger: triggerSchema })
+    .object({ channel: z.enum(["EMAIL", "WHATSAPP"]), trigger: messageTemplateTriggerSchema })
     .parse(input);
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
   const event = await db.event.findFirst({

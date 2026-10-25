@@ -99,6 +99,7 @@ enum MessageTrigger {
   REMINDER_2H
   EVENT_UPDATED
   EVENT_CANCELLED
+  ATTENDEE_BROADCAST
 }
 enum NotificationStatus {
   SENDING
@@ -536,6 +537,7 @@ model NotificationLog {
   ticketId String? @db.Uuid
   channel Channel
   trigger MessageTrigger
+  campaignText String?
   toAddress String
   templateId String? @db.Uuid
   status NotificationStatus @default(QUEUED)

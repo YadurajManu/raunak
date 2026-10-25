@@ -5,6 +5,7 @@ export const variables = [
   "event_title",
   "event_date",
   "event_time",
+  "event_url",
   "venue",
   "city",
   "ticket_type",
@@ -19,6 +20,15 @@ export const variables = [
   "custom_footer",
 ] as const;
 export const triggerSchema = z.enum(MessageTrigger);
+export const messageTemplateTriggerSchema = z.enum([
+  "ORDER_CONFIRMED",
+  "TICKET_ISSUED",
+  "PAYMENT_FAILED",
+  "REMINDER_24H",
+  "REMINDER_2H",
+  "EVENT_UPDATED",
+  "EVENT_CANCELLED",
+]);
 export function renderTemplate(body: string, values: Record<string, string>) {
   return body.replace(/{{\s*([^{}]+?)\s*}}/g, (_match, rawKey: string) => {
     const key = rawKey.trim();
@@ -26,6 +36,26 @@ export function renderTemplate(body: string, values: Record<string, string>) {
       throw new Error(`Unsupported variable: ${key}`);
     return values[key] || "";
   });
+}
+
+export const broadcastVariables = [
+  "attendee_name",
+  "event_title",
+  "event_date",
+  "event_time",
+  "venue",
+  "city",
+  "organizer_name",
+  "event_url",
+] as const;
+
+export function validateBroadcastBody(body: string) {
+  const used = [...body.matchAll(/{{\s*([^{}]+?)\s*}}/g)].map((match) =>
+    match[1].trim(),
+  );
+  if (used.some((key) => !(broadcastVariables as readonly string[]).includes(key)))
+    throw new Error("Use only attendee and event details in broadcast messages.");
+  return body;
 }
 export function escapeHtml(value: string) {
   return value.replace(
@@ -51,6 +81,7 @@ export const defaultBodies: Record<MessageTrigger, string> = {
     "An update for {{event_title}}: {{event_date}} at {{event_time}}, {{venue}}.\nCheck your ticket for the latest details: {{ticket_url}}\n{{custom_note}}\n{{support_contact}}",
   EVENT_CANCELLED:
     "{{event_title}} has been cancelled. Please contact {{support_contact}} for the organizer's refund policy and next steps.\n{{custom_note}}",
+  ATTENDEE_BROADCAST: "{{custom_note}}",
 };
 const metaConfig = z.record(
   z.string(),

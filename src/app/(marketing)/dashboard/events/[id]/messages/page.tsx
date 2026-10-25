@@ -5,6 +5,8 @@ import { db } from "@/server/db/client";
 import { defaultBodies } from "@/server/notifications/templates";
 import { MessageEditor } from "@/components/dashboard/message-editor";
 import { attachmentSettingsSchema } from "@/lib/whatsapp";
+import { AttendeeWhatsAppBroadcast } from "@/components/dashboard/attendee-whatsapp-broadcast";
+import { whatsappBroadcastAudience } from "@/server/notifications/broadcast";
 export default async function MessagesPage({
   params,
 }: {
@@ -18,6 +20,16 @@ export default async function MessagesPage({
     where: { id },
     include: { org: true },
   });
+  const audience = await whatsappBroadcastAudience(id, event.orgId);
+  const session = ["ORG_NUMBER", "PLATFORM_NUMBER"].includes(event.org.whatsappMode)
+    ? await db.whatsAppSession.findFirst({
+        where: {
+          orgId: event.org.whatsappMode === "ORG_NUMBER" ? event.orgId : null,
+          label: "default",
+        },
+        select: { phoneE164: true, status: true },
+      })
+    : null;
   const logs = await db.notificationLog.findMany({
     where: { eventId: id },
     orderBy: { createdAt: "desc" },
@@ -49,6 +61,15 @@ export default async function MessagesPage({
   return (
     <main className="py-10">
       <PageHeader title="Messages" description="Customize booking and ticket delivery messages." />
+      <AttendeeWhatsAppBroadcast
+        eventId={id}
+        orgId={event.orgId}
+        mode={event.org.whatsappMode}
+        phone={session?.phoneE164 || null}
+        connected={session?.status === "CONNECTED"}
+        eligible={audience.recipients.length}
+        suppressed={audience.suppressed}
+      />
       <MessageEditor
         eventId={id}
         orgId={event.orgId}

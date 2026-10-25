@@ -20,8 +20,9 @@ import {
 } from "@/server/providers/whatsapp/provider";
 import {
   defaultBodies,
+  messageTemplateTriggerSchema,
   renderTemplate,
-  triggerSchema,
+  validateBroadcastBody,
   whatsappTemplate,
 } from "./templates";
 import { formatInr } from "@/lib/money";
@@ -277,17 +278,26 @@ export async function processNotification(
     });
     return;
   }
-  const template = await resolvedTemplate(
-    log.orgId,
-    log.eventId,
-    log.trigger,
-    log.channel,
-  );
+  const template =
+    log.trigger === "ATTENDEE_BROADCAST"
+      ? null
+      : await resolvedTemplate(
+          log.orgId,
+          log.eventId,
+          log.trigger,
+          log.channel,
+        );
   if (
     (template && !template.isEnabled) ||
     (log.trigger !== "EVENT_CANCELLED" &&
       (log.event.status === "CANCELLED" || log.event.deletedAt)) ||
-    (log.trigger !== "PAYMENT_FAILED" && log.order.status !== "PAID") ||
+    (log.trigger !== "PAYMENT_FAILED" &&
+      log.order.status !== "PAID" &&
+      !(
+        log.trigger === "ATTENDEE_BROADCAST" &&
+        log.order.status === "PARTIALLY_REFUNDED" &&
+        log.order.tickets.some((item) => ["VALID", "USED"].includes(item.status))
+      )) ||
     (log.trigger === "PAYMENT_FAILED" &&
       !["FAILED", "EXPIRED"].includes(log.order.status))
   ) {
@@ -338,6 +348,7 @@ export async function processNotification(
           ? "Online event"
           : "Venue to be announced"),
       city: log.event.city || "",
+      event_url: `${process.env.APP_URL}/e/${log.event.slug}`,
       ticket_type: ticket?.ticketType.name || "",
       ticket_code: ticket?.code || "",
       quantity: String(log.order.tickets.length),
@@ -359,7 +370,9 @@ export async function processNotification(
     };
     if (log.channel === "EMAIL") {
       const text = renderTemplate(
-        template?.body || defaultBodies[log.trigger],
+        log.trigger === "ATTENDEE_BROADCAST"
+          ? validateBroadcastBody(log.campaignText || "")
+          : template?.body || defaultBodies[log.trigger],
         values,
       );
       const subject = renderTemplate(
@@ -411,6 +424,8 @@ export async function processNotification(
         providers.whatsapp !== whatsapp
           ? { kind: "official" as const, provider: providers.whatsapp }
           : await resolveWhatsApp(log.orgId);
+      if (log.trigger === "ATTENDEE_BROADCAST" && route.kind !== "gateway")
+        throw new WaError("KILL_SWITCH");
       if (route.kind === "gateway") {
         const attachments: GatewayMessage["attachments"] = [];
         const options = attachmentSettingsSchema.parse(
@@ -469,16 +484,26 @@ export async function processNotification(
           log.trigger !== "TICKET_ISSUED" ||
           ticket?.id === log.order.tickets[0]?.id;
         const rendered = firstTicket
-          ? renderTemplate(template?.body || defaultBodies[log.trigger], values)
+          ? renderTemplate(
+              log.trigger === "ATTENDEE_BROADCAST"
+                ? validateBroadcastBody(log.campaignText || "")
+                : template?.body || defaultBodies[log.trigger],
+              values,
+            )
           : "";
         const text =
           rendered +
-          (firstTicket && !template?.body
+          (log.trigger === "ATTENDEE_BROADCAST"
+            ? "\n\nReply STOP to stop WhatsApp updates."
+            : firstTicket && !template?.body
             ? "\n\nReply STOP to stop WhatsApp updates."
             : "");
-        const fallback = largeOrder
-          ? `${process.env.APP_URL}/orders/${log.orderId}`
-          : values.ticket_url;
+        const fallback =
+          log.trigger === "ATTENDEE_BROADCAST"
+            ? ""
+            : largeOrder
+              ? `${process.env.APP_URL}/orders/${log.orderId}`
+              : values.ticket_url;
         const result = await route.provider.send(route.sessionId, {
           clientMessageId: id,
           notificationId: id,
@@ -487,7 +512,7 @@ export async function processNotification(
           trigger: log.trigger,
           timezone: log.event.timezone,
           consent: log.order.whatsappOptIn,
-          text: (text.includes(fallback) ? text : `${text}\n\n${fallback}`)
+          text: (fallback && !text.includes(fallback) ? `${text}\n\n${fallback}` : text)
             .replace(/\n{3,}/g, "\n\n")
             .trim(),
           attachments,
@@ -606,7 +631,7 @@ export async function saveMessageTemplate(
   const data = z
     .object({
       channel: z.enum(["EMAIL", "WHATSAPP"]),
-      trigger: triggerSchema,
+      trigger: messageTemplateTriggerSchema,
       isEnabled: z.boolean(),
       body: z.string().trim().min(1).max(10000),
       subject: z.string().max(200).optional(),
