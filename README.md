@@ -2,88 +2,153 @@
   <img src="public/docs-assets/readme-banner.svg" alt="Raunak — Discover events. Sell tickets. Scan guests in." width="100%" />
 </p>
 
+<h1 align="center">Make room for a little raunak.</h1>
+
 <p align="center">
-  Raunak brings event discovery, organizer tools, ticket bookings and QR check-in<br />
-  into one India-first platform. For college fests, workshops, community meetups,<br />
-  comedy nights and more.
+  An India-first event platform for finding good plans, bringing people together,
+  and making the door feel effortless.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-244E3D?style=flat-square" /></a>
-  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-14120F?style=flat-square" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square" />
+  <a href="https://raunak.yaduraj.me"><strong>Explore Raunak ↗</strong></a>
+  &nbsp; · &nbsp;
+  <a href="docs/public/introduction.md">Product guide</a>
+  &nbsp; · &nbsp;
+  <a href="docs/public/installation.md">Private setup notes</a>
 </p>
 
 <p align="center">
-  <a href="https://raunak.yaduraj.me">Open Raunak</a> ·
-  <a href="#getting-started">Get started</a> ·
-  <a href="docs/public/introduction.md">Documentation</a> ·
-  <a href="CONTRIBUTING.md">Contribute</a>
+  <img alt="Private project" src="https://img.shields.io/badge/PROJECT-PRIVATE-171512?style=flat-square" />
+  <img alt="India first" src="https://img.shields.io/badge/BUILT_FOR-INDIA-EA4F36?style=flat-square" />
+  <img alt="Next.js 16" src="https://img.shields.io/badge/NEXT.JS-16-171512?style=flat-square" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TYPESCRIPT-5-3178C6?style=flat-square" />
 </p>
 
-## A plan, from discovery to the door
+<br />
 
-![The Raunak Discover interface with date, category and location filters and clearly fictional sample events](public/docs-assets/discover.webp)
+## One plan, all the way to the door
 
-<table>
-  <tr>
-    <td width="50%"><img src="public/docs-assets/organizer.webp" alt="Actual Raunak organizer interface with fictional sample event content" /></td>
-    <td width="50%"><img src="public/docs-assets/check-in.webp" alt="Raunak entrance check-in interface using fictional test attendees" /></td>
-  </tr>
-  <tr>
-    <td>Give every event its own home.</td>
-    <td>Find the booking. Check the ticket. Welcome the guest.</td>
-  </tr>
-</table>
+Raunak connects the moments around an event: discovering something worth going to, giving an organizer the tools to host it, and helping every guest find their way in.
 
-Screenshots show actual application components with fictional sample data. They are interface previews, not customer activity or performance evidence. No usable admission QR is included. See the [asset capture notes](docs/docs-maintenance.md).
+<p align="center">
+  <img src="public/docs-assets/product-tour.gif" alt="A short Raunak interface reel showing event discovery, organizer event setup, and entrance check-in. Screens use clearly marked fictional sample data." width="760" />
+</p>
 
-## What Raunak does
+<p align="center"><sub>Product interface reel · Fictional sample data · No real bookings, customers, or usable admission codes</sub></p>
 
-Raunak connects the work of running an event with the experience of attending it. The interface uses warm cream, ink, vermilion and editorial typography, with responsive light and dark themes. The examples above illustrate possible uses; no customer or event-partner affiliation is implied.
+<details>
+  <summary>See the product screens</summary>
+  <br />
+  <table>
+    <tr>
+      <td width="33%"><img src="public/docs-assets/discover.webp" alt="Raunak event discovery with search, city, date, category, and price filters, shown with fictional sample listings" /></td>
+      <td width="33%"><img src="public/docs-assets/organizer.webp" alt="Raunak organizer event setup with fictional workshop details" /></td>
+      <td width="33%"><img src="public/docs-assets/check-in.webp" alt="Raunak entrance check-in interface with a fictional attendee lookup" /></td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Find your next plan</strong></td>
+      <td align="center"><strong>Bring an event to life</strong></td>
+      <td align="center"><strong>Welcome guests confidently</strong></td>
+    </tr>
+  </table>
+</details>
 
-**For attendees:** discover an event, choose available tickets, sign in, complete a free booking or configured Cashfree checkout, then open the booking's admission QR at the door. My plans brings tickets, saved events and orders together. Booking requires an account; knowing a reference number alone does not grant access to a ticket.
+The images show real Raunak components captured in a local preview with intercepted sample data. They are product previews—not customer activity, ticket sales, event partnerships, or proof of live provider delivery. See [asset provenance](public/docs-assets/ASSETS.md).
 
-**For organizers:** create a workspace, add event details and media, configure ticket prices and inventory, and submit the event for platform review. Approved published public listings become discoverable. Manage bookings, delivery status and entrance staff from the same workspace.
+## The experience
 
-## Core capabilities
+### For people going out
 
-| Area | Included behavior |
-| --- | --- |
-| Discovery | Server-backed search, city suggestions, dates, categories, format and price filters, nearby discovery with permission, saved events and public organizer profiles. |
-| Hosting | Workspace roles, event drafts, media uploads/cropping, gallery and lineup management, ticket inventory, publication review and an admin queue. |
-| Booking | Account-owned orders, free tickets, Cashfree hosted checkout, inventory holds, payment validation and duplicate-confirmation handling. |
-| Delivery | Signed admission QR, PDF tickets, configurable email and optional WhatsApp delivery, retries and delivery logs. |
-| Entrance | Camera scanning, manual lookup, permission checks and duplicate/cancelled/refunded-ticket feedback. |
-| Reviews | One editable review per eligible attendee after an event ends, with real rating summaries and practical attendee tips. |
+Browse public events without being forced into a city filter. Search by event, venue, or organizer; narrow by date, category, format, and price; save a plan for later; then book with a clear order summary. Confirmed tickets live in **My plans**, where guests can open their private admission QR, download a ticket PDF, and get the details they need on event day.
 
-Presence in this table means the behavior exists in the repository. Provider configuration and real-world acceptance are separate requirements, detailed below.
+### For people bringing everyone together
 
-## How it works
+Create an organizer workspace, shape an event page, add a gallery and lineup, set ticket tiers and inventory, and request publication review. Once approved and published, the event can appear in discovery. Organizers can manage attendees, messages, staff access, and entrance check-in from the same workspace.
+
+### At the entrance
+
+Staff can scan a ticket QR or look up a guest manually. The server validates the ticket against its event and booking, records admission, and warns when a ticket is already used, cancelled, or otherwise not valid for entry.
+
+## The guest journey
 
 ```mermaid
-flowchart TD
-  Browser[Attendee or organizer browser] --> Web[Next.js pages and API]
-  Web --> Auth[Firebase Auth: sessions]
-  Web --> DB[(PostgreSQL via Prisma)]
-  Web --> Cashfree[Cashfree hosted checkout]
-  Cashfree -->|Signed webhook| Web
-  Web --> Queue[Redis / BullMQ]
-  Queue --> Worker[Separate worker process]
-  Worker --> DB
-  Worker --> Storage[S3-compatible media and PDFs]
-  Worker --> Delivery[Configured email / WhatsApp]
+flowchart LR
+  A[Discover an event] --> B[Review details and tickets]
+  B --> C[Sign in and reserve]
+  C --> D{Ticket price}
+  D -->|Free| E[Booking confirmed]
+  D -->|Paid| F[Cashfree checkout]
+  F -->|Signed confirmation| E
+  E --> G[Ticket appears in My plans]
+  G --> H[Private QR or PDF at the door]
+  H --> I[Staff validates admission]
 ```
 
-The web process handles pages, authorization, reservations and payment confirmation. Ticket records are issued in the booking/payment transaction; background jobs prepare PDFs, process images, deliver notifications and recover pending work. Expired holds return inventory. A browser redirect is not proof of payment. See the [architecture and booking lifecycle](docs/public/architecture.md) for transaction and queue boundaries.
+Every admission ticket has its own signed identity. A public event URL is shareable; a ticket QR or signed admission URL is private and should not be forwarded.
 
-## Getting started
+## What is in Raunak
 
-Use a disposable development environment. You need **Node.js 24**, **pnpm 10.12.4**, Docker with Compose, and a Firebase development project. The local Compose file supplies PostgreSQL 16, Redis 7, S3-compatible LocalStack and Mailpit; it does not provision Firebase.
+| Experience | Product capabilities |
+| --- | --- |
+| **Discover** | Server-backed event search, city suggestions, nearby discovery, date/category/format/price filters, saved events, public organizer profiles, and shareable filter URLs. |
+| **Host** | Workspaces and roles, event drafts, image uploads and cropping, galleries, lineups, ticket inventory, publication review, attendee management, and event messaging. |
+| **Book** | Account-owned orders, free bookings, Cashfree hosted checkout when configured, inventory holds, payment verification, and duplicate-confirmation protection. |
+| **Deliver** | Signed QR tickets, downloadable PDFs, email notifications, optional WhatsApp delivery, retries, and delivery logs. |
+| **Welcome** | Camera scanning, manual attendee lookup, server-side admission validation, duplicate-entry warnings, and check-in records. |
+| **Reflect** | Post-event reviews from eligible attendees, with rating summaries and practical event tips. |
+
+These are implemented product flows. Their availability in a particular environment still depends on provider configuration, credentials, approvals, connected devices, and operational acceptance.
+
+## How the platform fits together
+
+```mermaid
+flowchart TB
+  Guest[Attendee, organizer, or staff] --> App[Raunak web app and API]
+  App --> Auth[Firebase identity and server sessions]
+  App --> Data[(PostgreSQL · Prisma)]
+  App --> Cache[Redis · queues and rate limits]
+  App --> Pay[Cashfree hosted checkout]
+  Pay -->|Signed webhook| App
+  Cache --> Worker[Background worker]
+  Worker --> Data
+  Worker --> Files[Private S3-compatible storage]
+  Worker --> Mail[Configured email provider]
+  Worker --> WA[Optional WhatsApp delivery]
+  Staff[Authorized event staff] --> App
+```
+
+The web app owns authorization, reservations, and payment confirmation. The worker handles media processing, ticket PDFs, notifications, and maintenance. The payment return page alone never proves that a payment succeeded; the verified provider response does. For implementation boundaries, see the [architecture guide](docs/public/architecture.md).
+
+## Built around trust
+
+- **Private by default:** ticket files and original uploads are private; ticket reads check ownership on the server.
+- **Admission is verified:** signed QR tokens are validated against event, booking, and ticket state at check-in.
+- **Payment is confirmed server-side:** Cashfree webhook signatures and order state are part of the booking flow.
+- **Publication has a gate:** organizer submissions go through platform review before public discovery.
+- **No invented marketplace:** the product does not fabricate events, attendees, reviews, or sales to make a page look busy.
+- **Provider limits stay visible:** configured code does not imply successful settlement, inbox placement, WhatsApp delivery, or real-device acceptance.
+
+## Project status and boundaries
+
+Raunak is a privately maintained personal product project. The repository is not a public starter kit or an invitation for public contributions. Explore the live product at [raunak.yaduraj.me](https://raunak.yaduraj.me); the source, operating configuration, and internal tooling remain private.
+
+| Capability | Current boundary |
+| --- | --- |
+| Payments | Cashfree hosted checkout and signed payment verification are implemented. Organizer split settlements are not available until the merchant account supports an appropriate marketplace payout setup. |
+| WhatsApp | Delivery depends on the event’s configured channel, attendee consent, sender availability, and provider rules. WhatsApp PDF attachments are controlled by message settings; email tickets include the PDF. |
+| Email | Resend/SMTP can be configured. A successful provider request does not guarantee inbox placement. |
+| Maps | Geoapify supports city/address lookup. Manual venue entry remains available without the provider key. |
+| Admin review | The review console is restricted by a server-side Firebase UID allowlist; there is no public admin registration. |
+
+See the private [integration notes](docs/public/integrations.md) and [environment reference](docs/public/reference.md) for configuration details. Do not place credentials, real attendee information, payment identifiers, or usable ticket links in this repository.
+
+## Local development
+
+These instructions are for the project owner and approved maintainers. Use disposable local services and development credentials. The local Compose setup provides PostgreSQL, Redis, S3-compatible storage, and Mailpit; Firebase requires a separate development project.
+
+**Requirements:** Node.js 24, pnpm 10.12.4, Docker Compose, and Firebase development configuration.
 
 ```bash
-git clone https://github.com/YadurajManu/raunak.git
-cd raunak
 corepack enable
 corepack prepare pnpm@10.12.4 --activate
 pnpm install --frozen-lockfile
@@ -91,16 +156,15 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Before opening the app, configure both public `NEXT_PUBLIC_FIREBASE_*` values and server `FIREBASE_*` credentials in `.env`. Enable Email/Password and any intended Google sign-in provider, and authorize `localhost` in Firebase. Keep the server private key out of browser variables. Firebase configuration is required for real sign-in and booking; there is no local auth bypass.
+Set the public `NEXT_PUBLIC_FIREBASE_*` values and server-only `FIREBASE_*` credentials in `.env`. Enable the sign-in providers you plan to use and authorize `localhost` in Firebase. Never put a server service account in a browser variable.
 
-Generate **two separate** secrets and paste them into `TICKET_SIGNING_SECRET` and `ENCRYPTION_KEY`:
+Generate different random values for `TICKET_SIGNING_SECRET` and `ENCRYPTION_KEY`:
 
 ```bash
-# Run twice; use a different output for each variable.
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-Then prepare the database and start the web process:
+Then prepare the database and run the web app and worker in separate terminals:
 
 ```bash
 pnpm exec prisma generate
@@ -108,84 +172,61 @@ pnpm db:migrate
 pnpm dev
 ```
 
-In another terminal, start the background worker:
-
 ```bash
 pnpm worker
 ```
 
-Open [localhost:3000](http://localhost:3000). Check the web process with `curl -f http://localhost:3000/api/health`; this reachability endpoint does not prove provider or worker readiness. The credential-independent documentation site is at [localhost:3000/docs](http://localhost:3000/docs). The [installation guide](docs/public/installation.md) covers services, environment setup and common failures.
+Open [localhost:3000](http://localhost:3000). The local docs live at [localhost:3000/docs](http://localhost:3000/docs). `/api/health` checks web reachability only; it does not prove that the database, worker, or providers are ready.
 
 | Local service | Address |
 | --- | --- |
-| Web / documentation | `http://localhost:3000` / `http://localhost:3000/docs` |
+| Web app and product docs | `http://localhost:3000` · `http://localhost:3000/docs` |
 | PostgreSQL | `localhost:5433` |
 | Redis | `localhost:6379` |
-| S3 endpoint | `http://localhost:9000` |
-| Mailpit inbox / SMTP | `http://localhost:8025` / `localhost:1025` |
+| S3-compatible storage | `http://localhost:9000` |
+| Mailpit inbox / SMTP | `http://localhost:8025` · `localhost:1025` |
 
-Seeding is optional and is excluded from this quick start. Inspect the current seed entry point before running it against a development database; database sample users do not create Firebase sign-in accounts. Never run sample seeding against customer data.
+For details, use the [installation guide](docs/public/installation.md), [development notes](docs/public/development.md), and [environment reference](docs/public/reference.md). Seeding is optional; never run it against production or a database containing customer records.
 
-## Configuration and integration status
+## Technology
 
-| Integration | Required configuration and limits |
+| Layer | Tools |
 | --- | --- |
-| Firebase | Browser project config and server service account for signed sessions. No guest checkout. |
-| Cashfree | Sandbox/production credentials, approved checkout domain and `/api/webhooks/cashfree`. Code supports checkout and verification; this documentation change does not verify live settlement. Organizer bank split payouts are not implemented. |
-| Media and PDFs | `S3_*` credentials, bucket policy and CORS. LocalStack is provided locally; production storage must be private where expected. |
-| Email | Local SMTP through Mailpit, or configured SMTP/Resend and a verified sender. Delivery code does not guarantee inbox placement. |
-| Official WhatsApp | Meta credentials, connected sender, attendee consent and approved template mapping. This is separate from the linked gateway. |
-| Optional linked WhatsApp | Private long-lived Baileys gateway, explicit enable flag and encrypted sessions. Automated tests do not establish real-phone acceptance; disconnection or account restrictions remain possible. |
-| Location | Geoapify for address lookup; manual entry remains available without a key. Retain map-provider attribution. |
-| Platform review | `/admin` uses the server-only `RAUNAK_ADMIN_FIREBASE_UIDS` allowlist; there is no public admin sign-up. |
+| Web application | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Identity | Firebase Auth and server-managed sessions |
+| Data | PostgreSQL and Prisma 7 |
+| Background work | Redis, BullMQ, and a separate worker process |
+| Media and documents | S3-compatible private storage |
+| Payments and delivery | Cashfree, Resend/SMTP, optional Meta or linked WhatsApp gateway |
+| Quality | Vitest, Playwright, and axe accessibility checks |
 
-See [integrations](docs/public/integrations.md) and the [environment reference](docs/public/reference.md). Keep `.env`, service credentials, signing keys and real ticket links out of commits. Provider accounts, domain approvals and costs are operator responsibilities. This task adds documentation, not activation of any provider.
-
-## Stack and repository
-
-| Layer | Repository stack |
-| --- | --- |
-| Application | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
-| Data and authentication | Prisma 7, PostgreSQL 16, Firebase Auth |
-| Background work | Redis / BullMQ; separate Node.js worker |
-| Providers | Cashfree, S3-compatible storage, Resend/SMTP, optional Meta or Baileys WhatsApp |
+## Repository map
 
 ```text
-src/app/              Application pages, /docs and API routes
-src/components/       Shared, public, organizer and docs interfaces
-src/server/           Auth, events, checkout, admission and providers
-prisma/               Data model and migrations
-worker/               Media, PDF, notification and maintenance jobs
-docs/public/          Explicitly published Markdown guides
-public/docs-assets/   Checked-in banner and safe product screenshots
-tests/                Vitest and Playwright coverage
-deploy/               Existing production installation configuration
+src/app/             Product pages, API routes, and product documentation
+src/components/      Attendee, organizer, admin, and shared interface
+src/server/          Authentication, bookings, payments, tickets, and providers
+prisma/              Data model and database migrations
+worker/              Media, ticket PDF, notifications, and maintenance jobs
+services/            Optional long-running WhatsApp gateway
+public/docs-assets/  Raunak brand artwork and safe product previews
+tests/               Unit, integration, and browser coverage
+deploy/              Installation-specific production configuration
 ```
 
-Raunak is the public product name. Some internal identifiers retain the original Eventra codename; no package or database rename is required to use the project.
-
-## Develop, verify and operate
+## Owner checks
 
 ```bash
-pnpm exec next typegen
 pnpm typecheck
 pnpm lint
 pnpm exec vitest run tests/unit
 pnpm build
-pnpm exec playwright install chromium
-pnpm exec playwright test tests/e2e/docs.spec.ts
 ```
 
-`pnpm test` also includes integration tests, which need disposable services and provider test settings. Browser coverage has its own environment requirements; consult test files before enabling fixtures. A passing mocked payment test establishes code behavior, not live financial settlement, email deliverability or phone-camera performance.
+Integration and browser checks need their documented local services and disposable data. Mocked payment or messaging tests verify application behavior only; they do not prove a live charge, merchant settlement, message delivery, or physical scanner acceptance. See the [development guide](docs/public/development.md) before running the wider suite.
 
-Production needs `pnpm build` / `pnpm start`, a separate worker, applied migrations, HTTPS and provider configuration. The checked-in production Compose file describes a specific installation with private routing and storage assumptions. Use the [public deployment guide](docs/public/deployment.md) to understand requirements before adapting it. Back up persistent data and retain a rollback image.
+## Private project notice
 
-The [documentation directory](docs/public/introduction.md) covers product workflows, architecture, integrations and operations. To change a page, update canonical Markdown and its explicit metadata entry; [maintainer instructions](docs/docs-maintenance.md) explain navigation, search, screenshots and verification.
+**Raunak is proprietary software maintained by Yaduraj Singh.** Repository access is limited to the project owner and people explicitly invited to work on it. No license or permission to use, copy, modify, distribute, or reuse this source or its brand assets is granted by viewing this repository. Third-party packages and assets remain subject to their own licenses.
 
-## Contributing, security and license
-
-Focused improvements, accessibility fixes, bug reports and clearer guides are welcome. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and pull requests. Report sensitive issues through the private channel described in [SECURITY.md](SECURITY.md); do not post credentials, attendee information or admission links publicly.
-
-Raunak's original source is available under the [MIT License](LICENSE). Third-party dependencies, fonts and assets retain their own license terms. Provider access and services are separate from the source license.
-
-<p align="center"><strong>A little less admin. A lot more event.</strong></p>
+<p align="center"><strong>Good people. Great plans.</strong><br />Built with care by Yaduraj Singh.</p>

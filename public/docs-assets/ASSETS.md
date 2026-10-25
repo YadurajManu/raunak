@@ -6,6 +6,7 @@
 | `discover.webp` | Local `/style-guide/docs-preview?screen=discover` | Current `DiscoverFilters` and `EventCard` components, with fictional events and existing repository sample artwork. |
 | `organizer.webp` | Local `/style-guide/docs-preview?screen=organizer` | Current `EventForm` with fictional workshop details. |
 | `check-in.webp` | Local `/style-guide/docs-preview?screen=check-in` | Current `CheckinScanner` with a browser-intercepted fictional attendee lookup. No ticket is issued or admitted. |
+| `product-tour.gif` | The three checked-in WebP previews above | A short slideshow of the real preview screens. It does not simulate a live interaction; all sample content remains fictional. |
 
 Screenshots were captured on 19 October 2026 at a 1440px viewport in light mode. Each screenshot includes an explicit sample-data label. The sample attendee uses `example.test`; the shown ticket code is not a signed admission token. These images show interface behavior, not actual customers, sales, attendance or provider acceptance.
 
