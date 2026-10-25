@@ -168,7 +168,7 @@ export default async function DiscoverPage({
             </p>
           </div>
           {appliedFilters.length > 0 && result.events.length > 0 && (
-            <Link href="/discover" className="d-clear">
+            <Link href="/discover?allCities=1" className="d-clear">
               Clear filters
             </Link>
           )}
@@ -233,7 +233,7 @@ export default async function DiscoverPage({
                 </ul>
               )}
               <Link
-                href={hasPublicEvents ? "/discover" : "/dashboard"}
+                href={hasPublicEvents ? "/discover?allCities=1" : "/dashboard"}
                 className="m-button m-button-small"
               >
                 {hasPublicEvents ? "Clear filters" : "Host an event"}

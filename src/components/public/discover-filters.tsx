@@ -430,6 +430,9 @@ export function DiscoverFilters({
               )}
             </>
           )}
+          {filters.allCities && (
+            <input type="hidden" name="allCities" value={filters.allCities} />
+          )}
           {filters.category && (
             <input type="hidden" name="category" value={filters.category} />
           )}

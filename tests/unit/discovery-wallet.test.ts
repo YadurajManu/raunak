@@ -77,6 +77,21 @@ it("normalizes online discovery and omits irrelevant nearby restrictions", () =>
   ).toBe("10");
 });
 
+it("keeps an explicit all-cities choice from restoring the saved city", () => {
+  expect(discoverySchema.parse({ allCities: "1" }).allCities).toBe("1");
+  expect(discoverySchema.parse({ allCities: "1", city: "Pune" }).allCities).toBeUndefined();
+  const clearCity = new URL(
+    discoveryUrl(
+      discoverySchema.parse({ city: "Khodri", category: "Arts & culture" }),
+      { city: "", lat: undefined, lng: undefined, nearCity: undefined },
+    ),
+    "https://example.test",
+  );
+  expect(clearCity.searchParams.get("allCities")).toBe("1");
+  expect(clearCity.searchParams.has("city")).toBe(false);
+  expect(clearCity.searchParams.get("category")).toBe("arts-culture");
+});
+
 it("exports calendar text without line injection and folds Unicode safely", () => {
   const result = calendarFile(
     {

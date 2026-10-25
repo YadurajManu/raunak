@@ -59,6 +59,7 @@ export const discoverySchema = z
   .object({
     q: z.string().trim().max(100).default(""),
     city: z.string().trim().max(100).default(""),
+    allCities: z.enum(["1"]).optional(),
     category: z.string().max(800).default(""),
     nearCity: z.string().trim().max(100).optional(),
     period: z.enum(["", "today", "tomorrow", "weekend", "month"]).default(""),
@@ -90,6 +91,10 @@ export const discoverySchema = z
     const normalized = {
       ...v,
       category: parseCategories(v.category),
+      allCities:
+        v.city || v.lat !== undefined || v.mode === "ONLINE"
+          ? undefined
+          : v.allCities,
       nearCity: v.lat === undefined ? undefined : v.nearCity,
     };
     return v.mode === "ONLINE"
@@ -145,6 +150,10 @@ export function discoveryUrl(
     page: undefined,
     ...changes,
   };
+  if (Object.hasOwn(changes, "city") && changes.city === "" && changes.mode !== "ONLINE")
+    values.allCities = "1";
+  if (values.city || values.lat !== undefined || values.mode === "ONLINE")
+    values.allCities = undefined;
   if (typeof values.category === "string" && values.category)
     values.category = serializeCategories(values.category);
   if (values.mode === "ONLINE") {

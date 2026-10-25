@@ -33,6 +33,7 @@ export function LocationControl({ initialCity = "", signedIn = false }: { initia
       const urlLat = Number(params.get("lat"));
       const urlLng = Number(params.get("lng"));
       const online = params.get("mode") === "ONLINE";
+        const allCities = params.get("allCities") === "1";
       const urlHasCoordinates = params.has("lat") && params.has("lng") && Number.isFinite(urlLat) && Number.isFinite(urlLng);
       try {
         const stored = JSON.parse(localStorage.getItem(LOCATION_KEY) || "null") as SavedLocation | null;
@@ -41,9 +42,9 @@ export function LocationControl({ initialCity = "", signedIn = false }: { initia
           ? { city: urlCity, region: "", countryCode: "IN", radius: Number(params.get("radius")) || 25 }
           : !online && urlHasCoordinates
             ? { city: params.get("nearCity") || "Nearby", region: "", countryCode: "IN", latitude: urlLat, longitude: urlLng, radius: Number(params.get("radius")) || 25 }
-            : !online && signedIn && initialCity
+            : !online && !allCities && signedIn && initialCity
               ? { city: initialCity, region: profileHub?.region || "", countryCode: "IN", latitude: profileHub?.latitude, longitude: profileHub?.longitude, radius: 25 }
-              : !online && stored && typeof stored.city === "string" ? stored : null;
+              : !online && !allCities && stored && typeof stored.city === "string" ? stored : null;
         if (selected) {
           setCity(selected.city);
           setRegion(selected.region || "");
@@ -106,11 +107,15 @@ export function LocationControl({ initialCity = "", signedIn = false }: { initia
     const params = new URLSearchParams(window.location.search);
     params.delete("city"); params.delete("lat"); params.delete("lng"); params.delete("nearCity"); params.delete("radius"); params.delete("page");
     if (next.latitude !== undefined && next.longitude !== undefined) {
+      params.delete("allCities");
       params.set("lat", String(next.latitude));
       params.set("lng", String(next.longitude));
       params.set("nearCity", next.city);
       params.set("radius", String(next.radius));
-    } else if (next.city) params.set("city", next.city);
+    } else if (next.city) {
+      params.delete("allCities");
+      params.set("city", next.city);
+    } else params.set("allCities", "1");
     router.replace(`/discover${params.size ? `?${params}` : ""}`, { scroll: false });
   }
 
