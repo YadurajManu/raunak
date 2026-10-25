@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { localEventTimeToUtc } from "@/lib/dates";
+import { localEventTimeToUtc, updateLocalEventTimePart } from "@/lib/dates";
 import { eventCategories } from "@/config/event-options";
 import { LocationSearch } from "@/components/onboarding/location-search";
 
@@ -25,6 +25,7 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
   const [category, setCategory] = useState(event?.category || "");
   const [mode, setMode] = useState(event?.mode || "IN_PERSON");
   const [startsAt, setStartsAt] = useState(event?.startsAt || "");
+  const [endsAt, setEndsAt] = useState(event?.endsAt || "");
   const [timezone, setTimezone] = useState(event?.timezone || "Asia/Kolkata");
   const [venue, setVenue] = useState(event?.venueName || "");
   const [address, setAddress] = useState(event?.address || "");
@@ -45,14 +46,19 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
     } catch { if (id === lookupId.current) setMapMessage("Pin saved. Enter the street address below."); }
   }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setBusy(true); setError("");
+    e.preventDefault(); setError("");
+    if (!startsAt || !endsAt || endsAt <= startsAt) {
+      setError("Choose an end date and time after the start.");
+      return;
+    }
+    setBusy(true);
     try {
       const form = new FormData(e.currentTarget);
       const text = (key: string) => String(form.get(key) || "");
       const timezone = text("timezone");
       const body = {
         orgId, title, summary, category, mode, description: text("description"), visibility: text("visibility"),
-        startsAt: localEventTimeToUtc(startsAt, timezone), endsAt: localEventTimeToUtc(text("endsAt"), timezone), timezone,
+        startsAt: localEventTimeToUtc(startsAt, timezone), endsAt: localEventTimeToUtc(endsAt, timezone), timezone,
         venueName: mode === "ONLINE" ? "" : venue, city: mode === "ONLINE" ? "" : city,
         address: mode === "ONLINE" ? "" : address,
         lat: mode !== "ONLINE" && pinSelected ? point?.latitude ?? null : null,
@@ -80,7 +86,19 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
       </section>
       <section className="r-form-section"><div className="r-section-heading"><h2>When & how</h2></div>
         <fieldset className="r-format-options"><legend>Format</legend>{formats.map(format => <label key={format.value}><input type="radio" name="mode" value={format.value} checked={mode === format.value} onChange={() => setMode(format.value)}/><span><strong>{format.label}</strong><small>{format.description}</small></span></label>)}</fieldset>
-        <div className="r-form-fields"><label>Starts<input name="startsAt" type="datetime-local" required value={startsAt} onChange={e => setStartsAt(e.target.value)}/></label><label>Ends<input name="endsAt" type="datetime-local" required defaultValue={event?.endsAt}/></label></div>
+        <div className="r-form-fields r-event-datetime-fields">
+          {[{ label: "Starts", value: startsAt, setValue: setStartsAt }, { label: "Ends", value: endsAt, setValue: setEndsAt }].map(({ label, value, setValue }) => {
+            const [date = "", time = ""] = value.split("T");
+            return <fieldset className="r-event-datetime" key={label}>
+              <legend>{label}</legend>
+              <div className="r-event-datetime-inputs">
+                <label>Date<input aria-label={`${label} date`} name={`${label.toLowerCase()}Date`} type="date" required min={label === "Ends" && startsAt ? startsAt.slice(0, 10) : undefined} value={date} onChange={e => setValue(updateLocalEventTimePart(value, "date", e.target.value))}/></label>
+                <label>Time<input aria-label={`${label} time`} name={`${label.toLowerCase()}Time`} type="time" required min={label === "Ends" && startsAt && date === startsAt.slice(0, 10) ? startsAt.slice(11, 16) : undefined} step={900} value={time} onChange={e => setValue(updateLocalEventTimePart(value, "time", e.target.value))}/></label>
+              </div>
+            </fieldset>;
+          })}
+        </div>
+        <p className="r-event-timezone-hint">Times use <strong>{timezone}</strong>. End time must be after start time.</p>
         <details className="r-form-disclosure"><summary>Timezone · {timezone}</summary><label>Event timezone<input name="timezone" required value={timezone} onChange={e => setTimezone(e.target.value)} list="event-timezones"/></label><datalist id="event-timezones"><option value="Asia/Kolkata"/><option value="UTC"/><option value="Asia/Dubai"/><option value="Europe/London"/></datalist></details>
       </section>
       <section className="r-form-section"><div className="r-section-heading"><h2>{mode === "ONLINE" ? "Online access" : "Location"}</h2><small>{mode === "ONLINE" ? "Where guests will join." : "Start with the city. A map pin is optional."}</small></div>

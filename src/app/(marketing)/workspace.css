@@ -46,6 +46,14 @@
 .marketing .r-section-heading h2 { font-size:1rem; font-weight:650; letter-spacing:0; margin:0; }
 .marketing .r-section-heading small,.marketing .r-form-section>small { font-size:0.75rem; color:var(--muted); line-height:1.5; }
 .marketing .r-form-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; margin-top:14px; }
+.marketing .r-event-datetime { min-width:0; border:0; padding:0; margin:0; }
+.marketing .r-event-datetime legend { padding:0; margin-bottom:7px; font-size:.8rem; line-height:1.3; }
+.marketing .r-event-datetime-inputs { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.72fr); gap:8px; }
+.marketing .r-event-datetime-inputs label { gap:5px; color:var(--muted); font-size:.7rem; }
+.marketing .r-event-datetime input { font-size:.8rem; color:var(--ink); }
+.marketing .r-event-datetime input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.marketing .r-event-timezone-hint { margin:10px 0 0; color:var(--muted); font-size:.72rem; line-height:1.5; }
+.marketing .r-event-timezone-hint strong { color:var(--ink); font-weight:600; }
 .marketing .r-field-wide { grid-column:1/-1; }
 .marketing .r-event-form textarea { height:auto; min-height:76px; resize:vertical; }
 .marketing .r-format-options { border:0; padding:0; margin:0 0 16px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; min-width:0; }
