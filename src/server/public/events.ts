@@ -110,7 +110,7 @@ export async function discoverPage(input: unknown) {
     db.event.findMany({
       where: { ...publicListing, id: { in: ids.map((v) => v.id) } },
       include: {
-        org: { select: { name: true, slug: true, logoKey: true } },
+        org: { select: { id: true, name: true, slug: true, logoKey: true } },
         images: {
           where: { kind: { in: ["POSTER", "COVER"] } },
           orderBy: { kind: "desc" },

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EventImage } from "./event-image";
 import { SaveEvent } from "./save-event";
 import { whatsappEventUrl } from "@/lib/event-share";
+import { organizerLogoUrl } from "@/lib/organizer-images";
 import { CalendarDays, MapPin, Share2, Star } from "lucide-react";
 export function EventCard({
   event,
@@ -18,7 +19,7 @@ export function EventCard({
     venueName: string | null;
     category: string | null;
     mode: string;
-    org: { name: string; slug: string; logoKey?: string | null };
+    org: { id?: string; name: string; slug: string; logoKey?: string | null };
     images: { kind: string; variants: unknown; alt: string }[];
     ticketTypes: { pricePaise: number }[];
     reviewSummary?: { average: number | null; count: number } | null;
@@ -34,6 +35,7 @@ export function EventCard({
     ? Math.min(...event.ticketTypes.map((v) => v.pricePaise))
     : null;
   const price = minimum === null ? "Tickets soon" : minimum === 0 ? "Free" : `From ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(minimum / 100))}`;
+  const logoUrl = organizerLogoUrl(event.org.id, event.org.logoKey);
   return (
     <li className={`market-card${variant === "saved" ? " market-card-saved" : ""}`}>
       <Link href={`/e/${event.slug}`} className="market-main">
@@ -79,9 +81,9 @@ export function EventCard({
       <footer>
         {variant === "saved" && <strong className="market-price-footer">{price}</strong>}
         <Link href={`/organizers/${event.org.slug}`} className="market-card-org">
-          {event.org.logoKey && (
+          {logoUrl && (
             <img
-              src={event.org.logoKey}
+              src={logoUrl}
               alt=""
               className="market-card-org-logo"
             />

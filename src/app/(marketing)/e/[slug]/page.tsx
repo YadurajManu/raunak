@@ -20,6 +20,7 @@ import { FollowOrganizerButton } from "@/components/public/follow-organizer-butt
 import { publicEvent, discoverPage } from "@/server/public/events";
 import { TicketSelector } from "@/components/public/ticket-selector";
 import { EventReviews } from "@/components/public/event-reviews";
+import { organizerLogoUrl } from "@/lib/organizer-images";
 import { eventReviewSnapshot } from "@/server/events/reviews";
 
 const base = process.env.APP_URL || "http://localhost:3000";
@@ -360,9 +361,9 @@ export default async function EventPage({
               <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4 min-w-0">
                   <Link href={`/organizers/${event.org.slug}`} className="shrink-0">
-                    {event.org.logoKey ? (
+                    {organizerLogoUrl(event.org.id, event.org.logoKey) ? (
                       <img
-                        src={event.org.logoKey}
+                        src={organizerLogoUrl(event.org.id, event.org.logoKey)!}
                         alt={event.org.name}
                         className="h-16 w-16 rounded-2xl border-2 border-[var(--line)] object-cover shadow-sm"
                       />

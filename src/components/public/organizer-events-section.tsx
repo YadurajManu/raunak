@@ -15,7 +15,7 @@ type EventItem = {
   venueName: string | null;
   category: string | null;
   mode: string;
-  org: { name: string; slug: string; logoKey?: string | null };
+  org: { id?: string; name: string; slug: string; logoKey?: string | null };
   images: { kind: string; variants: unknown; alt: string }[];
   ticketTypes: { pricePaise: number }[];
   reviewSummary?: { average: number | null; count: number } | null;

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
+import { organizerCoverUrl, organizerLogoUrl } from "@/lib/organizer-images";
 import "./organizer-profile.css";
 
 type SocialLinks = {
@@ -94,7 +95,11 @@ export default async function OrganizerPage({
   // Check if org has at least one public event (otherwise hide profile for pure-private orgs)
   const hasPublicEvents = Boolean(
     await db.event.findFirst({
-      where: { orgId: org.id, ...publicListing },
+      where: {
+        orgId: org.id,
+        ...publicListing,
+        status: { in: ["PUBLISHED", "ENDED"] },
+      },
       select: { id: true },
     }),
   );
@@ -106,7 +111,8 @@ export default async function OrganizerPage({
       db.event.findMany({
         where: {
           orgId: org.id,
-          status: "ENDED",
+          status: { in: ["PUBLISHED", "ENDED"] },
+          endsAt: { lte: new Date() },
           visibility: "PUBLIC",
           deletedAt: null,
           isTest: false,
@@ -116,7 +122,7 @@ export default async function OrganizerPage({
         include: {
           images: { where: { kind: "POSTER" }, take: 1 },
           ticketTypes: { where: { isHidden: false }, select: { pricePaise: true } },
-          org: { select: { name: true, slug: true, logoKey: true } },
+          org: { select: { id: true, name: true, slug: true, logoKey: true } },
         },
       }),
       db.eventReview.aggregate({
@@ -222,9 +228,9 @@ export default async function OrganizerPage({
       <main className="org-profile">
         {/* Hero Banner */}
         <section className="org-hero">
-          {org.coverKey ? (
+          {organizerCoverUrl(org.id, org.coverKey) ? (
             <img
-              src={org.coverKey}
+              src={organizerCoverUrl(org.id, org.coverKey)!}
               alt={`${org.name} cover`}
               className="org-hero-cover"
               style={{ objectPosition: org.coverPosition || "center" }}
@@ -244,9 +250,9 @@ export default async function OrganizerPage({
           )}
           <div className="org-hero-scrim" />
           <div className="org-hero-content">
-            {org.logoKey ? (
+            {organizerLogoUrl(org.id, org.logoKey) ? (
               <img
-                src={org.logoKey}
+                src={organizerLogoUrl(org.id, org.logoKey)!}
                 alt={`${org.name} logo`}
                 className="org-hero-logo"
               />
