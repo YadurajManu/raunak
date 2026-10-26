@@ -16,6 +16,8 @@ import { EventGallery } from "@/components/public/event-gallery";
 import Link from "next/link";
 import Image from "next/image";
 import { publicEvent, discoverPage } from "@/server/public/events";
+import { currentUser } from "@/server/auth/session";
+import { requireEventAccessForUser } from "@/server/rbac/access";
 import { TicketSelector } from "@/components/public/ticket-selector";
 import { organizerLogoUrl } from "@/lib/organizer-images";
 import { eventReviewSnapshot } from "@/server/events/reviews";
@@ -30,6 +32,54 @@ import { discoveryUrl } from "@/lib/discovery";
 import { CalendarDays, MapPin } from "lucide-react";
 
 const base = process.env.APP_URL || "http://localhost:3000";
+
+async function eventForPage(slug: string) {
+  const visibleEvent = await publicEvent(slug);
+  if (visibleEvent) return visibleEvent;
+
+  const user = await currentUser();
+  if (!user) return null;
+  const event = await db.event.findFirst({
+    where: { slug, deletedAt: null },
+    include: {
+      org: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          status: true,
+          supportPhone: true,
+          brandColor: true,
+          platformFeeBps: true,
+          platformFeeFixedPaise: true,
+          feeMode: true,
+          logoKey: true,
+          coverKey: true,
+          coverPosition: true,
+          tagline: true,
+          bio: true,
+        },
+      },
+      images: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+      people: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+      ticketTypes: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+    },
+  });
+  if (!event || event.org.status !== "ACTIVE") return null;
+  try {
+    await requireEventAccessForUser(user.id, event.id, [
+      "OWNER",
+      "ADMIN",
+      "MANAGER",
+      "CHECKIN",
+      "FINANCE",
+    ]);
+    return event;
+  } catch {
+    return null;
+  }
+}
+
 function eventDate(date: Date, timezone: string) {
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "full",
@@ -66,7 +116,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = await publicEvent(slug);
+  const event = await eventForPage(slug);
   if (!event) return { title: "Event not found" };
   const poster =
     event.images.find((image) => image.kind === "POSTER") ||
@@ -81,7 +131,9 @@ export async function generateMetadata({
     description,
     alternates: { canonical: url },
     robots:
-      event.visibility === "UNLISTED"
+      event.visibility !== "PUBLIC" ||
+      !["PUBLISHED", "ENDED"].includes(event.status) ||
+      event.isTest
         ? { index: false, follow: false }
         : undefined,
     openGraph: {
@@ -106,9 +158,15 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ preview?: string }>;
 }) {
-  const event = await publicEvent((await params).slug);
+  const event = await eventForPage((await params).slug);
   if (!event) notFound();
   const previewAsVisitor = (await searchParams).preview === "visitor";
+  const privatePreview =
+    !["PUBLISHED", "ENDED", "CANCELLED"].includes(event.status) ||
+    event.isTest;
+  const publicListing =
+    !privatePreview &&
+    (event.visibility === "PUBLIC" || event.visibility === "UNLISTED");
   const organizerHasContact = Boolean(
     (
       await db.organization.findUnique({
@@ -117,14 +175,16 @@ export default async function EventPage({
       })
     )?.supportEmail,
   );
-  const eventHasEnded = event.status === "ENDED" || event.endsAt <= new Date();
+  const eventHasEnded =
+    ["ENDED", "CANCELLED"].includes(event.status) ||
+    event.endsAt <= new Date();
   const eventHasStarted = event.startsAt <= new Date();
   const reviews =
-    event.visibility === "PUBLIC"
+    publicListing
       ? await eventReviewSnapshot(event, null)
       : null;
   const [hostEvents, nearbyEvents] =
-    event.visibility === "PUBLIC"
+    publicListing
       ? await Promise.all([
           discoverPage({ organizer: event.org.slug }).then((page) =>
             page.events.filter((item) => item.id !== event.id).slice(0, 3),
@@ -177,9 +237,12 @@ export default async function EventPage({
     description: event.summary || event.description || "",
     startDate: event.startsAt.toISOString(),
     endDate: event.endsAt.toISOString(),
-    eventStatus: eventHasEnded
-      ? "https://schema.org/EventCompleted"
-      : "https://schema.org/EventScheduled",
+    eventStatus:
+      event.status === "CANCELLED"
+        ? "https://schema.org/EventCancelled"
+        : eventHasEnded
+          ? "https://schema.org/EventCompleted"
+          : "https://schema.org/EventScheduled",
     eventAttendanceMode:
       event.mode === "ONLINE"
         ? "https://schema.org/OnlineEventAttendanceMode"
@@ -257,7 +320,14 @@ export default async function EventPage({
           }}
         />
         <div className="mx-auto max-w-6xl px-6 pt-3 sm:pt-5">
-        <EventManagementBar hidden={previewAsVisitor} />
+        <EventManagementBar
+          hidden={previewAsVisitor && !privatePreview}
+          previewMessage={
+            privatePreview
+              ? "Draft preview · Only your event team can see this page"
+              : undefined
+          }
+        />
           <div className="overflow-hidden rounded-3xl">
             <EventImage
               variants={poster?.variants}
@@ -581,7 +651,7 @@ export default async function EventPage({
                   />
                 )}
               </section>
-            {reviews && (eventHasStarted || reviews.reviewCount > 0) && (
+              {reviews && !privatePreview && (eventHasStarted || reviews.reviewCount > 0) && (
                 <EventReviewsForViewer
                   eventId={event.id}
                   eventUrl={`${base}/e/${event.slug}`}
@@ -593,7 +663,28 @@ export default async function EventPage({
               )}
             </article>
             <aside id="tickets">
-              {eventHasEnded ? (
+              {privatePreview ? (
+                <div className="rounded-2xl border border-[var(--line)] p-5">
+                  <h2 className="text-xl font-semibold">Private preview</h2>
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    Tickets are available after this event is published.
+                  </p>
+                </div>
+              ) : event.status === "CANCELLED" ? (
+                <div className="rounded-2xl border border-[var(--line)] p-5">
+                  <h2 className="text-xl font-semibold">Event cancelled</h2>
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    Ticket sales are closed. Check your booking for any event
+                    updates or refund information.
+                  </p>
+                  <Link
+                    className="mt-3 inline-flex font-semibold underline underline-offset-4"
+                    href="/my-tickets"
+                  >
+                    View your plans
+                  </Link>
+                </div>
+              ) : eventHasEnded ? (
                 <div className="rounded-2xl border border-[var(--line)] p-5">
                   <h2 className="text-xl font-semibold">
                     This event has ended

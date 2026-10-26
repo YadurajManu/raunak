@@ -64,7 +64,13 @@ export function EventViewerProvider({
   );
 }
 
-export function EventManagementBar({ hidden = false }: { hidden?: boolean }) {
+export function EventManagementBar({
+  hidden = false,
+  previewMessage,
+}: {
+  hidden?: boolean;
+  previewMessage?: string;
+}) {
   const viewer = useEventViewer();
   const links = viewer?.managementLinks;
   if (hidden || !viewer?.teamRole || !links)
@@ -80,7 +86,7 @@ export function EventManagementBar({ hidden = false }: { hidden?: boolean }) {
   ].filter((item): item is [string, string] => Boolean(item));
   return (
     <nav className="event-management-bar" aria-label="Event management">
-      <span>Event workspace</span>
+      <span>{previewMessage || "Event workspace"}</span>
       <div>
         {actions.map(([label, href]) => (
           <Link key={label} href={href}>

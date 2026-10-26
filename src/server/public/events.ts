@@ -11,7 +11,8 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
   return db.event.findFirst({
     where: {
       slug: parsed,
-      status: { in: ["PUBLISHED", "ENDED"] },
+      status: { in: ["PUBLISHED", "ENDED", "CANCELLED"] },
+      visibility: { in: ["PUBLIC", "UNLISTED"] },
       deletedAt: null,
       isTest: false,
       org: { status: "ACTIVE" },
