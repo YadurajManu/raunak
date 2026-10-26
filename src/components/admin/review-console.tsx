@@ -46,6 +46,8 @@ export type ReviewEvent = {
     slug: string;
     supportEmail: string | null;
     supportPhone: string | null;
+    tagline: string | null;
+    logoKey: string | null;
   };
   ticketTypes: {
     id: string;
@@ -455,6 +457,7 @@ function ReviewCues({ event }: { event: ReviewEvent }) {
     summary: event.summary,
     description: event.description,
     visibility: event.visibility,
+    status: event.status,
     mode: event.mode,
     city: event.city,
     venueName: event.venueName,
@@ -462,6 +465,7 @@ function ReviewCues({ event }: { event: ReviewEvent }) {
     onlineUrl: safeWebUrl(event.onlineUrl) ? event.onlineUrl : null,
     startsAt: new Date(event.startsAt),
     endsAt: new Date(event.endsAt),
+    timezone: event.timezone,
     ticketTypes: event.ticketTypes,
     images: event.images.map((image) => ({
       kind: image.kind,

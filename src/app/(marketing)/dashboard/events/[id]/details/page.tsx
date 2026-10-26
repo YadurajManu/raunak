@@ -45,6 +45,7 @@ export default async function EventDetails({
           timezone: event.timezone,
           venueName: event.venueName,
           address: event.address,
+          venueNotes: event.venueNotes,
           mapUrl: event.mapUrl,
           city: event.city,
           onlineUrl: event.onlineUrl,

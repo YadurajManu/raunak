@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatInr } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { ticketAvailability } from "@/lib/ticket-availability";
+import { plainName } from "@/lib/plain-name";
+import { EventTicketNotice } from "@/components/public/event-viewer";
 
 type Type = {
   id: string;
@@ -25,12 +27,14 @@ export function TicketSelector({
   startsAt,
   timezone,
   ticketTypes,
+  recap,
 }: {
   eventId: string;
   eventSlug: string;
   startsAt: string;
   timezone: string;
   ticketTypes: Type[];
+  recap: string;
 }) {
   const router = useRouter();
   const [now, setNow] = useState(() => Date.now());
@@ -58,9 +62,16 @@ export function TicketSelector({
     0,
   );
   return (
-    <div className="sticky top-6 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5 shadow-sm dark:border-[var(--line)] dark:bg-[var(--paper)]">
+    <div
+      id="ticket-types"
+      className="sticky top-6 scroll-mt-6 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5 shadow-sm dark:border-[var(--line)] dark:bg-[var(--paper)]"
+    >
+      <EventTicketNotice />
       <h2 className="text-xl font-semibold">Get tickets</h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">
+      <p className="mt-2 rounded-lg bg-[var(--surface)] px-3 py-2 text-sm text-[var(--muted)]">
+        {recap}
+      </p>
+      <p className="mt-2 text-sm text-[var(--muted)]">
         Choose your tickets below.
       </p>
       {visible.length ? (
@@ -79,23 +90,39 @@ export function TicketSelector({
               >
                 <div className="flex justify-between gap-3">
                   <div>
-                    <p className="font-medium">{type.name}</p>
+                    <p className="font-medium">
+                      <span aria-hidden="true">{type.name}</span>
+                      <span className="sr-only">
+                        {plainName(type.name) || "Admission"}
+                      </span>
+                    </p>
                     {type.description && (
                       <p className="mt-1 text-sm text-[var(--muted)]">
                         {type.description}
                       </p>
                     )}
                     <p className="mt-2 text-sm font-semibold">
-                      {formatInr(type.pricePaise)}
+                      {formatMoney(type.pricePaise)}
                     </p>
-                    {!onSale && (
-                      <p className="mt-1 text-xs text-[var(--warning)]">{label}</p>
+                    {type.saleEndsAt && (
+                      <p className="ticket-sale-status">
+                        {(() => {
+                          const end = new Date(type.saleEndsAt);
+                          const daysLeft = Math.ceil(
+                            (end.getTime() - now) / 86400000,
+                          );
+                          if (onSale && daysLeft >= 0 && daysLeft <= 7)
+                            return `Ends in ${daysLeft === 0 ? "less than a day" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"}`}`;
+                          return `Ends ${new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: timezone }).format(end)}`;
+                        })()}
+                      </p>
                     )}
+                    {!onSale && <p className="ticket-sale-status">{label}</p>}
                   </div>
                   <div className="flex h-9 shrink-0 items-center rounded-lg border border-[var(--line)] dark:border-[var(--line)]">
                     <button
                       type="button"
-                      aria-label={`Remove ${type.name}`}
+                      aria-label={`Remove ${plainName(type.name) || "admission"}`}
                       disabled={!current}
                       onClick={() =>
                         setQuantities({
@@ -116,7 +143,7 @@ export function TicketSelector({
                     </span>
                     <button
                       type="button"
-                      aria-label={`Add ${type.name}`}
+                      aria-label={`Add ${plainName(type.name) || "admission"}`}
                       disabled={
                         !onSale ||
                         current >= Math.min(type.maxPerOrder, remaining)
@@ -149,7 +176,7 @@ export function TicketSelector({
           <span>
             {count} {count === 1 ? "ticket" : "tickets"}
           </span>
-          <span>{formatInr(total)}</span>
+          <span>{formatMoney(total)}</span>
         </div>
         <p className="mt-1 text-xs text-[var(--muted)]">
           Any applicable platform fee appears before payment.
@@ -173,7 +200,7 @@ export function TicketSelector({
             );
             router.push(`/checkout/${eventSlug}`);
           }}
-          className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--on-accent)] disabled:opacity-40"
+          className="mt-5 min-h-11 w-full rounded-xl border border-[var(--ink)] bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--on-accent)] disabled:cursor-not-allowed disabled:border-[var(--line)] disabled:bg-[var(--surface)] disabled:text-[var(--muted)]"
         >
           Continue
         </button>

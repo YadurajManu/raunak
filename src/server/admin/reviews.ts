@@ -44,7 +44,14 @@ export async function listReviewEvents(input: unknown) {
     orderBy: [{ reviewSubmittedAt: "desc" }, { updatedAt: "desc" }],
     include: {
       org: {
-        select: { name: true, slug: true, supportEmail: true, supportPhone: true },
+        select: {
+          name: true,
+          slug: true,
+          supportEmail: true,
+          supportPhone: true,
+          tagline: true,
+          logoKey: true,
+        },
       },
       ticketTypes: {
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],

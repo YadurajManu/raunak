@@ -237,3 +237,283 @@
     scroll-behavior: auto !important;
   }
 }
+
+.marketing .r-event-detail .event-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.marketing .r-event-detail .event-breadcrumb a:hover,
+.marketing .r-event-detail .event-breadcrumb a:focus-visible {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .r-event-detail .event-breadcrumb-current {
+  color: var(--ink);
+  max-width: min(38vw, 340px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.marketing .r-event-detail .event-management-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  background: var(--surface);
+  font-size: 0.82rem;
+}
+.marketing .r-event-detail .event-viewer-bar-slot {
+  min-height: 57px;
+  margin-bottom: 14px;
+}
+.marketing .r-event-detail .event-management-bar > span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.marketing .r-event-detail .event-management-bar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.marketing .r-event-detail .event-management-bar a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  font-weight: 600;
+}
+.marketing .r-event-detail .event-management-bar a:hover {
+  background: var(--surface-raised);
+  text-decoration: underline;
+}
+.marketing .r-event-detail .event-primary-facts {
+  min-width: 0;
+  padding: 2px 0;
+}
+.marketing .r-event-detail .event-fact-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.marketing .r-event-detail .ticket-sale-status {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.marketing .r-event-detail .event-fact-label {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.marketing .r-event-detail .event-fact-value {
+  margin-top: 5px;
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.marketing .r-event-detail .event-fact-link,
+.marketing .r-event-detail .event-map-link {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  margin-top: 3px;
+  color: var(--accent-ink);
+  font-size: 0.88rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .r-event-detail .event-people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 22px;
+  margin-top: 20px;
+}
+.marketing .r-event-detail .event-person {
+  display: flex;
+  min-width: 0;
+  gap: 14px;
+  align-items: flex-start;
+}
+.marketing .r-event-detail .event-person-photo,
+.marketing .r-event-detail .event-person-fallback {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.marketing .r-event-detail .event-person-fallback {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+.marketing .r-event-detail .event-person-bio {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.marketing .r-event-detail .event-venue-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 24px;
+  align-items: start;
+  margin-top: 18px;
+}
+.marketing .r-event-detail .event-venue-copy {
+  min-width: 0;
+  padding: 18px 0;
+}
+.marketing .r-event-detail .event-venue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 12px;
+}
+.marketing .r-event-detail .event-venue-actions a,
+.marketing .r-event-detail .event-venue-actions button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-ink);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .r-event-detail .event-how-to-reach {
+  margin-top: 18px;
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+}
+.marketing .r-event-detail .event-how-to-reach h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.marketing .r-event-detail .event-how-to-reach p,
+.marketing .r-event-detail .event-online-info p {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.marketing .r-event-detail .event-lazy-map {
+  min-width: 0;
+  min-height: 250px;
+}
+.marketing .r-event-detail .event-map-load {
+  display: flex;
+  width: 100%;
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+}
+.marketing .r-event-detail .event-map-load span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.marketing .r-event-detail .event-going-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  border-left: 3px solid var(--success);
+  padding: 10px 12px;
+  background: var(--success-bg);
+  font-size: 0.83rem;
+}
+.marketing .r-event-detail .event-going-notice > svg {
+  color: var(--success-fg);
+}
+.marketing .r-event-detail .event-going-notice > span {
+  color: var(--muted);
+}
+.marketing .r-event-detail .event-going-notice a {
+  color: var(--success-fg);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing .r-event-detail .event-going-notice .event-buy-more {
+  margin-left: auto;
+}
+.marketing .r-event-detail .prose ul,
+.marketing .r-event-detail .prose ol {
+  margin: 1rem 0;
+  padding-left: 1.4rem;
+}
+.marketing .r-event-detail .prose li + li {
+  margin-top: 0.4rem;
+}
+.marketing .r-event-detail .prose p + p {
+  margin-top: 1rem;
+}
+.marketing .r-event-detail .event-related-section {
+  margin-top: 42px;
+}
+.marketing
+  .r-event-detail
+  :is(
+    .event-map-load,
+    .event-management-bar a,
+    .event-venue-actions a,
+    .event-venue-actions button
+  ):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .marketing .r-event-detail .event-venue-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .marketing .r-event-detail .event-lazy-map {
+    min-height: 220px;
+  }
+  .marketing .r-event-detail .event-map-load {
+    min-height: 220px;
+  }
+  .marketing .r-event-detail .event-management-bar {
+    align-items: flex-start;
+  }
+  .marketing .r-event-detail .event-management-bar > div {
+    width: 100%;
+  }
+  .marketing .r-event-detail .event-management-bar a {
+    min-height: 40px;
+  }
+}

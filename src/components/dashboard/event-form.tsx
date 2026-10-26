@@ -9,6 +9,7 @@ type EventValues = {
   id: string; title: string; summary: string | null; description: string | null;
   category: string | null; mode: string; visibility: string; startsAt: string;
   endsAt: string; timezone: string; venueName: string | null; address: string | null;
+  venueNotes?: string | null;
   mapUrl: string | null; city: string | null; onlineUrl: string | null;
   capacity: number | null; refundPolicy: string | null; lat?: number | null; lng?: number | null;
 };
@@ -61,6 +62,7 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
         startsAt: localEventTimeToUtc(startsAt, timezone), endsAt: localEventTimeToUtc(endsAt, timezone), timezone,
         venueName: mode === "ONLINE" ? "" : venue, city: mode === "ONLINE" ? "" : city,
         address: mode === "ONLINE" ? "" : address,
+        venueNotes: mode === "ONLINE" ? "" : text("venueNotes"),
         lat: mode !== "ONLINE" && pinSelected ? point?.latitude ?? null : null,
         lng: mode !== "ONLINE" && pinSelected ? point?.longitude ?? null : null,
         mapUrl: mode === "ONLINE" ? undefined : text("mapUrl") || undefined,
@@ -103,7 +105,7 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
       </section>
       <section className="r-form-section"><div className="r-section-heading"><h2>{mode === "ONLINE" ? "Online access" : "Location"}</h2><small>{mode === "ONLINE" ? "Where guests will join." : "Start with the city. A map pin is optional."}</small></div>
         {mode !== "ONLINE" && <><LocationSearch value={city} onChange={value => { ++lookupId.current; setCity(value); setPoint(null); setPinSelected(false); }} onSelect={place => { ++lookupId.current; setCity(place.city); setPoint({ latitude: place.latitude, longitude: place.longitude }); setPinSelected(false); setMapMessage("City selected. Choose a map pin only if you want to mark the venue entrance."); }} point={point} onPick={pick}/>
-        <div className="r-form-fields"><label>Venue name<input name="venueName" required maxLength={150} placeholder="e.g. The Courtyard" value={venue} onChange={e => setVenue(e.target.value)}/></label><label>Address<input name="address" maxLength={500} placeholder="Street, building, neighbourhood" value={address} onChange={e => setAddress(e.target.value)}/></label></div>
+        <div className="r-form-fields"><label>Venue name<input name="venueName" required maxLength={150} placeholder="e.g. The Courtyard" value={venue} onChange={e => setVenue(e.target.value)}/></label><label>Address<input name="address" maxLength={500} placeholder="Street, building, neighbourhood" value={address} onChange={e => setAddress(e.target.value)}/></label><label className="r-field-wide">How to reach · optional<textarea name="venueNotes" rows={3} maxLength={500} defaultValue={event?.venueNotes || ""} placeholder="Nearest station, parking, entry gate or landmark"/></label></div>
         {pinSelected && <button type="button" className="r-inline-button" onClick={() => { ++lookupId.current; setPoint(null); setPinSelected(false); }}>Remove venue pin</button>}<small role="status">{mapMessage}</small>
         <details className="r-form-disclosure"><summary>Add a map link · optional</summary><label>Map link · optional<input name="mapUrl" type="url" placeholder="https://maps.google.com/…" defaultValue={event?.mapUrl || ""}/></label></details></>}
         {mode !== "IN_PERSON" && <label className="r-online-link">Online event link<input name="onlineUrl" required type="url" placeholder="https://…" defaultValue={event?.onlineUrl || ""}/></label>}

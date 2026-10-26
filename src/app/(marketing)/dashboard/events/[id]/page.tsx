@@ -73,7 +73,14 @@ export default async function EventOverview({
           ticketTypes: true,
           images: true,
           org: {
-            select: { name: true, supportEmail: true, supportPhone: true },
+            select: {
+              id: true,
+              name: true,
+              supportEmail: true,
+              supportPhone: true,
+              tagline: true,
+              logoKey: true,
+            },
           },
         },
       }),
@@ -201,7 +208,18 @@ export default async function EventOverview({
           </summary>
           <ul>
             {eventQuality(event).map((warning) => (
-              <li key={warning}>{warning}</li>
+              <li key={warning}>
+                {warning}{" "}
+                {warning.startsWith("Complete the organizer profile") &&
+                  ["OWNER", "ADMIN"].includes(member.role) && (
+                    <Link
+                      href={`/dashboard/settings/profile?org=${event.org.id}`}
+                      className="font-semibold underline underline-offset-4"
+                    >
+                      Edit profile
+                    </Link>
+                  )}
+              </li>
             ))}
           </ul>
           <p>

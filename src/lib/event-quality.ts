@@ -1,10 +1,13 @@
 import { eventCategories } from "@/config/event-options";
+import { lintEvent } from "@/lib/event-description-lint";
 export function eventQuality(event: {
   title: string;
   category: string | null;
   summary: string | null;
   description?: string | null;
   visibility?: string;
+  status?: string;
+  timezone?: string;
   mode: string;
   city: string | null;
   venueName: string | null;
@@ -12,7 +15,7 @@ export function eventQuality(event: {
   onlineUrl: string | null;
   startsAt: Date;
   endsAt: Date;
-  ticketTypes: { pricePaise?: number | null }[];
+  ticketTypes: { pricePaise?: number | null; name?: string | null }[];
   images: {
     kind: string;
     width?: number | null;
@@ -23,6 +26,8 @@ export function eventQuality(event: {
     name: string;
     supportEmail: string | null;
     supportPhone: string | null;
+    tagline?: string | null;
+    logoKey?: string | null;
   };
 }) {
   const warnings: string[] = [];
@@ -71,14 +76,18 @@ export function eventQuality(event: {
       "Choose or review the category. Make sure it matches the actual experience.",
     );
   if (!event.ticketTypes.length)
-    warnings.push("Add at least one ticket type with a price before publishing.");
+    warnings.push(
+      "Add at least one ticket type with a price before publishing.",
+    );
   else if (
     !event.ticketTypes.some(
       (ticket) =>
         Number.isInteger(ticket.pricePaise) && (ticket.pricePaise ?? -1) >= 0,
     )
   )
-    warnings.push("Add a valid non-negative price to at least one ticket type.");
+    warnings.push(
+      "Add a valid non-negative price to at least one ticket type.",
+    );
   if (
     !event.org.name.trim() ||
     (!event.org.supportEmail && !event.org.supportPhone)
@@ -99,5 +108,18 @@ export function eventQuality(event: {
     event.endsAt <= event.startsAt
   )
     warnings.push("Check that the event end is after its start.");
+  warnings.push(
+    ...lintEvent({
+      description: event.description,
+      startsAt: event.startsAt,
+      endsAt: event.endsAt,
+      timezone: event.timezone || "Asia/Kolkata",
+      venueName: event.venueName,
+      address: event.address,
+      published: event.status === "PUBLISHED",
+      ticketTypes: event.ticketTypes,
+      organizer: event.org,
+    }).map((issue) => issue.message),
+  );
   return warnings;
 }

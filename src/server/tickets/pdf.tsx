@@ -14,6 +14,7 @@ import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
 import { ticketUrl } from "./qr";
 import { variantUrl } from "@/lib/images";
+import { plainName } from "@/lib/plain-name";
 Font.register({
   family: "Raunak Sans",
   src: path.join(process.cwd(), "public/fonts/NotoSans-Regular.ttf"),
@@ -46,11 +47,10 @@ export async function ticketPdf(ticketId: string) {
     try {
       const card = variantUrl(image.variants, "card");
       const prefix = `${process.env.S3_PUBLIC_BASE_URL?.replace(/\/$/, "")}/`;
-      const key = card?.startsWith(prefix) ? decodeURIComponent(card.slice(prefix.length)) : `${image.storageKey.replace("/original/", "/variants/")}/card.jpg`;
-      poster = await storage.read(
-        key,
-        5 * 1024 * 1024,
-      );
+      const key = card?.startsWith(prefix)
+        ? decodeURIComponent(card.slice(prefix.length))
+        : `${image.storageKey.replace("/original/", "/variants/")}/card.jpg`;
+      poster = await storage.read(key, 5 * 1024 * 1024);
     } catch {
       /* The QR remains usable when artwork is unavailable. */
     }
@@ -79,7 +79,9 @@ export async function ticketPdf(ticketId: string) {
         <Text style={{ color: "#bd452c", fontSize: 22, marginBottom: 16 }}>
           raunak.
         </Text>
-        <Text style={{ fontSize: 9, color: "#234d3c", marginBottom: 10 }}>YOUR WAY IN · ENTRY TICKET</Text>
+        <Text style={{ fontSize: 9, color: "#234d3c", marginBottom: 10 }}>
+          YOUR WAY IN · ENTRY TICKET
+        </Text>
         {poster && (
           <PdfImage
             src={{ data: poster, format: "jpg" }}
@@ -94,7 +96,10 @@ export async function ticketPdf(ticketId: string) {
         <Text style={{ fontSize: 24, marginBottom: 12 }}>{event.title}</Text>
         <Text style={{ marginBottom: 8 }}>{date}</Text>
         <Text>
-          {event.venueName || (event.mode === "ONLINE" ? "Online event" : "Venue to be announced")}
+          {event.venueName ||
+            (event.mode === "ONLINE"
+              ? "Online event"
+              : "Venue to be announced")}
           {event.city ? `, ${event.city}` : ""}
         </Text>
         {event.address && <Text style={{ marginTop: 5 }}>{event.address}</Text>}
@@ -107,7 +112,9 @@ export async function ticketPdf(ticketId: string) {
           }}
         >
           <Text style={{ fontSize: 15 }}>{ticket.holderName}</Text>
-          <Text style={{ marginTop: 6 }}>{ticket.ticketType.name}</Text>
+          <Text style={{ marginTop: 6 }}>
+            {plainName(ticket.ticketType.name) || "Admission"}
+          </Text>
         </View>
         <PdfImage
           src={qr}

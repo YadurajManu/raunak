@@ -86,10 +86,7 @@ export function EventReviews({
     <section className="mt-12 scroll-mt-24" id="reviews" aria-labelledby="event-reviews-title">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-            From people who went
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold" id="event-reviews-title">
+          <h2 className="text-2xl font-semibold" id="event-reviews-title">
             Attendee reviews
           </h2>
         </div>

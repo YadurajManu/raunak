@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus, UserCheck, Loader2 } from "lucide-react";
+import { useEventViewer } from "@/components/public/event-viewer";
 
 type FollowOrganizerButtonProps = {
   orgId: string;
@@ -20,9 +21,12 @@ export function FollowOrganizerButton({
   compact = false,
 }: FollowOrganizerButtonProps) {
   const router = useRouter();
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [count, setCount] = useState(initialFollowersCount);
+  const [followingOverride, setFollowingOverride] = useState<boolean | null>(null);
+  const [countOverride, setCountOverride] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const viewer = useEventViewer();
+  const isFollowing = followingOverride ?? (viewer?.authenticated ? viewer.isFollowing : initialIsFollowing);
+  const count = countOverride ?? (viewer?.authenticated ? viewer.followerCount : initialFollowersCount);
 
   const toggleFollow = async () => {
     if (loading) return;
@@ -30,8 +34,8 @@ export function FollowOrganizerButton({
     const nextCount = count + (nextFollowing ? 1 : -1);
 
     // Optimistic update
-    setIsFollowing(nextFollowing);
-    setCount(Math.max(0, nextCount));
+    setFollowingOverride(nextFollowing);
+    setCountOverride(Math.max(0, nextCount));
     setLoading(true);
 
     try {
@@ -41,7 +45,9 @@ export function FollowOrganizerButton({
 
       if (res.status === 401) {
         // Not logged in -> redirect to login with current location
-        router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
+        router.push(
+          `/login?next=${encodeURIComponent(window.location.pathname)}`,
+        );
         return;
       }
 
@@ -50,12 +56,12 @@ export function FollowOrganizerButton({
       }
 
       const data = await res.json();
-      setIsFollowing(Boolean(data.following));
-      setCount(Number(data.followerCount));
+      setFollowingOverride(Boolean(data.following));
+      setCountOverride(Number(data.followerCount));
     } catch {
       // Revert on failure
-      setIsFollowing(!nextFollowing);
-      setCount(count);
+      setFollowingOverride(!nextFollowing);
+      setCountOverride(count);
     } finally {
       setLoading(false);
     }
@@ -69,9 +75,7 @@ export function FollowOrganizerButton({
       aria-pressed={isFollowing}
       aria-label={isFollowing ? "Unfollow organizer" : "Follow organizer"}
       className={`inline-flex items-center gap-1.5 rounded-full font-semibold transition-all cursor-pointer select-none ${
-        compact
-          ? "px-3 py-1.5 text-xs"
-          : "px-4 py-2 text-sm"
+        compact ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
       } ${
         isFollowing
           ? "border border-[var(--line)] bg-[var(--surface-raised)] text-[var(--ink)] hover:border-[var(--danger)] hover:text-[var(--danger)] hover:bg-[var(--danger-bg)]"
@@ -79,7 +83,11 @@ export function FollowOrganizerButton({
       } ${className}`}
     >
       {loading ? (
-        <Loader2 size={compact ? 13 : 15} className="animate-spin" aria-hidden="true" />
+        <Loader2
+          size={compact ? 13 : 15}
+          className="animate-spin"
+          aria-hidden="true"
+        />
       ) : isFollowing ? (
         <UserCheck size={compact ? 13 : 15} aria-hidden="true" />
       ) : (

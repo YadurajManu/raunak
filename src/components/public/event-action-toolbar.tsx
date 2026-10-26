@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
@@ -13,6 +14,7 @@ import {
   Share2,
 } from "lucide-react";
 import { SaveEvent } from "./save-event";
+import { FollowOrganizerButton } from "./follow-organizer-button";
 import { whatsappEventUrl } from "@/lib/event-share";
 
 export function EventActionToolbar({
@@ -20,6 +22,8 @@ export function EventActionToolbar({
   title,
   url,
   organizer,
+  organizerId,
+  followerCount,
   saved,
   saveAvailable,
   calendar,
@@ -27,7 +31,9 @@ export function EventActionToolbar({
   eventId: string;
   title: string;
   url: string;
-  organizer: { name: string; slug: string };
+  organizer: { name: string; slug: string; avatarUrl?: string | null };
+  organizerId: string;
+  followerCount: number;
   saved: boolean;
   saveAvailable: boolean;
   calendar: { google: string; outlook: string } | null;
@@ -63,13 +69,18 @@ export function EventActionToolbar({
     >
       <Link className="eat-organizer" href={`/organizers/${organizer.slug}`}>
         <span className="eat-avatar" aria-hidden="true">
-          {name.slice(0, 1).toUpperCase()}
+          {organizer.avatarUrl ? (
+            <Image src={organizer.avatarUrl} alt="" width={40} height={40} unoptimized />
+          ) : (
+            name.slice(0, 1).toUpperCase()
+          )}
         </span>
         <span>
           <small>Hosted by</small>
           <strong>{name}</strong>
         </span>
       </Link>
+      <FollowOrganizerButton orgId={organizerId} initialFollowersCount={followerCount} initialIsFollowing={false} compact />
       <div className="eat-actions" role="group" aria-label="Event actions">
         {saveAvailable && (
           <SaveEvent eventId={eventId} initial={saved} labeled />

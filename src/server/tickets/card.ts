@@ -4,6 +4,7 @@ import { db } from "@/server/db/client";
 import { storage } from "@/server/providers/storage/s3";
 import { variantUrl } from "@/lib/images";
 import { ticketUrl } from "./qr";
+import { plainName } from "@/lib/plain-name";
 
 export async function eventPoster(eventId: string) {
   const image = await db.eventImage.findFirst({
@@ -66,7 +67,7 @@ export async function ticketCard(ticketId: string) {
       .join(", "),
     holder: ticket.holderName,
     organizer: event.org.name,
-    type: ticket.ticketType.name,
+    type: plainName(ticket.ticketType.name) || "Admission",
     code: ticket.code,
     url: ticketUrl(ticket.id, event.id),
     poster: await eventPoster(event.id),

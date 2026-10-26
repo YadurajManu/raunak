@@ -1,4 +1,7 @@
+import { lintEvent } from "@/lib/event-description-lint";
+
 type PublishableEvent = {
+  description?: string | null;
   startsAt: Date;
   endsAt: Date;
   mode: string;
@@ -9,6 +12,7 @@ type PublishableEvent = {
   capacity: number | null;
   ticketTypes: { quantityTotal: number }[];
   images: { variants: unknown }[];
+  timezone?: string;
 };
 
 export function assertEventCanBePublished(event: PublishableEvent) {
@@ -33,4 +37,14 @@ export function assertEventCanBePublished(event: PublishableEvent) {
     throw new Error("Ticket inventory exceeds event capacity.");
   if (!event.images.length || !event.images[0].variants)
     throw new Error("Add a processed poster before publishing.");
+  const contentError = lintEvent({
+    description: event.description,
+    startsAt: event.startsAt,
+    endsAt: event.endsAt,
+    timezone: event.timezone,
+    venueName: event.venueName,
+    address: event.address,
+    published: true,
+  }).find((issue) => issue.severity === "error");
+  if (contentError) throw new Error(contentError.message);
 }

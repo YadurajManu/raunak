@@ -9,6 +9,7 @@ import {
 } from "@/generated/prisma/client";
 import { notificationQueue } from "../../../worker/queues";
 import { ticketUrl } from "@/server/tickets/qr";
+import { plainName } from "@/lib/plain-name";
 import { storage } from "@/server/providers/storage/s3";
 import {
   sendEmail,
@@ -269,8 +270,7 @@ export async function processNotification(
   if (
     (log.trigger === "REMINDER_24H" || log.trigger === "REMINDER_2H") &&
     ((log.channel === "EMAIL" && !log.order.buyer.emailRemindersEnabled) ||
-      (log.channel === "WHATSAPP" &&
-        !log.order.buyer.whatsappRemindersEnabled))
+      (log.channel === "WHATSAPP" && !log.order.buyer.whatsappRemindersEnabled))
   ) {
     await db.notificationLog.update({
       where: { id },
@@ -296,7 +296,9 @@ export async function processNotification(
       !(
         log.trigger === "ATTENDEE_BROADCAST" &&
         log.order.status === "PARTIALLY_REFUNDED" &&
-        log.order.tickets.some((item) => ["VALID", "USED"].includes(item.status))
+        log.order.tickets.some((item) =>
+          ["VALID", "USED"].includes(item.status),
+        )
       )) ||
     (log.trigger === "PAYMENT_FAILED" &&
       !["FAILED", "EXPIRED"].includes(log.order.status))
@@ -349,7 +351,7 @@ export async function processNotification(
           : "Venue to be announced"),
       city: log.event.city || "",
       event_url: `${process.env.APP_URL}/e/${log.event.slug}`,
-      ticket_type: ticket?.ticketType.name || "",
+      ticket_type: ticket ? plainName(ticket.ticketType.name) : "",
       ticket_code: ticket?.code || "",
       quantity: String(log.order.tickets.length),
       order_id: log.orderId,
@@ -496,8 +498,8 @@ export async function processNotification(
           (log.trigger === "ATTENDEE_BROADCAST"
             ? "\n\nReply STOP to stop WhatsApp updates."
             : firstTicket && !template?.body
-            ? "\n\nReply STOP to stop WhatsApp updates."
-            : "");
+              ? "\n\nReply STOP to stop WhatsApp updates."
+              : "");
         const fallback =
           log.trigger === "ATTENDEE_BROADCAST"
             ? ""
@@ -512,7 +514,10 @@ export async function processNotification(
           trigger: log.trigger,
           timezone: log.event.timezone,
           consent: log.order.whatsappOptIn,
-          text: (fallback && !text.includes(fallback) ? `${text}\n\n${fallback}` : text)
+          text: (fallback && !text.includes(fallback)
+            ? `${text}\n\n${fallback}`
+            : text
+          )
             .replace(/\n{3,}/g, "\n\n")
             .trim(),
           attachments,
@@ -556,7 +561,11 @@ export async function processNotification(
       where: { id, status: "SENDING" },
       data: { status: "SENT", sentAt: new Date(), error: null },
     });
-    if (log.trigger === "TICKET_ISSUED" || log.trigger === "REMINDER_24H" || log.trigger === "REMINDER_2H") {
+    if (
+      log.trigger === "TICKET_ISSUED" ||
+      log.trigger === "REMINDER_24H" ||
+      log.trigger === "REMINDER_2H"
+    ) {
       try {
         if (log.trigger !== "TICKET_ISSUED") {
           await notifyReminder({
