@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 export default function TermsPage() {
   return (
-    <LegalPage title="A few ground rules.">
+    <LegalPage title="A few ground rules." footerPath="/terms">
       <h2>Using the service</h2>
       <p>
         {APP_NAME} provides tools for event publishing, ticket booking,

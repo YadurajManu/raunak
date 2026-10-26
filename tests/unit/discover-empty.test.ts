@@ -19,6 +19,7 @@ vi.mock("@/server/db/client", () => ({
 vi.mock("@/server/auth/session", () => ({ currentUser: async () => null }));
 vi.mock("@/components/marketing/footer", () => ({
   MarketingFooter: () => null,
+  RouteFooter: () => null,
 }));
 vi.mock("@/components/public/discover-filters", () => ({
   DiscoverFilters: () => null,

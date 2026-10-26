@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Your privacy matters.">
+    <LegalPage title="Your privacy matters." footerPath="/privacy">
       <h2>What we collect</h2>
       <p>
         We use your name, email address and account identifier to provide your

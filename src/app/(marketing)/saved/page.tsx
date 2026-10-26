@@ -4,6 +4,7 @@ import { currentUser } from "@/server/auth/session";
 import { publicListing } from "@/server/public/events";
 import { db } from "@/server/db/client";
 import { PageHeader } from "@/components/ui";
+import { RouteFooter } from "@/components/marketing/footer";
 export const metadata = {
   title: "Saved events | Raunak",
   robots: { index: false },
@@ -23,6 +24,7 @@ export default async function SavedPage({
             Sign in →
           </Link>
         </main>
+        <RouteFooter pathname="/saved" />
       </>
     );
   const page = Math.max(
@@ -77,6 +79,7 @@ export default async function SavedPage({
           {page * 12 < total && <Link href={`?page=${page + 1}`}>Next →</Link>}
         </nav>
       </main>
+      <RouteFooter pathname="/saved" />
     </>
   );
 }

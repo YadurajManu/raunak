@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MarketingFooter } from "@/components/marketing/footer";
+import { RouteFooter } from "@/components/marketing/footer";
 import { DiscoverFilters } from "@/components/public/discover-filters";
 import { EventCard } from "@/components/public/event-card";
 import { discoverPage, publicListing } from "@/server/public/events";
@@ -44,6 +44,7 @@ export default async function DiscoverPage({
             Reset filters
           </Link>
         </main>
+        <RouteFooter pathname="/discover" />
       </>
     );
   const canonicalUrl = discoveryUrl(parsed.data, {
@@ -279,7 +280,7 @@ export default async function DiscoverPage({
           </nav>
         )}
       </main>
-      <MarketingFooter />
+      <RouteFooter pathname="/discover" />
     </>
   );
 }

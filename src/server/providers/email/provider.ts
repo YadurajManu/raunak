@@ -4,6 +4,7 @@ import { Resend } from "resend";
 export interface EmailProvider {
   send(input: {
     to: string;
+    replyTo?: string;
     subject: string;
     text: string;
     html?: string;
@@ -13,7 +14,7 @@ export interface EmailProvider {
 }
 
 const provider: EmailProvider = {
-  async send({ to, subject, text, html, attachments, idempotencyKey }) {
+  async send({ to, replyTo, subject, text, html, attachments, idempotencyKey }) {
     const from = process.env.EMAIL_FROM;
     if (!from) throw new Error("EMAIL_FROM is required.");
     if (process.env.EMAIL_PROVIDER === "smtp") {
@@ -35,6 +36,7 @@ const provider: EmailProvider = {
       }).sendMail({
         from,
         to,
+        replyTo,
         subject,
         text,
         html,
@@ -47,7 +49,7 @@ const provider: EmailProvider = {
       const key = process.env.RESEND_API_KEY;
       if (!key) throw new Error("RESEND_API_KEY is required.");
       const result = await new Resend(key).emails.send(
-        { from, to, subject, text, html, attachments },
+        { from, to, replyTo, subject, text, html, attachments },
         idempotencyKey ? { idempotencyKey } : undefined,
       );
       if (result.error)

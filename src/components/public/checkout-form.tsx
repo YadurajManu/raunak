@@ -52,7 +52,6 @@ export type CheckoutEvent = {
   mode?: string;
   poster?: unknown;
   refundPolicy?: string | null;
-  supportEmail?: string | null;
 };
 
 export type CheckoutTicketType = {
@@ -954,14 +953,8 @@ export function CheckoutForm({
 
               <p className="co-support">
                 Need a hand?{" "}
-                {event.supportEmail && (
-                  <>
-                    <a href={`mailto:${event.supportEmail}`}>
-                      Contact the organizer
-                    </a>
-                    <span> · </span>
-                  </>
-                )}
+                <Link href={`/e/${eventSlug}#organizer`}>Contact the organizer</Link>
+                <span> · </span>
                 <Link href="/contact">Raunak support</Link>
               </p>
             </div>

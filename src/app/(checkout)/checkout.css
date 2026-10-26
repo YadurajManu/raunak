@@ -89,6 +89,11 @@
 .co-empty>a:not(.co-primary) { display:block; color:var(--accent-ink); padding:20px 0; font-size:13px; }
 .co-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 .co-spin { animation:co-spin 1s linear infinite; }
+.m-footer-minimal { padding:12px 0 calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); color:var(--muted); }
+.m-footer-minimal>.m-container { width:min(100% - 36px,1200px); min-height:44px; margin-inline:auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; font-size:12px; }
+.m-footer-minimal nav { display:flex; flex-wrap:wrap; gap:16px; }
+.m-footer-minimal a { min-height:44px; display:inline-flex; align-items:center; color:inherit; }
+@media print { .m-footer-minimal { display:none!important; } }
 @keyframes co-spin { to { transform:rotate(360deg); } }
 @media(max-width:1023px) { .co-grid { gap:32px; grid-template-columns:minmax(0,1fr) 330px; } }
 @media(max-width:767px) { .co-header { padding:0 16px; }.co-secure { font-size:11px; }.co-brand { font-size:25px; }.co-main { padding:20px 18px 120px; }.co-heading { display:block; margin:10px 0 22px; }.co-heading h1 { font-size:42px; }.co-heading ol { gap:24px; margin:16px 0 0; }.co-grid { display:flex; flex-direction:column; gap:28px; }.co-summary { position:static; width:100%; box-shadow:2px 2px 0 var(--ink); border-radius:9px; }.co-summary>summary { padding:15px 13px; font-size:12px; cursor:pointer; }.co-summary>summary span { display:inline; margin-left:auto; font-size:11px; font-weight:400; }.co-summary>summary svg { display:block; }.co-summary:not([open])>.co-summary-body { display:none!important; }.co-summary-body { padding:4px 15px 18px; }.co-details { width:100%; }.co-action { position:fixed; bottom:0; left:0; right:0; background:var(--surface-raised); border-top:1px solid var(--line); padding:13px 18px calc(14px + env(safe-area-inset-bottom)); z-index:10; gap:12px; }.co-action>div { display:flex; flex-direction:column; gap:3px; min-width:54px; }.co-action small { color:var(--muted); font-size:11px; }.co-action strong { font-size:18px; }.co-action>.co-primary { flex:1; width:auto; font-size:12px; padding:12px 8px; }.co-support { margin:25px 0 0; }.co-event .co-kicker { font-size:10px; } }

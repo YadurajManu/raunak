@@ -89,40 +89,6 @@ export const marketing = {
       answer: "Yes. Free tickets skip payment entirely.",
     },
   ],
-  footer: [
-    {
-      label: "Product",
-      links: [
-        { label: "How it works", href: "#how-it-works" },
-        { label: "Features", href: "#features" },
-        { label: "Pricing", href: "#pricing" },
-        { label: "FAQ", href: "#faq" },
-      ],
-    },
-    {
-      label: "Organizers",
-      links: [
-        { label: "Host an event", href: "/signup?intent=organizer" },
-        { label: "Log in", href: "/login" },
-        { label: "Dashboard", href: "/dashboard" },
-      ],
-    },
-    {
-      label: "Attendees",
-      links: [
-        { label: "Discover events", href: "/discover" },
-        { label: "My tickets", href: "/my-tickets" },
-      ],
-    },
-    {
-      label: "Company",
-      links: [
-        { label: "Contact", href: "/contact" },
-        { label: "Privacy", href: "/privacy" },
-        { label: "Terms", href: "/terms" },
-      ],
-    },
-  ],
 } as const;
 
 export function faqSchema() {

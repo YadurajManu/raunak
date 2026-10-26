@@ -2,7 +2,7 @@
 import { APP_NAME } from "@/lib/constants";
 import { BrandMark } from "@/components/brand-mark";
 import { FakeQR, Sticker, TicketShell } from "@/components/marketing/motifs";
-import { ThemeToggle } from "@/components/marketing/footer";
+import { ThemeToggle } from "@/components/marketing/footer-controls";
 
 import { useState } from "react";
 import Link from "next/link";

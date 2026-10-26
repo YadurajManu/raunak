@@ -4,6 +4,7 @@ import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { walletWhere, walletTabs } from "@/lib/wallet";
 import { PageHeader } from "@/components/ui";
+import { RouteFooter } from "@/components/marketing/footer";
 export const metadata = {
   title: "My tickets | Raunak",
   robots: { index: false, follow: false },
@@ -31,6 +32,7 @@ export default async function MyTickets({
             Find a booking
           </Link>
         </main>
+        <RouteFooter pathname="/my-tickets" />
       </>
     );
   const raw = await searchParams;
@@ -214,6 +216,7 @@ export default async function MyTickets({
           {page * 12 < count && <Link href={href(page + 1)}>Next →</Link>}
         </nav>
       </main>
+      <RouteFooter pathname="/my-tickets" />
     </>
   );
 }

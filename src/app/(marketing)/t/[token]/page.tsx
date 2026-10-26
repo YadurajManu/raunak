@@ -9,6 +9,7 @@ import {
   verifyTicketToken,
   ticketUrl,
 } from "@/server/tickets/qr";
+import { RouteFooter } from "@/components/marketing/footer";
 export const metadata = {
   title: "Your ticket | Raunak",
   robots: { index: false, follow: false },
@@ -39,6 +40,7 @@ export default async function TicketPage({
     margin: 4,
   });
   return (
+    <>
     <main className="m-legal m-container">
       <Link href="/" className="m-logo">
         <BrandMark className="m-logo-mark" />
@@ -85,5 +87,7 @@ export default async function TicketPage({
         </article>
       </div>
     </main>
+    <RouteFooter pathname="/t/[token]" />
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@/server/auth/session";
+import { RouteFooter } from "@/components/marketing/footer";
 export const metadata = {
   title: "Find your booking | Raunak",
   robots: { index: false },
@@ -44,6 +45,7 @@ export default async function RecoverBooking() {
           booking using an unverified email, phone number or booking reference.
         </p>
       </main>
+      <RouteFooter pathname="/my-tickets/recover" />
     </>
   );
 }

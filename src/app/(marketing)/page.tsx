@@ -6,11 +6,7 @@ import { faqSchema, marketing } from "@/config/marketing";
 import { pricing, standardFeeLabel } from "@/config/pricing";
 import { APP_NAME } from "@/lib/constants";
 import dynamic from "next/dynamic";
-const MarketingFooter = dynamic(() =>
-  import("@/components/marketing/footer").then(
-    (module) => module.MarketingFooter,
-  ),
-);
+const RouteFooter = dynamic(() => import("@/components/marketing/footer").then((module) => module.RouteFooter));
 const PricingAndFaq = dynamic(() =>
   import("@/components/marketing/closing").then(
     (module) => module.PricingAndFaq,
@@ -85,7 +81,7 @@ export default async function MarketingPage() {
         <MessageCustomizer />
         <PricingAndFaq />
       </main>
-      <MarketingFooter />
+      <RouteFooter pathname="/" landing />
     </>
   );
 }

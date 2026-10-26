@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { RouteFooter } from "@/components/marketing/footer";
 export function LegalPage({
   title,
   children,
+  footerPath = "/legal",
 }: {
   title: string;
   children: React.ReactNode;
+  footerPath?: string;
 }) {
   return (
+    <>
     <main className="m-legal m-container">
       <div className="m-legal-content">
         <p className="m-eyebrow">THE SMALL PRINT</p>
@@ -21,5 +25,7 @@ export function LegalPage({
         </Link>
       </div>
     </main>
+    <RouteFooter pathname={footerPath} />
+    </>
   );
 }

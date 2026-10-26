@@ -9,6 +9,7 @@ import { TicketQrDisplay } from "@/components/public/ticket-qr-display";
 import { currentUser } from "@/server/auth/session";
 import { db } from "@/server/db/client";
 import { ticketUrl } from "@/server/tickets/qr";
+import { RouteFooter } from "@/components/marketing/footer";
 export const metadata = {
   title: "Your entry ticket | Raunak",
   robots: { index: false, follow: false },
@@ -206,6 +207,7 @@ export default async function TicketDetail({
           </aside>
         </div>
       </main>
+      <RouteFooter pathname="/my-tickets/[id]" />
     </>
   );
 }

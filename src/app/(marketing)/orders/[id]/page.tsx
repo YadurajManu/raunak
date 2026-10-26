@@ -12,6 +12,7 @@ import { ticketToken } from "@/server/tickets/qr";
 import { formatInr } from "@/lib/money";
 import { eventCalendarUrl } from "@/lib/event-calendar";
 import { whatsappEventUrl } from "@/lib/event-share";
+import { RouteFooter } from "@/components/marketing/footer";
 
 export const metadata = {
   title: "Your booking | Raunak",
@@ -84,6 +85,7 @@ export default async function OrderPage({
       ["SENT", "DELIVERED", "READ"].includes(log.status),
     );
   return (
+    <>
     <main className="booking-page">
       <Link href="/my-tickets" className="r-back-link">
         ← My tickets
@@ -272,5 +274,7 @@ export default async function OrderPage({
         </aside>
       </div>
     </main>
+    <RouteFooter pathname="/orders/[id]" />
+    </>
   );
 }

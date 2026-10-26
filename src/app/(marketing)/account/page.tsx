@@ -22,6 +22,7 @@ import { discoveryUrl } from "@/lib/discovery";
 import { cities } from "@/config/cities";
 import { whatsappEventUrl } from "@/lib/event-share";
 import { PageHeader, SectionHeader } from "@/components/ui";
+import { RouteFooter } from "@/components/marketing/footer";
 
 export const metadata = {
   title: "My plans | Raunak",
@@ -296,6 +297,7 @@ export default async function AccountPage({
     );
   }
   return (
+    <>
     <main className="plans-page" data-tab={tab}>
       <PageHeader title="My plans" description={`${upcomingCount} upcoming ${upcomingCount === 1 ? "ticket" : "tickets"} · ${savedCount} saved ${savedCount === 1 ? "event" : "events"}`} actions={
         <Link href="/discover" className="plans-button plans-primary">
@@ -959,5 +961,7 @@ export default async function AccountPage({
         </section>
       )}
     </main>
+    <RouteFooter pathname="/account" />
+    </>
   );
 }

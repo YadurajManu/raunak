@@ -111,7 +111,6 @@ export default async function CheckoutPage({
               city: event.city,
               mode: event.mode,
               refundPolicy: event.refundPolicy,
-              supportEmail: event.org.supportEmail,
               poster:
                 event.images.find((image) => image.kind === "POSTER")
                   ?.variants || event.images[0]?.variants,

@@ -3,20 +3,17 @@ import { notFound } from "next/navigation";
 import { db } from "@/server/db/client";
 import { currentUser } from "@/server/auth/session";
 import { discoverPage, publicListing } from "@/server/public/events";
-import { EventCard } from "@/components/public/event-card";
 import { FollowOrganizerButton } from "@/components/public/follow-organizer-button";
 import { OrganizerEventsSection } from "@/components/public/organizer-events-section";
-import { MarketingFooter } from "@/components/marketing/footer";
+import { RouteFooter } from "@/components/marketing/footer";
 import {
   Star,
   CalendarDays,
   Users,
-  Mail,
   Phone,
   Globe,
   BadgeCheck,
   ExternalLink,
-  Heart,
 } from "lucide-react";
 import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
@@ -86,7 +83,6 @@ export default async function OrganizerPage({
       highlights: true,
       profileVisible: true,
       brandColor: true,
-      supportEmail: true,
       supportPhone: true,
     },
   });
@@ -501,28 +497,17 @@ export default async function OrganizerPage({
         )}
 
         {/* Contact Section */}
-        {(org.supportEmail || org.supportPhone) && (
+        {org.supportPhone && (
           <section className="org-contact">
             <h2>Get in touch</h2>
             <div className="org-contact-items">
-              {org.supportEmail && (
-                <a
-                  href={`mailto:${org.supportEmail}`}
-                  className="org-contact-item"
-                >
-                  <Mail size={16} aria-hidden="true" />
-                  {org.supportEmail}
-                </a>
-              )}
-              {org.supportPhone && (
-                <a
+              <a
                   href={`tel:${org.supportPhone}`}
                   className="org-contact-item"
                 >
                   <Phone size={16} aria-hidden="true" />
                   {org.supportPhone}
-                </a>
-              )}
+              </a>
             </div>
           </section>
         )}
@@ -540,7 +525,7 @@ export default async function OrganizerPage({
           </section>
         )}
       </main>
-      <MarketingFooter />
+      <RouteFooter pathname="/organizers/[slug]" />
     </>
   );
 }

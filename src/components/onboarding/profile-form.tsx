@@ -7,7 +7,7 @@ import { countries } from "@/config/countries";
 import { APP_NAME } from "@/lib/constants";
 import { BrandMark } from "@/components/brand-mark";
 import { authNextPath } from "@/lib/auth-next";
-import { ThemeToggle } from "@/components/marketing/footer";
+import { ThemeToggle } from "@/components/marketing/footer-controls";
 import type { Place } from "@/server/location/service";
 
 const LocationMap = dynamic(() => import("./location-map"), {

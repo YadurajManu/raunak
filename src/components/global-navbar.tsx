@@ -6,7 +6,7 @@ import { Menu, ScanLine, X } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { NavigationLink } from "@/components/navigation-link";
 import { ProfileControls } from "@/components/onboarding/profile-controls";
-import { ThemeToggle } from "@/components/marketing/footer";
+import { ThemeToggle } from "@/components/marketing/footer-controls";
 import { APP_NAME } from "@/lib/constants";
 import { LocationControl } from "@/components/navigation/location-control";
 import { SearchPalette } from "@/components/navigation/search-palette";

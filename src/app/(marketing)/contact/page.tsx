@@ -1,14 +1,11 @@
 import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal";
+import { site } from "@/config/site";
 export default function ContactPage() {
   return (
-    <LegalPage title="Let’s find the right door.">
+    <LegalPage title="Let’s find the right door." footerPath="/contact">
       <h2>Questions about an event?</h2>
-      <p>
-        The event organizer knows the details best. Open your event page to find
-        their support email or phone number, along with the venue and refund
-        policy.
-      </p>
+      <p>The event organizer knows the event best. Open its page and use “Contact organizer” to send a private message.</p>
       <Link href="/discover" className="m-text-link">
         Find your event ↗
       </Link>
@@ -20,6 +17,8 @@ export default function ContactPage() {
       <Link href="/login" className="m-text-link">
         Open your workspace ↗
       </Link>
+      <h2>Raunak support</h2>
+      {site.supportEmail ? <p><a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a></p> : <p>For event and booking help, visit <Link href="/help">Help</Link>. A direct support address is not configured yet.</p>}
     </LegalPage>
   );
 }

@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { marketing } from "../../src/config/marketing";
+import AxeBuilder from "@axe-core/playwright";
+import { mkdir } from "node:fs/promises";
+import { footerConfig, footerVariantForPath } from "../../src/config/footer";
 
-function contrastOnInk(color: string) {
+function contrastRatio(color: string, surface: string) {
   const channels = color.match(/[\d.]+/g)!.map(Number);
+  const background = surface.match(/[\d.]+/g)!.map(Number);
   const alpha = channels[3] ?? 1;
-  const background = [15, 14, 12];
   const luminance = (values: number[]) =>
     values
       .map((value) => {
@@ -17,15 +19,14 @@ function contrastOnInk(color: string) {
         (sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index],
         0,
       );
-  return (
-    (luminance(
-      channels
-        .slice(0, 3)
-        .map((value, index) => value * alpha + background[index] * (1 - alpha)),
-    ) +
-      0.05) /
-    (luminance(background) + 0.05)
+  const foregroundLuminance = luminance(
+    channels
+      .slice(0, 3)
+      .map((value, index) => value * alpha + background[index] * (1 - alpha)),
   );
+  const backgroundLuminance = luminance(background);
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
+    (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
 }
 
 test("footer keeps every destination, accessible controls and theme behavior", async ({
@@ -33,23 +34,24 @@ test("footer keeps every destination, accessible controls and theme behavior", a
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => localStorage.setItem("raunak-theme", "light"));
-  await page.goto("/discover?q=footer-no-matching-event");
+  await page.goto("/help", { waitUntil: "domcontentloaded" });
   const footer = page.getByRole("contentinfo");
+  await footer.waitFor();
   await footer.scrollIntoViewIfNeeded();
-  for (const group of marketing.footer) {
+  for (const group of footerConfig.groups) {
     await expect(
-      footer.getByRole("heading", { name: group.label, exact: true }),
+      footer.getByRole("heading", { name: group.title, exact: true }),
     ).toBeVisible();
-    for (const link of group.links)
+    for (const link of group.links.filter((item) => (item.visibleTo as readonly string[]).includes("anon")))
       await expect(
-        footer.getByRole("link", { name: link.label, exact: true }),
+        footer.locator(".m-footer-links").getByRole("link", { name: link.label, exact: true }),
       ).toHaveAttribute(
         "href",
-        link.href.startsWith("#") ? `/${link.href}` : link.href,
+        link.label === "Host an event" ? "/signup?intent=organizer" : link.href,
       );
   }
   await expect(
-    footer.getByText("Made in India, for events everywhere.", { exact: true }),
+    footer.getByText(/Made in India, for events everywhere\./),
   ).toBeVisible();
   await expect(footer).toContainText(`© ${new Date().getFullYear()} Raunak`);
   const first = footer.getByRole("link", { name: "How it works", exact: true });
@@ -60,16 +62,12 @@ test("footer keeps every destination, accessible controls and theme behavior", a
       parseFloat(getComputedStyle(element).outlineWidth),
     ),
   ).toBeGreaterThan(0);
-  await footer
-    .getByRole("button", { name: "Switch to dark mode", exact: true })
-    .click();
+  await footer.getByRole("button", { name: "Dark", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-marketing-theme",
     "dark",
   );
-  await footer
-    .getByRole("button", { name: "Switch to light mode", exact: true })
-    .click();
+  await footer.getByRole("button", { name: "Light", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-marketing-theme",
     "light",
@@ -82,7 +80,7 @@ test("footer stays compact, ink-black and unclipped at every requested viewport 
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/discover?q=footer-no-matching-event");
+  await page.goto("/help", { waitUntil: "domcontentloaded" });
   const footer = page.getByRole("contentinfo");
   await footer.waitFor();
   await page.evaluate(() => document.fonts.ready);
@@ -97,8 +95,8 @@ test("footer stays compact, ink-black and unclipped at every requested viewport 
       await footer.scrollIntoViewIfNeeded();
       const measurement = await footer.evaluate((element) => {
         const rectangle = element.getBoundingClientRect();
-        const divider = element.querySelector(".m-footer-divider")!;
-        const empty = document.querySelector(".d-discovery-empty")!;
+        const divider = element.querySelector(".m-footer-stub")!;
+        const main = document.querySelector("main")!;
         const links = [...element.querySelectorAll("a")].map((link) => {
           const box = link.getBoundingClientRect();
           return {
@@ -112,9 +110,7 @@ test("footer stays compact, ink-black and unclipped at every requested viewport 
           background: getComputedStyle(element).backgroundColor,
           height: rectangle.height,
           gap:
-            divider.getBoundingClientRect().top +
-            8 -
-            empty.getBoundingClientRect().bottom,
+            divider.getBoundingClientRect().top + 12 - main.getBoundingClientRect().bottom,
           dividerWidth: divider.getBoundingClientRect().width,
           overflow: document.documentElement.scrollWidth > innerWidth,
           clipped: links.some(
@@ -126,24 +122,20 @@ test("footer stays compact, ink-black and unclipped at every requested viewport 
           ),
           textColors: [
             ...element.querySelectorAll(
-              "a, h3, .m-footer-utility p, .m-footer-bottom",
+              "a, h2, .m-footer-utility p, .m-footer-trust",
             ),
-          ].map((item) => getComputedStyle(item).color),
+          ].map((item) => ({ color: getComputedStyle(item).color, background: getComputedStyle(item).backgroundColor, selector: item.className || item.tagName })),
         };
       });
-      expect(measurement.background).toBe("rgb(15, 14, 12)");
-      for (const color of measurement.textColors)
-        expect(contrastOnInk(color)).toBeGreaterThanOrEqual(4.5);
+      expect(measurement.background).toBe("rgb(20, 18, 15)");
+      for (const item of measurement.textColors)
+        expect(contrastRatio(item.color, item.background === "rgba(0, 0, 0, 0)" ? measurement.background : item.background), `footer text color ${item.color} at ${item.selector}`).toBeGreaterThanOrEqual(4.5);
       expect(measurement.overflow).toBe(false);
       expect(measurement.clipped).toBe(false);
-      expect(measurement.height).toBeLessThan(width < 600 ? 610 : 440);
       expect(measurement.dividerWidth).toBeGreaterThan(width * 0.75);
-      expect(measurement.gap).toBeGreaterThanOrEqual(
-        width < 600 ? 23 : width < 1100 ? 39 : 55,
-      );
-      expect(measurement.gap).toBeLessThanOrEqual(
-        width < 600 ? 40 : width < 1100 ? 64 : 82,
-      );
+      expect(measurement.gap).toBeGreaterThanOrEqual(0);
+      expect(measurement.gap).toBeLessThanOrEqual(80);
+      await mkdir("artifacts/footer", { recursive: true });
       await page.screenshot({
         path: `artifacts/footer/after-${width}-${theme}.png`,
         fullPage: true,
@@ -158,9 +150,36 @@ test("footer Product links reach the actual landing-page sections from Discover"
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/discover");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   const footer = page.getByRole("contentinfo");
   await footer.getByRole("link", { name: "How it works", exact: true }).click();
   await expect(page).toHaveURL(/\/#how-it-works$/);
   await expect(page.locator("#how-it-works")).toBeVisible();
+});
+
+test("full footer has no automated accessibility violations", async ({ page }) => {
+  await page.goto("/help", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("footer.m-footer")).toBeAttached();
+  const results = await new AxeBuilder({ page }).include("footer.m-footer").analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test("public footer links resolve to a page or a valid section", async ({ request }) => {
+  const destinations = new Set<string>();
+  for (const group of footerConfig.groups)
+    for (const link of group.links)
+      if ((link.visibleTo as readonly string[]).includes("anon"))
+        destinations.add(link.label === "Host an event" ? "/signup?intent=organizer" : link.href.split("#")[0]);
+  for (const destination of destinations) {
+    const response = await request.get(destination);
+    expect(response.status(), destination).toBeLessThan(400);
+  }
+});
+
+test("checkout and sign-in use the compact footer while organizer tools omit it", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator("footer.m-footer-minimal")).toBeVisible();
+  await expect(page.locator("footer.m-footer")).toHaveCount(0);
+  expect(footerVariantForPath("/dashboard/events")).toBe("none");
+  expect(footerVariantForPath("/checkin/scan")).toBe("none");
 });

@@ -5,7 +5,7 @@ import { EventCard } from "@/components/public/event-card";
 import { EventActionToolbar } from "@/components/public/event-action-toolbar";
 import { eventCalendarOptions } from "@/lib/event-calendar";
 import { documentsSchema } from "@/server/events/documents";
-import { MarketingFooter } from "@/components/marketing/footer";
+import { RouteFooter } from "@/components/marketing/footer";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Markdown from "react-markdown";
@@ -22,6 +22,7 @@ import { TicketSelector } from "@/components/public/ticket-selector";
 import { EventReviews } from "@/components/public/event-reviews";
 import { organizerLogoUrl } from "@/lib/organizer-images";
 import { eventReviewSnapshot } from "@/server/events/reviews";
+import { ContactOrganizerForm } from "@/components/public/contact-organizer-form";
 
 const base = process.env.APP_URL || "http://localhost:3000";
 function eventDate(date: Date, timezone: string) {
@@ -78,6 +79,10 @@ export default async function EventPage({
 }) {
   const event = await publicEvent((await params).slug);
   if (!event) notFound();
+  const organizerHasContact = Boolean((await db.organization.findUnique({
+    where: { id: event.orgId },
+    select: { supportEmail: true },
+  }))?.supportEmail);
   const eventHasEnded = event.status === "ENDED" || event.endsAt <= new Date();
   const user = await currentUser();
   const reviews =
@@ -179,6 +184,7 @@ export default async function EventPage({
     offers: offer,
   };
   return (
+    <>
     <main className="r-event-detail min-h-screen pb-24 sm:pb-0">
       <script
         type="application/ld+json"
@@ -205,7 +211,7 @@ export default async function EventPage({
               eventId={event.id}
               title={event.title}
               url={`${base}/e/${event.slug}`}
-              organizer={event.org}
+              organizer={{ name: event.org.name, slug: event.org.slug }}
               saved={saved}
               saveAvailable={event.visibility === "PUBLIC"}
               calendar={eventCalendarOptions(event, `${base}/e/${event.slug}`)}
@@ -353,7 +359,7 @@ export default async function EventPage({
             )}
             <section
               className="mt-12 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 dark:border-[var(--line)]"
-              id="host"
+              id="organizer"
             >
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
                 Hosted by
@@ -409,6 +415,7 @@ export default async function EventPage({
                   {event.org.bio}
                 </p>
               )}
+              {organizerHasContact && <ContactOrganizerForm eventId={event.id} organizerName={event.org.name} />}
             </section>
           </article>
           <aside id="tickets">
@@ -459,11 +466,8 @@ export default async function EventPage({
           </ul>
         </section>
       )}
-      <footer className="border-t border-[var(--line)] px-6 py-8 text-center text-sm text-[var(--muted)] dark:border-[var(--line)]">
-        {event.org.name} ·{" "}
-        {event.org.supportEmail || event.org.supportPhone || APP_NAME}
-      </footer>
-      <MarketingFooter />
     </main>
+    <RouteFooter pathname="/e/[slug]" />
+    </>
   );
 }

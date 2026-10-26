@@ -6,13 +6,14 @@ import { docsPages } from "@/lib/docs";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.APP_URL || "http://localhost:3000";
+  // Keep the static sitemap available during a transient database outage.
   const events = await db.event.findMany({
     where: publicListing,
     select: { slug: true, updatedAt: true },
-  });
+  }).catch(() => []);
   return [
     { url: base, changeFrequency: "weekly" },
-    ...["privacy", "terms", "contact"].map((path) => ({
+    ...["privacy", "terms", "contact", "help", "refunds"].map((path) => ({
       url: `${base}/${path}`,
       changeFrequency: "monthly" as const,
     })),

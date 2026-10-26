@@ -23,7 +23,6 @@ export const publicEvent = cache(async function publicEvent(slug: string) {
           name: true,
           slug: true,
           status: true,
-          supportEmail: true,
           supportPhone: true,
           brandColor: true,
           platformFeeBps: true,

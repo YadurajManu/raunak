@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/server/auth/session";
 import { ProfileSettings } from "@/components/onboarding/profile-settings";
+import { RouteFooter } from "@/components/marketing/footer";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { profileValues } from "@/server/profile/view";
 export default async function ProfilePage() {
   const user = await currentUser();
   if (!user) redirect("/login?next=/account/profile");
   return (
+    <>
     <AccountShell>
       <ProfileSettings
         initial={profileValues(user)}
@@ -20,5 +22,7 @@ export default async function ProfilePage() {
         deletionRequestedAt={user.deletionRequestedAt?.toISOString() || null}
       />
     </AccountShell>
+    <RouteFooter pathname="/account/profile" />
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { currentUser } from "@/server/auth/session";
 import { postLoginPath } from "@/lib/auth-next";
 import { authNextPath } from "@/lib/auth-next";
 import { AuthForm } from "@/components/auth/auth-form";
+import { RouteFooter } from "@/components/marketing/footer";
 export default async function LoginPage({
   searchParams,
 }: {
@@ -20,6 +21,7 @@ export default async function LoginPage({
       ),
     );
   return (
+    <>
     <AuthForm
       mode="login"
       initialEmail={email}
@@ -27,6 +29,8 @@ export default async function LoginPage({
         next || (intent === "organizer" ? "/dashboard" : undefined),
       )}
     />
+    <RouteFooter pathname="/login" />
+    </>
   );
 }
 
