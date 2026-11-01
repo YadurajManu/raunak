@@ -28,6 +28,8 @@ import {
   EventViewerProvider,
 } from "@/components/public/event-viewer";
 import { VenueActions } from "@/components/public/venue-actions";
+import { VenueTransitChips } from "@/components/public/venue-transit-chips";
+import { VenueRideActions } from "@/components/public/venue-ride-actions";
 import { discoveryUrl } from "@/lib/discovery";
 import { CalendarDays, MapPin } from "lucide-react";
 
@@ -515,6 +517,19 @@ export default async function EventPage({
                           {event.address}
                         </p>
                       )}
+                      <VenueTransitChips
+                        venueName={event.venueName}
+                        address={event.address}
+                        lat={event.lat == null ? null : Number(event.lat)}
+                        lng={event.lng == null ? null : Number(event.lng)}
+                        transitStationName={event.transitStationName}
+                        transitLineName={event.transitLineName}
+                        transitLineColor={event.transitLineColor}
+                        transitDistanceM={event.transitDistanceM}
+                        transitWalkMin={event.transitWalkMin}
+                        parkingType={event.parkingType}
+                        parkingNote={event.parkingNote}
+                      />
                       <VenueActions
                         query={venueQuery}
                         address={
@@ -542,10 +557,20 @@ export default async function EventPage({
                       )}
                     </div>
                     {event.lat != null && event.lng != null && (
-                      <VenueMap
-                        latitude={Number(event.lat)}
-                        longitude={Number(event.lng)}
-                      />
+                      <div className="space-y-4">
+                        <VenueMap
+                          latitude={Number(event.lat)}
+                          longitude={Number(event.lng)}
+                        />
+                        <VenueRideActions
+                          lat={Number(event.lat)}
+                          lng={Number(event.lng)}
+                          venueName={event.venueName}
+                          address={event.address}
+                          eventTitle={event.title}
+                          eventUrl={`${base}/e/${event.slug}`}
+                        />
+                      </div>
                     )}
                   </div>
                 </section>

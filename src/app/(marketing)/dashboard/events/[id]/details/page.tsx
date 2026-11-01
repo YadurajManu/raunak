@@ -51,6 +51,14 @@ export default async function EventDetails({
           onlineUrl: event.onlineUrl,
           capacity: event.capacity,
           refundPolicy: event.refundPolicy,
+          transitStationName: event.transitStationName,
+          transitLineName: event.transitLineName,
+          transitLineColor: event.transitLineColor,
+          transitDistanceM: event.transitDistanceM,
+          transitWalkMin: event.transitWalkMin,
+          transitSource: event.transitSource as "auto" | "manual" | null,
+          parkingType: event.parkingType as "free" | "paid" | "street" | "none" | "unknown" | null,
+          parkingNote: event.parkingNote,
         }}
       />
     </main>

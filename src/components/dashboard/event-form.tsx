@@ -12,6 +12,14 @@ type EventValues = {
   venueNotes?: string | null;
   mapUrl: string | null; city: string | null; onlineUrl: string | null;
   capacity: number | null; refundPolicy: string | null; lat?: number | null; lng?: number | null;
+  transitStationName?: string | null;
+  transitLineName?: string | null;
+  transitLineColor?: string | null;
+  transitDistanceM?: number | null;
+  transitWalkMin?: number | null;
+  transitSource?: "auto" | "manual" | null;
+  parkingType?: "free" | "paid" | "street" | "none" | "unknown" | null;
+  parkingNote?: string | null;
 };
 const formats = [
   { value: "IN_PERSON", label: "In person", description: "At a venue" },
@@ -33,6 +41,24 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
   const [city, setCity] = useState(event?.city || "");
   const [point, setPoint] = useState(event?.lat != null && event.lng != null ? { latitude: event.lat, longitude: event.lng } : null);
   const [pinSelected, setPinSelected] = useState(Boolean(point));
+  const [transitStationName, setTransitStationName] = useState(event?.transitStationName || "");
+  const [transitLineName, setTransitLineName] = useState(event?.transitLineName || "");
+  const [transitLineColor, setTransitLineColor] = useState(event?.transitLineColor || "");
+  const [transitDistanceM, setTransitDistanceM] = useState<number | null>(event?.transitDistanceM ?? null);
+  const [transitWalkMin, setTransitWalkMin] = useState<number | null>(event?.transitWalkMin ?? null);
+  const [transitSource, setTransitSource] = useState<"auto" | "manual" | null>(event?.transitSource || null);
+  const [parkingType, setParkingType] = useState<"free" | "paid" | "street" | "none" | "unknown">(event?.parkingType || "unknown");
+  const [parkingNote, setParkingNote] = useState(event?.parkingNote || "");
+  const [detectingTransit, setDetectingTransit] = useState(false);
+  const [detectedStations, setDetectedStations] = useState<Array<{
+    name: string;
+    lineName: string;
+    lineColor: string;
+    distanceMeters: number;
+    walkMinutes: number;
+  }>>([]);
+  const [transitMessage, setTransitMessage] = useState("");
+  const [manualTransit, setManualTransit] = useState(Boolean(event?.transitSource === "manual"));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [mapMessage, setMapMessage] = useState("");
@@ -46,6 +72,42 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
       else setMapMessage("Pin saved. Enter the street address below.");
     } catch { if (id === lookupId.current) setMapMessage("Pin saved. Enter the street address below."); }
   }
+
+  async function detectNearestMetro() {
+    if (!point?.latitude || !point?.longitude) {
+      setTransitMessage("Choose a venue pin on the map above first.");
+      return;
+    }
+    setDetectingTransit(true);
+    setTransitMessage("");
+    try {
+      const res = await fetch(`/api/transit/nearest?lat=${point.latitude}&lng=${point.longitude}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Could not detect metro stations.");
+      }
+      if (!data.stations || data.stations.length === 0) {
+        setTransitMessage("No metro station found within 2.5 km. You can enter one manually.");
+        setDetectedStations([]);
+      } else {
+        setDetectedStations(data.stations);
+        if (!transitStationName) {
+          const first = data.stations[0];
+          setTransitStationName(first.name);
+          setTransitLineName(first.lineName);
+          setTransitLineColor(first.lineColor);
+          setTransitDistanceM(first.distanceMeters);
+          setTransitWalkMin(first.walkMinutes);
+          setTransitSource("auto");
+        }
+      }
+    } catch (err: unknown) {
+      setTransitMessage(err instanceof Error ? err.message : "Failed to auto-detect metro.");
+    } finally {
+      setDetectingTransit(false);
+    }
+  }
+
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError("");
     if (!startsAt || !endsAt || endsAt <= startsAt) {
@@ -69,6 +131,14 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
         onlineUrl: mode === "IN_PERSON" ? undefined : text("onlineUrl") || undefined,
         capacity: form.get("capacity") ? Number(form.get("capacity")) : undefined,
         refundPolicy: text("refundPolicy"),
+        transitStationName: mode === "ONLINE" ? null : transitStationName.trim() || null,
+        transitLineName: mode === "ONLINE" ? null : transitLineName.trim() || null,
+        transitLineColor: mode === "ONLINE" ? null : transitLineColor.trim() || null,
+        transitDistanceM: mode === "ONLINE" ? null : transitDistanceM,
+        transitWalkMin: mode === "ONLINE" ? null : transitWalkMin,
+        transitSource: mode === "ONLINE" ? null : transitSource,
+        parkingType: mode === "ONLINE" ? "unknown" : parkingType,
+        parkingNote: mode === "ONLINE" ? null : parkingNote.trim() || null,
       };
       const response = await fetch(event ? `/api/events/${event.id}` : "/api/events", { method: event ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json(); if (!response.ok) throw new Error(result.error || "Could not save event.");
@@ -110,6 +180,195 @@ export function EventForm({ orgId, event }: { orgId?: string; event?: EventValue
         <details className="r-form-disclosure"><summary>Add a map link · optional</summary><label>Map link · optional<input name="mapUrl" type="url" placeholder="https://maps.google.com/…" defaultValue={event?.mapUrl || ""}/></label></details></>}
         {mode !== "IN_PERSON" && <label className="r-online-link">Online event link<input name="onlineUrl" required type="url" placeholder="https://…" defaultValue={event?.onlineUrl || ""}/></label>}
       </section>
+      {mode !== "ONLINE" && (
+        <section className="r-form-section">
+          <div className="r-section-heading">
+            <h2>Getting there & Parking</h2>
+            <small>Help guests reach easily with metro connections and parking guidance.</small>
+          </div>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold">Nearest metro station</h3>
+                <p className="text-xs text-[var(--muted)]">Detect automatically from map pin or enter details manually.</p>
+              </div>
+              <button
+                type="button"
+                disabled={detectingTransit || !pinSelected}
+                onClick={detectNearestMetro}
+                className="r-inline-button inline-flex items-center gap-1.5"
+              >
+                {detectingTransit ? "Detecting…" : "Auto-detect nearest metro"}
+              </button>
+            </div>
+
+            {transitMessage && (
+              <p role="status" className="text-xs text-[var(--muted)]">{transitMessage}</p>
+            )}
+
+            {detectedStations.length > 0 && (
+              <div className="grid gap-2 sm:grid-cols-3">
+                {detectedStations.map((st) => {
+                  const isSelected = transitStationName === st.name && transitSource === "auto";
+                  return (
+                    <label
+                      key={st.name}
+                      className={`relative flex flex-col justify-between rounded-xl border p-3 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                          : "border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="selectedTransitStation"
+                        className="sr-only"
+                        checked={isSelected}
+                        onChange={() => {
+                          setTransitStationName(st.name);
+                          setTransitLineName(st.lineName);
+                          setTransitLineColor(st.lineColor);
+                          setTransitDistanceM(st.distanceMeters);
+                          setTransitWalkMin(st.walkMinutes);
+                          setTransitSource("auto");
+                          setManualTransit(false);
+                        }}
+                      />
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="inline-block h-3 w-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: st.lineColor }}
+                          aria-hidden="true"
+                        />
+                        <strong className="text-sm font-medium leading-snug">{st.name}</strong>
+                      </div>
+                      <div className="mt-2 text-xs text-[var(--muted)]">
+                        <div>{st.lineName}</div>
+                        <div className="font-semibold text-[var(--ink)]">
+                          ~{st.distanceMeters < 1000 ? `${st.distanceMeters} m` : `${(st.distanceMeters / 1000).toFixed(1)} km`} · ~{st.walkMinutes} min walk
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              {transitStationName ? (
+                <span className="flex items-center gap-2">
+                  Selected: <strong>{transitStationName}</strong>
+                  {transitLineName && <span>({transitLineName})</span>}
+                  {transitDistanceM != null && <span>~{transitDistanceM < 1000 ? `${transitDistanceM} m` : `${(transitDistanceM / 1000).toFixed(1)} km`}</span>}
+                  <button
+                    type="button"
+                    className="text-[var(--accent)] underline ml-2"
+                    onClick={() => {
+                      setTransitStationName("");
+                      setTransitLineName("");
+                      setTransitLineColor("");
+                      setTransitDistanceM(null);
+                      setTransitWalkMin(null);
+                      setTransitSource(null);
+                    }}
+                  >
+                    Clear
+                  </button>
+                </span>
+              ) : (
+                <span className="text-[var(--muted)]">No metro station selected yet.</span>
+              )}
+              <button
+                type="button"
+                className="text-[var(--accent)] underline"
+                onClick={() => setManualTransit((prev) => !prev)}
+              >
+                {manualTransit ? "Hide manual fields" : "Enter manually"}
+              </button>
+            </div>
+
+            {manualTransit && (
+              <div className="r-form-fields rounded-xl border border-[var(--border)] p-3">
+                <label>
+                  Station name
+                  <input
+                    placeholder="e.g. Saket"
+                    value={transitStationName}
+                    onChange={(e) => {
+                      setTransitStationName(e.target.value);
+                      setTransitSource("manual");
+                    }}
+                  />
+                </label>
+                <label>
+                  Line name
+                  <input
+                    placeholder="e.g. Yellow Line"
+                    value={transitLineName}
+                    onChange={(e) => {
+                      setTransitLineName(e.target.value);
+                      setTransitSource("manual");
+                    }}
+                  />
+                </label>
+                <label>
+                  Distance (approx. meters)
+                  <input
+                    type="number"
+                    placeholder="e.g. 400"
+                    value={transitDistanceM ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value ? parseInt(e.target.value, 10) : null;
+                      setTransitDistanceM(val);
+                      if (val != null) {
+                        setTransitWalkMin(Math.max(1, Math.round(val / 80)));
+                      }
+                      setTransitSource("manual");
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-[var(--border)]">
+              <label className="text-sm font-semibold block mb-1.5">Parking availability</label>
+              <div className="inline-flex flex-wrap rounded-xl border border-[var(--border)] p-1 gap-1 bg-[var(--paper-2)]">
+                {(
+                  [
+                    { value: "free", label: "Free" },
+                    { value: "paid", label: "Paid" },
+                    { value: "street", label: "Street only" },
+                    { value: "none", label: "None" },
+                    { value: "unknown", label: "Unknown" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                      parkingType === opt.value
+                        ? "bg-[var(--surface-raised)] text-[var(--ink)] shadow-sm font-semibold"
+                        : "text-[var(--muted)] hover:text-[var(--ink)]"
+                    }`}
+                    onClick={() => setParkingType(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <label className="block mt-2 text-xs">
+                Parking note · optional
+                <input
+                  placeholder="e.g. Valet at Gate 2, or limited mall parking"
+                  maxLength={300}
+                  value={parkingNote}
+                  onChange={(e) => setParkingNote(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+        </section>
+      )}
       <details className="r-form-section r-form-disclosure"><summary>Capacity & refund policy <small>Optional</small></summary><div className="r-form-fields"><label>Event capacity<input name="capacity" type="number" min={1} defaultValue={event?.capacity || ""} placeholder="Set later with tickets"/></label><label className="r-field-wide">Refund policy<textarea name="refundPolicy" rows={2} maxLength={5000} defaultValue={event?.refundPolicy || ""} placeholder="Let guests know your cancellation and refund terms."/></label></div></details>
       <div className="r-form-actions"><button disabled={busy} className="m-button">{busy ? "Saving…" : event ? "Save details" : "Create draft and continue"}<span aria-hidden="true">↗</span></button><small>{event ? "Updates apply to your event details." : "Next: add images, PDFs and your lineup."}</small></div>
       {error && <p role="status" className="r-form-message">{error}</p>}

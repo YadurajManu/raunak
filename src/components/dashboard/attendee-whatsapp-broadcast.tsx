@@ -105,9 +105,9 @@ export function AttendeeWhatsAppBroadcast({
             <p className="text-xs text-[var(--muted)]">Messages are paced by the linked-device sender. Recipients can reply STOP to opt out. The connected number may be restricted if people report unwanted messages.</p>
             {status && <p role="status" className="text-sm">{status}</p>}
           </div>
-          <aside className="rounded-2xl bg-[#e7ded2] p-4 text-[#171613] dark:bg-[#143b30] dark:text-[#f8f3e9]" aria-label="WhatsApp message preview">
+          <aside className="rounded-2xl bg-[var(--paper-2)] p-4 text-[var(--ink)]" aria-label="WhatsApp message preview">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide opacity-70">Preview</p>
-            <div className="ml-auto max-w-sm whitespace-pre-wrap break-words rounded-2xl rounded-tr-sm bg-white p-4 text-sm leading-6 text-[#171613] shadow-sm">{preview}</div>
+            <div className="ml-auto max-w-sm whitespace-pre-wrap break-words rounded-2xl rounded-tr-sm bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--ink)] shadow-sm">{preview}</div>
             <p className="mt-2 text-right text-[11px] opacity-70">Reply STOP to stop updates</p>
           </aside>
         </div>

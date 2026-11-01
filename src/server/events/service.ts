@@ -43,6 +43,14 @@ const inputSchema = z
     onlineUrl: z.url().optional(),
     capacity: z.number().int().positive().optional(),
     refundPolicy: z.string().max(5000).optional(),
+    transitStationName: z.string().trim().max(150).nullable().optional(),
+    transitLineName: z.string().trim().max(100).nullable().optional(),
+    transitLineColor: z.string().trim().max(30).nullable().optional(),
+    transitDistanceM: z.number().int().nonnegative().nullable().optional(),
+    transitWalkMin: z.number().int().nonnegative().nullable().optional(),
+    transitSource: z.enum(["auto", "manual"]).nullable().optional(),
+    parkingType: z.enum(["free", "paid", "street", "none", "unknown"]).default("unknown"),
+    parkingNote: z.string().trim().max(300).nullable().optional(),
   })
   .refine(
     (data) => (data.lat == null) === (data.lng == null),
@@ -131,6 +139,14 @@ export async function createEvent(
       onlineUrl: data.onlineUrl,
       capacity: data.capacity,
       refundPolicy: data.refundPolicy,
+      transitStationName: data.transitStationName ?? null,
+      transitLineName: data.transitLineName ?? null,
+      transitLineColor: data.transitLineColor ?? null,
+      transitDistanceM: data.transitDistanceM ?? null,
+      transitWalkMin: data.transitWalkMin ?? null,
+      transitSource: data.transitSource ?? null,
+      parkingType: data.parkingType ?? "unknown",
+      parkingNote: data.parkingNote ?? null,
       ...(membership.role === "MANAGER"
         ? { staff: { create: { userId, role: "MANAGER" } } }
         : {}),
@@ -180,6 +196,14 @@ export async function updateEvent(
         onlineUrl: data.onlineUrl ?? null,
         capacity: data.capacity ?? null,
         refundPolicy: data.refundPolicy ?? null,
+        transitStationName: data.transitStationName ?? null,
+        transitLineName: data.transitLineName ?? null,
+        transitLineColor: data.transitLineColor ?? null,
+        transitDistanceM: data.transitDistanceM ?? null,
+        transitWalkMin: data.transitWalkMin ?? null,
+        transitSource: data.transitSource ?? null,
+        parkingType: data.parkingType ?? "unknown",
+        parkingNote: data.parkingNote ?? null,
       },
     });
     if (updated.status === "PUBLISHED")

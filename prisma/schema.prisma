@@ -246,6 +246,14 @@ model Event {
   venueName String?
   address String?
   venueNotes String? @db.VarChar(500)
+  transitStationName String? @map("transit_station_name")
+  transitLineName String? @map("transit_line_name")
+  transitLineColor String? @map("transit_line_color")
+  transitDistanceM Int? @map("transit_distance_m")
+  transitWalkMin Int? @map("transit_walk_min")
+  transitSource String? @map("transit_source")
+  parkingType String? @default("unknown") @map("parking_type")
+  parkingNote String? @map("parking_note") @db.VarChar(500)
   mapUrl String?
   city String?
   lat Decimal? @db.Decimal(10, 7)
