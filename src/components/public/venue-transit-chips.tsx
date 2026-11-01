@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { formatTransitDistance } from "@/lib/transit/geo";
+import { CarFront, TrainFront } from "lucide-react";
+import { computeWalkingDistance, computeWalkingMinutes, formatTransitDistance } from "@/lib/transit/geo";
 import { VenueHowToReachPanel } from "./venue-how-to-reach-panel";
+import { useState, type CSSProperties } from "react";
 import "./venue-transit.css";
 
 export type VenueTransitChipsProps = {
@@ -17,6 +18,7 @@ export type VenueTransitChipsProps = {
   transitWalkMin?: number | null;
   parkingType?: string | null;
   parkingNote?: string | null;
+  entryNote?: string | null;
 };
 
 export function VenueTransitChips({
@@ -31,86 +33,73 @@ export function VenueTransitChips({
   transitWalkMin,
   parkingType,
   parkingNote,
+  entryNote,
 }: VenueTransitChipsProps) {
   const [panelOpen, setPanelOpen] = useState(false);
+  const tooFar = transitDistanceM != null && transitDistanceM > 2500;
+  const hasMetro = Boolean(transitStationName) && !tooFar;
+  const hasParking = Boolean(parkingType && parkingType !== "unknown");
+  // Keep the station row as the single source of truth for transit. If organizer
+  // notes repeat a metro/station/walk claim, omit that note instead of showing
+  // conflicting directions beside the computed station data.
+  const safeEntryNote = transitStationName && /metro|station|yellow line|blue line|pink line|walk/i.test(entryNote || "")
+    ? ""
+    : entryNote?.trim();
+  const hasEntry = Boolean(safeEntryNote);
+  if (!hasMetro && !tooFar && !hasParking && !hasEntry) return null;
 
-  const hasMetroData = Boolean(transitStationName);
-  const isTooFar = transitDistanceM != null && transitDistanceM > 2500;
-  const hasParkingData = Boolean(parkingType && parkingType !== "unknown");
-
-  // If no transit data and no parking data, hide chips
-  if (!hasMetroData && !isTooFar && !hasParkingData) {
-    return null;
-  }
-
+  const distance = transitDistanceM == null ? null : formatTransitDistance(transitDistanceM);
+  const walkMinutes = transitWalkMin ?? (transitDistanceM == null ? null : computeWalkingMinutes(computeWalkingDistance(transitDistanceM)));
   const parkingLabels: Record<string, string> = {
     free: "Free parking at venue",
     paid: "Paid parking available",
-    street: "Street parking only",
-    none: "No parking on site",
+    street: "Street parking nearby",
+    none: "No parking at venue",
   };
-  const parkingText = parkingType ? parkingLabels[parkingType] : null;
-
-  const distanceText =
-    transitDistanceM != null ? formatTransitDistance(transitDistanceM) : null;
 
   return (
     <>
-      <div className="transit-chips-container" aria-label="Transit and parking highlights">
-        {/* Metro Chip */}
-        {isTooFar ? (
+      <section className="transit-getting-there" aria-label="Getting there">
+        <h3>Getting there</h3>
+        {hasMetro ? (
           <button
             type="button"
-            className="transit-chip transit-stagger-1"
-            aria-expanded={panelOpen}
+            className="transit-info-row transit-info-row-button"
             aria-haspopup="dialog"
+            aria-expanded={panelOpen}
             onClick={() => setPanelOpen(true)}
           >
-            <span aria-hidden="true">🚇</span>
-            <span>No metro nearby, cab recommended</span>
-          </button>
-        ) : hasMetroData ? (
-          <button
-            type="button"
-            className="transit-chip transit-stagger-1"
-            aria-expanded={panelOpen}
-            aria-haspopup="dialog"
-            onClick={() => setPanelOpen(true)}
-          >
-            <span aria-hidden="true">🚇</span>
-            <span>
-              {distanceText ? `${distanceText} from ` : ""}
-              {transitStationName} Metro
+            <TrainFront size={19} aria-hidden="true" />
+            <span className="transit-info-main">
+              <strong>{transitStationName} Metro</strong>
+              {transitLineName && (
+                <span className="transit-line-label" style={{ "--line-color": transitLineColor || "var(--accent)" } as CSSProperties}>
+                  <i aria-hidden="true" />{transitLineName}
+                </span>
+              )}
             </span>
-            {transitLineName && (
-              <span className="inline-flex items-center gap-1 opacity-90">
-                {transitLineColor && (
-                  <span
-                    className="transit-line-dot transit-dot-pulse"
-                    style={{ backgroundColor: transitLineColor }}
-                    aria-hidden="true"
-                  />
-                )}
-                <span>({transitLineName})</span>
+            {(distance || walkMinutes) && (
+              <span className="transit-info-distance">
+                {walkMinutes ? `${walkMinutes} min walk` : ""}
+                {walkMinutes && distance ? " · " : ""}
+                {distance}
               </span>
             )}
           </button>
+        ) : tooFar ? (
+          <div className="transit-info-row">
+            <TrainFront size={19} aria-hidden="true" />
+            <span className="transit-info-main"><strong>No metro within 2.5 km</strong><span>Consider a cab or auto for the last stretch.</span></span>
+          </div>
         ) : null}
-
-        {/* Parking Chip */}
-        {hasParkingData && parkingText && (
-          <button
-            type="button"
-            className="transit-chip transit-stagger-2"
-            aria-expanded={panelOpen}
-            aria-haspopup="dialog"
-            onClick={() => setPanelOpen(true)}
-          >
-            <span aria-hidden="true">🅿️</span>
-            <span>{parkingText}</span>
-          </button>
+        {hasParking && (
+          <div className="transit-info-row">
+            <CarFront size={19} aria-hidden="true" />
+            <span className="transit-info-main"><strong>{parkingLabels[parkingType!] || "Parking information"}</strong>{parkingNote && <span>{parkingNote}</span>}</span>
+          </div>
         )}
-      </div>
+        {hasEntry && <p className="transit-entry-note"><span>Entry</span>{safeEntryNote}</p>}
+      </section>
 
       <VenueHowToReachPanel
         isOpen={panelOpen}
@@ -123,7 +112,7 @@ export function VenueTransitChips({
         transitLineName={transitLineName}
         transitLineColor={transitLineColor}
         transitDistanceM={transitDistanceM}
-        transitWalkMin={transitWalkMin}
+        transitWalkMin={walkMinutes}
         parkingType={parkingType}
         parkingNote={parkingNote}
       />

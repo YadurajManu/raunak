@@ -21,12 +21,18 @@ export function FollowOrganizerButton({
   compact = false,
 }: FollowOrganizerButtonProps) {
   const router = useRouter();
-  const [followingOverride, setFollowingOverride] = useState<boolean | null>(null);
+  const [followingOverride, setFollowingOverride] = useState<boolean | null>(
+    null,
+  );
   const [countOverride, setCountOverride] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const viewer = useEventViewer();
-  const isFollowing = followingOverride ?? (viewer?.authenticated ? viewer.isFollowing : initialIsFollowing);
-  const count = countOverride ?? (viewer?.authenticated ? viewer.followerCount : initialFollowersCount);
+  const isFollowing =
+    followingOverride ??
+    (viewer?.authenticated ? viewer.isFollowing : initialIsFollowing);
+  const count =
+    countOverride ??
+    (viewer?.authenticated ? viewer.followerCount : initialFollowersCount);
 
   const toggleFollow = async () => {
     if (loading) return;
@@ -93,8 +99,10 @@ export function FollowOrganizerButton({
       ) : (
         <UserPlus size={compact ? 13 : 15} aria-hidden="true" />
       )}
-      <span>{isFollowing ? "Following" : "Follow"}</span>
-      {count > 0 && (
+      <span className="eat-follow-label">
+        {isFollowing ? "Following ✓" : "Follow"}
+      </span>
+      {count > 0 && !compact && (
         <span
           className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[0.6875rem] font-mono ${
             isFollowing

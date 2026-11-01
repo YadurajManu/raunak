@@ -55,7 +55,7 @@ export function ProcessingStatus({
         if (stopped) return;
         setStatus("Reconnecting to processing status…");
       }
-      if (!stopped) timer = setTimeout(poll, 2000);
+      if (!stopped) timer = setTimeout(poll, 1000);
     }
     void poll();
     return () => {
@@ -142,7 +142,9 @@ function CropDialog({
   done(): void;
 }) {
   const parsed = cropSchema.safeParse(image.crop);
-  const original=parsed.success?parsed.data:{aspect:"original",x:.5,y:.5};
+  const original = parsed.success
+    ? parsed.data
+    : { aspect: "original", x: 0.5, y: 0.5 };
   const [crop, setCrop] = useState<Crop>(
     parsed.success ? parsed.data : { aspect: "original", x: 0.5, y: 0.5 },
   );
@@ -185,7 +187,15 @@ function CropDialog({
     }
   }
   return (
-    <MediaDialog title="Frame your image" close={close} dirty={crop.aspect!==original.aspect||crop.x!==original.x||crop.y!==original.y}>
+    <MediaDialog
+      title="Frame your image"
+      close={close}
+      dirty={
+        crop.aspect !== original.aspect ||
+        crop.x !== original.x ||
+        crop.y !== original.y
+      }
+    >
       <p className="mm-hint">Original stays safe. Change the crop any time.</p>
       <fieldset className="r-crop-options">
         <legend>Aspect ratio</legend>

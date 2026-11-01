@@ -27,6 +27,8 @@ type Entry = {
   signed?: { url: string; token: string };
   uploaded?: boolean;
   imageId?: string;
+  controller?: AbortController;
+  xhr?: XMLHttpRequest;
 };
 export function MediaUploader({
   eventId,
@@ -53,8 +55,6 @@ export function MediaUploader({
   const [notice, setNotice] = useState("");
   const [running, setRunning] = useState(false);
   const run = useRef(false);
-  const controller = useRef<AbortController | null>(null);
-  const xhr = useRef<XMLHttpRequest | null>(null);
   const input = useRef<HTMLInputElement>(null);
   function publish() {
     if (alive.current) setEntries([...queue.current]);
@@ -64,8 +64,10 @@ export function MediaUploader({
     const previews = urls.current;
     return () => {
       alive.current = false;
-      controller.current?.abort();
-      xhr.current?.abort();
+      queue.current.forEach((entry) => {
+        entry.controller?.abort();
+        entry.xhr?.abort();
+      });
       previews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
@@ -142,151 +144,170 @@ export function MediaUploader({
       throw new Error(data.error || "Could not upload this image.");
     return data;
   }
+  async function uploadEntry(entry: Entry) {
+    if (!alive.current || entry.status !== "Waiting") return;
+    const abort = new AbortController();
+    entry.controller = abort;
+    try {
+      const error = imageFileError(entry.file);
+      if (error) throw new Error(error);
+      entry.status = "Uploading";
+      entry.error = undefined;
+      publish();
+      const mime = entry.file.type || "image/heic";
+      if (!entry.signed)
+        entry.signed = await json(
+          "/api/uploads/presign",
+          {
+            eventId,
+            kind: replacement ? "GALLERY" : entry.kind,
+            mime,
+            sizeBytes: entry.file.size,
+          },
+          abort.signal,
+        );
+      if (!entry.uploaded) {
+        await new Promise<void>((resolve, reject) => {
+          const request = new XMLHttpRequest();
+          entry.xhr = request;
+          request.open("PUT", entry.signed!.url);
+          request.setRequestHeader("Content-Type", mime);
+          request.timeout = 300000;
+          const began = performance.now();
+          request.upload.onprogress = (e) => {
+            if (!e.lengthComputable) return;
+            entry.progress = Math.round((e.loaded / e.total) * 100);
+            const elapsed = (performance.now() - began) / 1000;
+            const eta =
+              e.loaded && elapsed > 1
+                ? Math.ceil((e.total - e.loaded) / (e.loaded / elapsed))
+                : null;
+            entry.detail = `${(e.loaded / 1048576).toFixed(1)} / ${(e.total / 1048576).toFixed(1)} MB${eta !== null ? ` · about ${eta}s left` : ""}`;
+            publish();
+          };
+          request.onload = () => {
+            if (request.status >= 200 && request.status < 300) return resolve();
+            if (request.status === 403) entry.signed = undefined;
+            reject(
+              new Error(
+                request.status === 403
+                  ? "Upload link expired. Retry to renew it."
+                  : "Upload failed. Retry this file.",
+              ),
+            );
+          };
+          request.onerror = () =>
+            reject(new Error("Connection lost. Retry this file."));
+          request.ontimeout = () =>
+            reject(new Error("Upload timed out. Retry this file."));
+          request.onabort = () =>
+            reject(new DOMException("Cancelled", "AbortError"));
+          request.send(entry.file);
+        });
+        entry.uploaded = true;
+      }
+      if (!entry.imageId)
+        entry.imageId = (
+          await json(
+            "/api/uploads/confirm",
+            {
+              token: entry.signed!.token,
+              alt:
+                entry.file.name.replace(/\.[^.]+$/, "").slice(0, 300) ||
+                "Event image",
+            },
+            abort.signal,
+          )
+        ).id;
+      entry.status = "Processing";
+      entry.progress = 0;
+      entry.detail = "Preparing optimized images…";
+      publish();
+      let image: MediaImage | undefined;
+      for (let n = 0; n < 300; n++) {
+        if (abort.signal.aborted)
+          throw new DOMException("Cancelled", "AbortError");
+        const data = await json(
+          `/api/events/${eventId}/images/${entry.imageId}`,
+          undefined,
+          abort.signal,
+        );
+        if (data.image.processingError)
+          throw new Error(data.image.processingError);
+        entry.progress = data.progress;
+        entry.detail = data.progress
+          ? `Optimizing image formats · ${data.progress}%`
+          : "Queued for image processing…";
+        publish();
+        if (data.image.variants) {
+          image = data.image;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      if (!image)
+        throw new Error(
+          "Processing is taking longer. Retry status or close and return later.",
+        );
+      if (replacement) {
+        const response = await fetch(
+          `/api/events/${eventId}/images/${replacement.id}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              replacementId: image.id,
+              replacementRole: replacement.kind,
+            }),
+            signal: abort.signal,
+          },
+        );
+        if (!response.ok) throw new Error((await response.json()).error);
+        image = await response.json();
+      }
+      entry.status = "Completed";
+      entry.progress = 100;
+      publish();
+      if (alive.current) onReady(image!);
+    } catch (error) {
+      entry.status =
+        error instanceof DOMException && error.name === "AbortError"
+          ? "Cancelled"
+          : "Failed";
+      entry.error = error instanceof Error ? error.message : "Upload failed.";
+      if (entry.error.includes("Upload token has expired")) {
+        entry.signed = undefined;
+        entry.uploaded = false;
+      }
+      publish();
+    } finally {
+      entry.controller = undefined;
+      entry.xhr = undefined;
+    }
+  }
+
   async function start() {
     if (run.current) return;
     run.current = true;
     setRunning(true);
     setNotice("");
     try {
-      for (const entry of queue.current) {
-        if (!alive.current) break;
-        if (entry.status !== "Waiting") continue;
-        const abort = new AbortController();
-        controller.current = abort;
-        try {
-          const error = imageFileError(entry.file);
-          if (error) throw new Error(error);
-          entry.status = "Uploading";
-          entry.error = undefined;
-          publish();
-          const mime = entry.file.type || "image/heic";
-          if (!entry.signed)
-            entry.signed = await json(
-              "/api/uploads/presign",
-              {
-                eventId,
-                kind: replacement ? "GALLERY" : entry.kind,
-                mime,
-                sizeBytes: entry.file.size,
-              },
-              abort.signal,
-            );
-          if (!entry.uploaded) {
-            await new Promise<void>((resolve, reject) => {
-              const request = new XMLHttpRequest();
-              xhr.current = request;
-              request.open("PUT", entry.signed!.url);
-              request.setRequestHeader("Content-Type", mime);
-              request.timeout = 300000;
-              const began = performance.now();
-              request.upload.onprogress = (e) => {
-                if (!e.lengthComputable) return;
-                entry.progress = Math.round((e.loaded / e.total) * 100);
-                const elapsed = (performance.now() - began) / 1000;
-                const eta =
-                  e.loaded && elapsed > 1
-                    ? Math.ceil((e.total - e.loaded) / (e.loaded / elapsed))
-                    : null;
-                entry.detail = `${(e.loaded / 1048576).toFixed(1)} / ${(e.total / 1048576).toFixed(1)} MB${eta !== null ? ` · about ${eta}s left` : ""}`;
-                publish();
-              };
-              request.onload = () => {
-                if(request.status>=200&&request.status<300)return resolve();
-                if(request.status===403)entry.signed=undefined;
-                reject(new Error(request.status===403?"Upload link expired. Retry to renew it.":"Upload failed. Retry this file."));
-              };
-              request.onerror = () =>
-                reject(new Error("Connection lost. Retry this file."));
-              request.ontimeout = () =>
-                reject(new Error("Upload timed out. Retry this file."));
-              request.onabort = () =>
-                reject(new DOMException("Cancelled", "AbortError"));
-              request.send(entry.file);
-            });
-            entry.uploaded = true;
+      const waiting = queue.current.filter(
+        (entry) => entry.status === "Waiting",
+      );
+      let next = 0;
+      const concurrency = Math.min(3, waiting.length);
+      await Promise.all(
+        Array.from({ length: concurrency }, async () => {
+          while (alive.current && next < waiting.length) {
+            const entry = waiting[next++];
+            await uploadEntry(entry);
           }
-          if (!entry.imageId)
-            entry.imageId = (
-              await json(
-                "/api/uploads/confirm",
-                {
-                  token: entry.signed!.token,
-                  alt:
-                    entry.file.name.replace(/\.[^.]+$/, "").slice(0, 300) ||
-                    "Event image",
-                },
-                abort.signal,
-              )
-            ).id;
-          entry.status = "Processing";
-          entry.progress = 0;
-          entry.detail = "Preparing optimized images…";
-          publish();
-          let image: MediaImage | undefined;
-          for (let n = 0; n < 150; n++) {
-            if (abort.signal.aborted)
-              throw new DOMException("Cancelled", "AbortError");
-            const data = await json(
-              `/api/events/${eventId}/images/${entry.imageId}`,
-              undefined,
-              abort.signal,
-            );
-            if (data.image.processingError)
-              throw new Error(data.image.processingError);
-            entry.progress = data.progress;
-            entry.detail = data.progress
-              ? `Optimizing image formats · ${data.progress}%`
-              : "Queued for image processing…";
-            publish();
-            if (data.image.variants) {
-              image = data.image;
-              break;
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-          }
-          if (!image)
-            throw new Error(
-              "Processing is taking longer. Retry status or close and return later.",
-            );
-          if (replacement) {
-            const response = await fetch(
-              `/api/events/${eventId}/images/${replacement.id}`,
-              {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  replacementId: image.id,
-                  replacementRole: replacement.kind,
-                }),
-                signal: abort.signal,
-              },
-            );
-            if (!response.ok) throw new Error((await response.json()).error);
-            image = await response.json();
-          }
-          entry.status = "Completed";
-          entry.progress = 100;
-          publish();
-          if (alive.current) onReady(image!);
-        } catch (error) {
-          entry.status =
-            error instanceof DOMException && error.name === "AbortError"
-              ? "Cancelled"
-              : "Failed";
-          entry.error =
-            error instanceof Error ? error.message : "Upload failed.";
-          if (entry.error.includes("Upload token has expired")) {
-            entry.signed = undefined;
-            entry.uploaded = false;
-          }
-          publish();
-        }
-      }
+        }),
+      );
     } finally {
       run.current = false;
       if (alive.current) setRunning(false);
-      controller.current = null;
-      xhr.current = null;
     }
   }
   const pending = entries.some((e) =>
@@ -311,7 +332,15 @@ export function MediaUploader({
             value={kind}
             disabled={running}
             aria-label="Media type"
-            onChange={(e) => {const role=e.target.value as MediaRole;setKind(role);queue.current.forEach(entry=>{if(entry.status==="Waiting"&&!entry.signed)entry.kind=role;});publish();}}
+            onChange={(e) => {
+              const role = e.target.value as MediaRole;
+              setKind(role);
+              queue.current.forEach((entry) => {
+                if (entry.status === "Waiting" && !entry.signed)
+                  entry.kind = role;
+              });
+              publish();
+            }}
           >
             {mediaRoles.map((role) => (
               <option key={role} value={role}>
@@ -319,7 +348,13 @@ export function MediaUploader({
               </option>
             ))}
           </select>
-          {(kind==="COVER"||kind==="POSTER")&&<small>One {roleNames[kind].toLowerCase()} per event. If you add several, the last becomes the {roleNames[kind].toLowerCase()} and the others move to the gallery.</small>}
+          {(kind === "COVER" || kind === "POSTER") && (
+            <small>
+              One {roleNames[kind].toLowerCase()} per event. If you add several,
+              the last becomes the {roleNames[kind].toLowerCase()} and the
+              others move to the gallery.
+            </small>
+          )}
         </label>
       )}
       <div
@@ -387,15 +422,19 @@ export function MediaUploader({
                   <small role="status">{entry.detail}</small>
                 </>
               )}
-              {entry.error && <small role="alert" className="mm-error">{entry.error}</small>}
+              {entry.error && (
+                <small role="alert" className="mm-error">
+                  {entry.error}
+                </small>
+              )}
             </div>
             <div>
               {["Uploading", "Processing"].includes(entry.status) ? (
                 <button
                   type="button"
                   onClick={() => {
-                    controller.current?.abort();
-                    xhr.current?.abort();
+                    entry.controller?.abort();
+                    entry.xhr?.abort();
                   }}
                 >
                   Cancel

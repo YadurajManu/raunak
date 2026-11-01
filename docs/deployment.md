@@ -18,7 +18,22 @@ Original uploads are private; `/api/media/*` signs only processed artwork URLs.
 
 Server code lives in `/opt/raunak`. The mode-600 `.env` and `garage.toml` contain
 credentials and must never be committed or copied into an image. The Dockerfile
-accepts only public Firebase configuration as build arguments.
+accepts public Firebase configuration and the public map tile URL/attribution as
+build arguments. Map tile URLs are visible to browsers; any provider key in a URL
+must be restricted to the Raunak hostname and appropriate tile APIs.
+
+The map tile URL defaults in the application to CARTO Dark Matter/Positron when
+no override is set. Production can set `NEXT_PUBLIC_MAP_TILE_URL` and
+`NEXT_PUBLIC_MAP_ATTRIBUTION` in `.env`; values are baked into the web build.
+Keep the attribution visible and accurate for the selected provider. CARTO's
+current free Basemaps terms require a CARTO-issued API key, visible CARTO and
+OpenStreetMap attribution, and cap commercial free use at 1 million tile
+requests per calendar month. Check the [CARTO Basemaps terms](https://carto.com/legal/basemap-terms/)
+before using CARTO commercially; without a valid key, use a provider whose terms
+cover your traffic and style needs. The existing OSM raster tile service is
+configured on Fleet and must retain visible OpenStreetMap attribution; review the
+[OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/)
+before materially increasing request volume.
 
 ## Update
 

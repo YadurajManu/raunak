@@ -67,20 +67,35 @@ export function EventActionToolbar({
         }
       }}
     >
-      <Link className="eat-organizer" href={`/organizers/${organizer.slug}`}>
-        <span className="eat-avatar" aria-hidden="true">
-          {organizer.avatarUrl ? (
-            <Image src={organizer.avatarUrl} alt="" width={40} height={40} unoptimized />
-          ) : (
-            name.slice(0, 1).toUpperCase()
-          )}
-        </span>
-        <span>
-          <small>Hosted by</small>
-          <strong>{name}</strong>
-        </span>
-      </Link>
-      <FollowOrganizerButton orgId={organizerId} initialFollowersCount={followerCount} initialIsFollowing={false} compact />
+      <div className="eat-host-cluster">
+        <Link className="eat-organizer" href={`/organizers/${organizer.slug}`}>
+          <span className="eat-avatar" aria-hidden="true">
+            {organizer.avatarUrl ? (
+              <Image
+                src={organizer.avatarUrl}
+                alt=""
+                width={44}
+                height={44}
+                unoptimized
+              />
+            ) : (
+              name.slice(0, 1).toUpperCase()
+            )}
+          </span>
+          <span>
+            <small>Hosted by</small>
+            <strong>{name}</strong>
+            {followerCount >= 10 && <small>{followerCount} followers</small>}
+          </span>
+        </Link>
+        <FollowOrganizerButton
+          orgId={organizerId}
+          initialFollowersCount={followerCount}
+          initialIsFollowing={false}
+          compact
+          className="eat-follow"
+        />
+      </div>
       <div className="eat-actions" role="group" aria-label="Event actions">
         {saveAvailable && (
           <SaveEvent eventId={eventId} initial={saved} labeled />

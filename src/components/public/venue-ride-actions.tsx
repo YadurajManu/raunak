@@ -1,254 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { Share2, Navigation, Check, Loader2, MapPin } from "lucide-react";
+import { useRef, useState } from "react";
+import { Check, ChevronDown, Copy, Loader2, MapPin, Navigation, Share2 } from "lucide-react";
 import { haversineDistance, formatCabEstimate } from "@/lib/transit/geo";
-import {
-  buildGoogleMapsTransitLink,
-  buildUberLink,
-  buildOlaLink,
-} from "@/lib/transit/links";
+import { buildGoogleMapsTransitLink, buildUberLink, buildOlaLink } from "@/lib/transit/links";
 import "./venue-transit.css";
 
-export type VenueRideActionsProps = {
-  lat: number;
-  lng: number;
-  venueName?: string | null;
-  address?: string | null;
-  eventTitle?: string;
-  eventUrl?: string;
-};
+export type VenueRideActionsProps = { lat: number; lng: number; venueName?: string | null; address?: string | null; eventTitle?: string; eventUrl?: string };
 
-export function VenueRideActions({
-  lat,
-  lng,
-  venueName,
-  address,
-  eventTitle,
-  eventUrl,
-}: VenueRideActionsProps) {
+export function VenueRideActions({ lat, lng, venueName, address, eventTitle, eventUrl }: VenueRideActionsProps) {
   const [openingRide, setOpeningRide] = useState<"Uber" | "Ola" | null>(null);
-  const [geoState, setGeoState] = useState<{
-    loading: boolean;
-    result: string | null;
-    error: string | null;
-  }>({
-    loading: false,
-    result: null,
-    error: null,
-  });
-  const [shared, setShared] = useState(false);
-
+  const [geo, setGeo] = useState<{ loading: boolean; result: string | null; error: string | null }>({ loading: false, result: null, error: null });
+  const [copied, setCopied] = useState(false);
+  const directionsMenu = useRef<HTMLDetailsElement>(null);
   const destination = { lat, lng, venueName, address };
-  const googleMapsUrl = buildGoogleMapsTransitLink(destination);
+  const googleMaps = buildGoogleMapsTransitLink(destination);
+  const appleMaps = `https://maps.apple.com/?daddr=${encodeURIComponent(`${lat},${lng}`)}&dirflg=r`;
   const uber = buildUberLink(destination);
   const ola = buildOlaLink(destination);
 
-  function handleRide(service: "Uber" | "Ola") {
-    const isMobile =
-      typeof window !== "undefined" &&
-      (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-        ("ontouchstart" in window && window.innerWidth < 768));
-
+  function preferredDirections() {
+    if (typeof navigator === "undefined") return googleMaps;
+    return /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) ? appleMaps : googleMaps;
+  }
+  function ride(service: "Uber" | "Ola") {
+    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const { appUrl, webUrl } = service === "Uber" ? uber : ola;
-
     setOpeningRide(service);
-
-    if (isMobile) {
-      const start = Date.now();
-      window.location.href = appUrl;
-
-      // Fallback to web link if app isn't installed and tab stays visible
+    if (mobile) {
+      window.location.assign(appUrl);
       const timer = window.setTimeout(() => {
-        if (document.visibilityState !== "hidden" && Date.now() - start < 2000) {
-          window.location.href = webUrl;
-        }
+        if (document.visibilityState !== "hidden") window.location.assign(webUrl);
         setOpeningRide(null);
       }, 1200);
-
-      const onVisibilityChange = () => {
-        if (document.visibilityState === "hidden") {
-          window.clearTimeout(timer);
-          setOpeningRide(null);
-          document.removeEventListener("visibilitychange", onVisibilityChange);
-        }
-      };
-      document.addEventListener("visibilitychange", onVisibilityChange);
-    } else {
-      window.open(webUrl, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => setOpeningRide(null), 800);
-    }
+      const change = () => { if (document.visibilityState === "hidden") { clearTimeout(timer); setOpeningRide(null); document.removeEventListener("visibilitychange", change); } };
+      document.addEventListener("visibilitychange", change);
+    } else { window.open(webUrl, "_blank", "noopener,noreferrer"); window.setTimeout(() => setOpeningRide(null), 800); }
   }
-
-  function handleGetDistance() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoState({
-        loading: false,
-        result: null,
-        error: "Location is not supported by your browser.",
-      });
-      return;
-    }
-
-    setGeoState({ loading: true, result: null, error: null });
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const straightMeters = haversineDistance(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          lat,
-          lng,
-        );
-        const estimate = formatCabEstimate(straightMeters);
-        setGeoState({
-          loading: false,
-          result: estimate,
-          error: null,
-        });
-      },
-      (err) => {
-        let msg = "Could not get your location.";
-        if (err.code === err.PERMISSION_DENIED) {
-          msg = "Location permission denied.";
-        }
-        setGeoState({ loading: false, result: null, error: msg });
-      },
-      { timeout: 10000, enableHighAccuracy: false },
-    );
+  function locate() {
+    if (!navigator.geolocation) { setGeo({ loading: false, result: null, error: "Location is not supported by your browser." }); return; }
+    setGeo({ loading: true, result: null, error: null });
+    navigator.geolocation.getCurrentPosition((position) => {
+      const meters = haversineDistance(position.coords.latitude, position.coords.longitude, lat, lng);
+      setGeo({ loading: false, result: formatCabEstimate(meters), error: null });
+    }, (error) => {
+      const message = error.code === error.PERMISSION_DENIED ? "Location blocked — enable it in browser settings." : "Could not get your location.";
+      setGeo({ loading: false, result: null, error: message });
+    }, { timeout: 10000, enableHighAccuracy: false });
   }
-
-  async function handleShare() {
-    const shareUrl =
-      eventUrl || (typeof window !== "undefined" ? window.location.href : "");
-    const shareText = `Check out ${eventTitle || "this event"} at ${venueName || address || "the venue"}`;
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: eventTitle || "Event venue directions",
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      } catch {
-        // User cancelled or unsupported, fall back to clipboard
-      }
-    }
-
+  async function copy(value: string) {
     try {
-      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-      setShared(true);
-      setTimeout(() => setShared(false), 2000);
-    } catch {
-      setShared(false);
-    }
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(value);
+      else { const field = document.createElement("textarea"); field.value = value; field.style.position = "fixed"; field.style.opacity = "0"; document.body.append(field); field.select(); document.execCommand("copy"); field.remove(); }
+      setCopied(true); window.setTimeout(() => setCopied(false), 1600);
+    } catch { setCopied(false); }
   }
+  async function share() {
+    const url = eventUrl || window.location.href;
+    const title = eventTitle || "Event venue";
+    if (navigator.share) {
+      try { await navigator.share({ title, text: `Directions to ${venueName || address || "the venue"}`, url }); return; }
+      catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
+    }
+    await copy(url);
+  }
+  const transit = <a className="transit-btn transit-btn-primary" href={preferredDirections()} target="_blank" rel="noopener noreferrer"><Navigation size={17} aria-hidden="true"/><span>Directions</span></a>;
 
   return (
     <div className="transit-actions-grid" aria-label="Venue navigation and ride actions">
-      {/* Primary Row: Google Maps & Ride options */}
       <div className="transit-action-row">
-        <a
-          href={googleMapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transit-btn transit-btn-primary"
-        >
-          <Navigation size={16} aria-hidden="true" />
-          <span>Open in Google Maps ↗</span>
-        </a>
-
-        {/* Split Uber | Ola buttons */}
-        <div className="transit-split-ride" role="group" aria-label="Book a ride to venue">
-          <button
-            type="button"
-            onClick={() => handleRide("Uber")}
-            aria-label="Book an Uber ride"
-          >
-            {openingRide === "Uber" ? (
-              <>
-                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                <span>Opening…</span>
-              </>
-            ) : (
-              <>
-                <span aria-hidden="true">🚖</span>
-                <span>Uber</span>
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleRide("Ola")}
-            aria-label="Book an Ola cab"
-          >
-            {openingRide === "Ola" ? (
-              <>
-                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                <span>Opening…</span>
-              </>
-            ) : (
-              <span>Ola</span>
-            )}
-          </button>
+        <div className="transit-directions-group">
+          {transit}
+          <details className="transit-directions" ref={directionsMenu}>
+            <summary className="transit-directions-toggle" aria-label="Choose directions app"><ChevronDown size={17} aria-hidden="true"/></summary>
+            <div className="transit-directions-menu">
+              <a href={googleMaps} target="_blank" rel="noopener noreferrer">Google Maps</a>
+              <a href={appleMaps} target="_blank" rel="noopener noreferrer">Apple Maps</a>
+              <button type="button" onClick={() => { void copy(address || venueName || `${lat}, ${lng}`); directionsMenu.current?.removeAttribute("open"); }}>{copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? "Copied" : "Copy address"}</button>
+            </div>
+          </details>
         </div>
-      </div>
-
-      {/* Secondary Row: Distance & Share */}
-      <div className="transit-action-row text-xs">
-        {/* Geolocation calculation */}
-        {geoState.result ? (
-          <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--surface-raised)] border border-[var(--border)] font-semibold text-[var(--ink)]">
-            <span aria-hidden="true">📍</span>
-            <span>{geoState.result}</span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            disabled={geoState.loading}
-            onClick={handleGetDistance}
-            className="transit-btn transit-btn-secondary !text-xs !py-2 !min-h-[40px]"
-          >
-            {geoState.loading ? (
-              <>
-                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                <span>Calculating distance…</span>
-              </>
-            ) : (
-              <>
-                <MapPin size={14} aria-hidden="true" />
-                <span>📍 How far from me?</span>
-              </>
-            )}
-          </button>
-        )}
-
-        {geoState.error && (
-          <span className="text-[var(--danger)] text-xs font-medium self-center">
-            {geoState.error}
-          </span>
-        )}
-
-        {/* Share button */}
-        <button
-          type="button"
-          onClick={handleShare}
-          className="transit-btn transit-btn-secondary !text-xs !py-2 !min-h-[40px]"
-        >
-          {shared ? (
-            <>
-              <Check size={14} aria-hidden="true" />
-              <span>Link copied!</span>
-            </>
-          ) : (
-            <>
-              <Share2 size={14} aria-hidden="true" />
-              <span>Share</span>
-            </>
-          )}
+        <div className="transit-split-ride" role="group" aria-label="Book a ride to the venue">
+          {(["Uber", "Ola"] as const).map((service) => <button type="button" key={service} onClick={() => ride(service)} aria-label={`Book an ${service} ride`}>{openingRide === service ? <><Loader2 size={15} className="animate-spin" aria-hidden="true"/>Opening…</> : service}</button>)}
+        </div>
+        <button type="button" className="transit-btn transit-btn-secondary transit-distance-button" onClick={locate} disabled={geo.loading}>
+          {geo.loading ? <Loader2 size={17} className="animate-spin" aria-hidden="true"/> : <MapPin size={17} aria-hidden="true"/>}
+          {geo.loading ? "Locating…" : geo.result || "How far from me?"}
         </button>
+        <button type="button" className="transit-btn transit-btn-secondary" onClick={() => void share()}>{copied ? <Check size={17} aria-hidden="true"/> : <Share2 size={17} aria-hidden="true"/>}{copied ? "Copied" : "Share"}</button>
       </div>
+      <p className="transit-live" aria-live="polite">{geo.error ? <span className="transit-error">{geo.error} {geo.error.startsWith("Location blocked") && <button type="button" onClick={locate}>Retry</button>}</span> : geo.result ? `You are ${geo.result}.` : copied ? "Link copied." : ""}</p>
     </div>
   );
 }

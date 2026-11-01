@@ -31,6 +31,7 @@ import { VenueActions } from "@/components/public/venue-actions";
 import { VenueTransitChips } from "@/components/public/venue-transit-chips";
 import { VenueRideActions } from "@/components/public/venue-ride-actions";
 import { discoveryUrl } from "@/lib/discovery";
+import { formatEventDateRange } from "@/lib/event-date-range";
 import { CalendarDays, MapPin } from "lucide-react";
 
 const base = process.env.APP_URL || "http://localhost:3000";
@@ -90,28 +91,6 @@ function eventDate(date: Date, timezone: string) {
   }).format(date);
 }
 
-function eventDateRange(startsAt: Date, endsAt: Date, timezone: string) {
-  const date = new Intl.DateTimeFormat("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: timezone,
-  });
-  const time = new Intl.DateTimeFormat("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: timezone,
-  });
-  const zone = new Intl.DateTimeFormat("en-IN", {
-    timeZone: timezone,
-    timeZoneName: "short",
-  })
-    .formatToParts(startsAt)
-    .find((part) => part.type === "timeZoneName")?.value;
-  const sameDay = date.format(startsAt) === date.format(endsAt);
-  return `${date.format(startsAt)} · ${time.format(startsAt)}–${time.format(endsAt)}${zone ? ` ${zone}` : ""}${sameDay ? "" : ` · ends ${date.format(endsAt)}`}`;
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -164,8 +143,7 @@ export default async function EventPage({
   if (!event) notFound();
   const previewAsVisitor = (await searchParams).preview === "visitor";
   const privatePreview =
-    !["PUBLISHED", "ENDED", "CANCELLED"].includes(event.status) ||
-    event.isTest;
+    !["PUBLISHED", "ENDED", "CANCELLED"].includes(event.status) || event.isTest;
   const publicListing =
     !privatePreview &&
     (event.visibility === "PUBLIC" || event.visibility === "UNLISTED");
@@ -178,25 +156,20 @@ export default async function EventPage({
     )?.supportEmail,
   );
   const eventHasEnded =
-    ["ENDED", "CANCELLED"].includes(event.status) ||
-    event.endsAt <= new Date();
+    ["ENDED", "CANCELLED"].includes(event.status) || event.endsAt <= new Date();
   const eventHasStarted = event.startsAt <= new Date();
-  const reviews =
-    publicListing
-      ? await eventReviewSnapshot(event, null)
-      : null;
-  const [hostEvents, nearbyEvents] =
-    publicListing
-      ? await Promise.all([
-          discoverPage({ organizer: event.org.slug }).then((page) =>
-            page.events.filter((item) => item.id !== event.id).slice(0, 3),
-          ),
-          discoverPage({
-            category: event.category || "",
-            city: event.mode === "ONLINE" ? "" : event.city || "",
-          }).then((page) => page.events.filter((item) => item.id !== event.id)),
-        ])
-      : [[], []];
+  const reviews = publicListing ? await eventReviewSnapshot(event, null) : null;
+  const [hostEvents, nearbyEvents] = publicListing
+    ? await Promise.all([
+        discoverPage({ organizer: event.org.slug }).then((page) =>
+          page.events.filter((item) => item.id !== event.id).slice(0, 3),
+        ),
+        discoverPage({
+          category: event.category || "",
+          city: event.mode === "ONLINE" ? "" : event.city || "",
+        }).then((page) => page.events.filter((item) => item.id !== event.id)),
+      ])
+    : [[], []];
   const followerCount = await db.organizationFollower.count({
     where: { orgId: event.org.id },
   });
@@ -218,6 +191,11 @@ export default async function EventPage({
   const venueQuery = [event.venueName, event.address, event.city]
     .filter(Boolean)
     .join(", ");
+  const eventDateRangeParts = formatEventDateRange(
+    event.startsAt,
+    event.endsAt,
+    event.timezone,
+  );
   const eventSummaryDate = `${new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: event.timezone }).format(event.startsAt)} · ${new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: event.timezone }).format(event.startsAt)} · ${event.city || "Online"}`;
   const offer = event.ticketTypes
     .filter((type) => !type.isHidden)
@@ -308,7 +286,7 @@ export default async function EventPage({
   };
   return (
     <EventViewerProvider eventId={event.id}>
-      <main className="r-event-detail min-h-screen pb-24 sm:pb-0">
+      <main className="r-event-detail min-h-screen pb-24 lg:pb-0">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -322,14 +300,14 @@ export default async function EventPage({
           }}
         />
         <div className="mx-auto max-w-6xl px-6 pt-3 sm:pt-5">
-        <EventManagementBar
-          hidden={previewAsVisitor && !privatePreview}
-          previewMessage={
-            privatePreview
-              ? "Draft preview · Only your event team can see this page"
-              : undefined
-          }
-        />
+          <EventManagementBar
+            hidden={previewAsVisitor && !privatePreview}
+            previewMessage={
+              privatePreview
+                ? "Draft preview · Only your event team can see this page"
+                : undefined
+            }
+          />
           <div className="overflow-hidden rounded-3xl">
             <EventImage
               variants={poster?.variants}
@@ -340,82 +318,85 @@ export default async function EventPage({
           </div>
           <div className="grid gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_340px]">
             <article>
-              <nav aria-label="Breadcrumb" className="event-breadcrumb">
-                <Link href="/discover">Discover</Link>
-                {event.city && (
-                  <>
-                    <span aria-hidden="true">›</span>
-                    <Link href={cityHref}>{event.city}</Link>
-                  </>
-                )}
-                {event.category && (
-                  <>
-                    <span aria-hidden="true">›</span>
-                    <Link href={categoryHref}>{event.category}</Link>
-                  </>
-                )}
-                <span aria-hidden="true">›</span>
-                <span aria-current="page" className="event-breadcrumb-current">
-                  {event.title}
-                </span>
-              </nav>
-              <h1 className="r-event-title">{event.title}</h1>
-              <EventActionToolbar
-                eventId={event.id}
-                title={event.title}
-                url={`${base}/e/${event.slug}`}
-              organizer={{
-                name: event.org.name,
-                slug: event.org.slug,
-                avatarUrl: organizerLogoUrl(event.org.id, event.org.logoKey),
-              }}
-              organizerId={event.org.id}
-              followerCount={followerCount}
-                saved={false}
-                saveAvailable={event.visibility === "PUBLIC"}
-                calendar={eventCalendarOptions(
-                  event,
-                  `${base}/e/${event.slug}`,
-                )}
-              />
-              {event.summary && (
-                <p className="mt-5 max-w-2xl text-lg text-[var(--muted)] dark:text-[var(--muted)]">
-                  {event.summary}
-                </p>
-              )}
-            <div className="mt-8 grid gap-4 rounded-2xl border border-[var(--line)] p-5 text-sm dark:border-[var(--line)]">
-                <div className="event-primary-facts">
-                  <p className="event-fact-label">
-                    <CalendarDays size={16} aria-hidden="true" /> When
-                  </p>
-                  <p className="event-fact-value">
-                    {eventDateRange(
-                      event.startsAt,
-                      event.endsAt,
-                      event.timezone,
-                    )}
-                  </p>
-                </div>
-                <div className="event-primary-facts">
-                  <p className="event-fact-label">
-                    <MapPin size={16} aria-hidden="true" /> Where
-                  </p>
-                  <p className="event-fact-value">{location}</p>
-                  {event.mode !== "ONLINE" && venueQuery && (
-                    <a
-                      className="event-fact-link"
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venueQuery)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Directions
-                    </a>
+              <div className="event-heading-stack">
+                <nav aria-label="Breadcrumb" className="event-breadcrumb">
+                  <Link href="/discover">Discover</Link>
+                  {event.city && (
+                    <>
+                      <span aria-hidden="true">›</span>
+                      <Link href={cityHref}>{event.city}</Link>
+                    </>
                   )}
+                  {event.category && (
+                    <>
+                      <span aria-hidden="true">›</span>
+                      <Link href={categoryHref}>{event.category}</Link>
+                    </>
+                  )}
+                  <span aria-hidden="true">›</span>
+                  <span
+                    aria-current="page"
+                    className="event-breadcrumb-current"
+                  >
+                    {event.title}
+                  </span>
+                </nav>
+                <h1 className="r-event-title">{event.title}</h1>
+                <EventActionToolbar
+                  eventId={event.id}
+                  title={event.title}
+                  url={`${base}/e/${event.slug}`}
+                  organizer={{
+                    name: event.org.name,
+                    slug: event.org.slug,
+                    avatarUrl: organizerLogoUrl(
+                      event.org.id,
+                      event.org.logoKey,
+                    ),
+                  }}
+                  organizerId={event.org.id}
+                  followerCount={followerCount}
+                  saved={false}
+                  saveAvailable={event.visibility === "PUBLIC"}
+                  calendar={eventCalendarOptions(
+                    event,
+                    `${base}/e/${event.slug}`,
+                  )}
+                />
+                {event.summary && (
+                  <p className="event-summary">{event.summary}</p>
+                )}
+                <div className="event-info-card">
+                  <div className="event-primary-facts event-info-cell">
+                    <p className="event-fact-label">
+                      <CalendarDays size={16} aria-hidden="true" /> When
+                    </p>
+                    <p className="event-fact-value">
+                      {eventDateRangeParts.primary}
+                    </p>
+                    {eventDateRangeParts.secondary && (
+                      <p className="event-fact-secondary">
+                        {eventDateRangeParts.secondary}
+                      </p>
+                    )}
+                  </div>
+                  <div className="event-primary-facts event-info-cell">
+                    <p className="event-fact-label">
+                      <MapPin size={16} aria-hidden="true" /> Where
+                    </p>
+                    <p className="event-fact-value">{location}</p>
+                    {event.mode !== "ONLINE" && venueQuery && (
+                      <VenueActions
+                        query={venueQuery}
+                        address={event.address || location}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
               {event.description && (
-                <section className="mt-12" id="about">
-                  <h2 className="text-2xl font-semibold">About</h2>
+                <section className="event-content-section" id="about">
+                  <h2>About</h2>
                   <div className="prose prose-zinc mt-5 max-w-none dark:prose-invert">
                     <Markdown remarkPlugins={[remarkGfm]}>
                       {event.description}
@@ -505,18 +486,24 @@ export default async function EventPage({
                 />
               )}
               {event.mode !== "ONLINE" && (
-                <section className="mt-12" id="venue">
+                <section className="mt-12 event-venue-section" id="venue">
                   <h2 className="text-2xl font-semibold">Venue</h2>
                   <div className="event-venue-grid">
                     <div className="event-venue-copy">
-                      <p className="font-semibold">
-                        {event.venueName || event.city}
-                      </p>
-                      {event.address && (
-                        <p className="mt-2 text-[var(--muted)]">
-                          {event.address}
+                      <div className="venue-address-heading">
+                        <p className="venue-name">
+                          {event.venueName || event.city}
                         </p>
-                      )}
+                        {event.address && (
+                          <div className="venue-address-row">
+                            <p>{event.address}</p>
+                            <VenueActions
+                              query={venueQuery}
+                              address={event.address}
+                            />
+                          </div>
+                        )}
+                      </div>
                       <VenueTransitChips
                         venueName={event.venueName}
                         address={event.address}
@@ -529,15 +516,7 @@ export default async function EventPage({
                         transitWalkMin={event.transitWalkMin}
                         parkingType={event.parkingType}
                         parkingNote={event.parkingNote}
-                      />
-                      <VenueActions
-                        query={venueQuery}
-                        address={
-                          event.address ||
-                          [event.venueName, event.city]
-                            .filter(Boolean)
-                            .join(", ")
-                        }
+                        entryNote={event.venueNotes}
                       />
                       {event.mapUrl && (
                         <a
@@ -549,18 +528,17 @@ export default async function EventPage({
                           Venue map shared by the organizer
                         </a>
                       )}
-                      {event.venueNotes && (
-                        <div className="event-how-to-reach">
-                          <h3>How to reach</h3>
-                          <p>{event.venueNotes}</p>
-                        </div>
-                      )}
                     </div>
                     {event.lat != null && event.lng != null && (
-                      <div className="space-y-4">
+                      <div className="event-venue-map-actions">
                         <VenueMap
                           latitude={Number(event.lat)}
                           longitude={Number(event.lng)}
+                          venueName={
+                            event.venueName || event.city || "Event venue"
+                          }
+                          area={event.city || undefined}
+                          address={event.address || undefined}
                         />
                         <VenueRideActions
                           lat={Number(event.lat)}
@@ -676,16 +654,18 @@ export default async function EventPage({
                   />
                 )}
               </section>
-              {reviews && !privatePreview && (eventHasStarted || reviews.reviewCount > 0) && (
-                <EventReviewsForViewer
-                  eventId={event.id}
-                  eventUrl={`${base}/e/${event.slug}`}
-                  reviewOpen={reviews.reviewOpen}
-                  reviews={reviews.reviews}
-                  averageRating={reviews.averageRating}
-                  reviewCount={reviews.reviewCount}
-                />
-              )}
+              {reviews &&
+                !privatePreview &&
+                (eventHasStarted || reviews.reviewCount > 0) && (
+                  <EventReviewsForViewer
+                    eventId={event.id}
+                    eventUrl={`${base}/e/${event.slug}`}
+                    reviewOpen={reviews.reviewOpen}
+                    reviews={reviews.reviews}
+                    averageRating={reviews.averageRating}
+                    reviewCount={reviews.reviewCount}
+                  />
+                )}
             </article>
             <aside id="tickets">
               {privatePreview ? (
