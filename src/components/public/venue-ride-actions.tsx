@@ -71,7 +71,7 @@ export function VenueRideActions({ lat, lng, venueName, address, eventTitle, eve
       <div className="transit-action-row">
         <div className="transit-directions-group">
           {transit}
-          <details className="transit-directions" ref={directionsMenu}>
+          <details className="transit-directions" name="raunak-directions" ref={directionsMenu}>
             <summary className="transit-directions-toggle" aria-label="Choose directions app"><ChevronDown size={17} aria-hidden="true"/></summary>
             <div className="transit-directions-menu">
               <a href={googleMaps} target="_blank" rel="noopener noreferrer">Google Maps</a>

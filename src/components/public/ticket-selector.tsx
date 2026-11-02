@@ -14,7 +14,7 @@ import { formatMoney } from "@/lib/money";
 import { ticketAvailability } from "@/lib/ticket-availability";
 import { plainName } from "@/lib/plain-name";
 import { EventTicketNotice } from "@/components/public/event-viewer";
-import styles from "./ticket-selector.module.css";
+import "./ticket-selector.css";
 
 type Type = {
   id: string;
@@ -219,15 +219,15 @@ export function TicketSelector({
   const card = (inSheet = false) => (
     <div
       id={inSheet ? undefined : "ticket-types"}
-      className={`${styles.card} ${inSheet ? styles.sheetCard : ""}`}
+      className={`r-ticket-card ${inSheet ? "r-ticket-sheet-card" : ""}`}
     >
       {inSheet && (
-        <div className={styles.sheetHeading}>
-          <span className={styles.dragHandle} aria-hidden="true" />
+        <div className="r-ticket-sheet-heading">
+          <span className="r-ticket-drag-handle" aria-hidden="true" />
           <h2>Choose tickets</h2>
           <button
             type="button"
-            className={styles.closeButton}
+            className="r-ticket-close-button"
             aria-label="Close ticket selection"
             onClick={() => setSheetOpen(false)}
           >
@@ -236,16 +236,16 @@ export function TicketSelector({
         </div>
       )}
       <EventTicketNotice />
-      <header className={styles.header}>
+      <header className="r-ticket-header">
         <h2>Get tickets</h2>
-        <p className={styles.eventMeta}>
+        <p className="r-ticket-event-meta">
           <CalendarDays size={16} aria-hidden="true" />
           <span>{recap || formatEventTime(startsAt, timezone)}</span>
         </p>
       </header>
 
       {visible.length ? (
-        <div className={styles.ticketList}>
+        <div className="r-ticket-ticket-list">
           {visible.map((type) => {
             const { remaining, available, label } = ticketAvailability(
               type,
@@ -264,8 +264,8 @@ export function TicketSelector({
                     : label
                   : "";
             return (
-              <article key={type.id} className={styles.ticket}>
-                <div className={styles.ticketTop}>
+              <article key={type.id} className="r-ticket-ticket">
+                <div className="r-ticket-ticket-top">
                   <h3 title={plainName(type.name) || "Admission"}>
                     <span aria-hidden="true">{type.name}</span>
                     <span className="sr-only">
@@ -273,7 +273,7 @@ export function TicketSelector({
                     </span>
                   </h3>
                   <div
-                    className={`${styles.stepper} ${shakeStepper ? styles.shake : ""}`}
+                    className={`r-ticket-stepper ${shakeStepper ? "r-ticket-shake" : ""}`}
                     role="group"
                     aria-label={`Quantity for ${plainName(type.name) || "admission"}`}
                   >
@@ -318,11 +318,11 @@ export function TicketSelector({
                     </button>
                   </div>
                 </div>
-                <div className={styles.priceLine}>
+                <div className="r-ticket-price-line">
                   <strong>{formatMoney(type.pricePaise)}</strong>
                   {status && (
                     <span
-                      className={`${styles.status} ${available ? styles.endsSoon : ""}`}
+                      className={`r-ticket-status ${available ? "r-ticket-ends-soon" : ""}`}
                     >
                       {available && <Clock3 size={13} aria-hidden="true" />}
                       {status}
@@ -330,16 +330,16 @@ export function TicketSelector({
                   )}
                 </div>
                 {type.description && (
-                  <div className={styles.descriptionWrap}>
+                  <div className="r-ticket-description-wrap">
                     <p
-                      className={`${styles.description} ${expanded[type.id] ? styles.descriptionExpanded : ""}`}
+                      className={`r-ticket-description ${expanded[type.id] ? "r-ticket-description-expanded" : ""}`}
                     >
                       {type.description}
                     </p>
                     {type.description.length > 150 && (
                       <button
                         type="button"
-                        className={styles.moreButton}
+                        className="r-ticket-more-button"
                         aria-expanded={Boolean(expanded[type.id])}
                         onClick={() =>
                           setExpanded((old) => ({
@@ -358,11 +358,11 @@ export function TicketSelector({
           })}
         </div>
       ) : (
-        <p className={styles.unavailable}>Tickets are unavailable.</p>
+        <p className="r-ticket-unavailable">Tickets are unavailable.</p>
       )}
 
-      <div className={styles.summary}>
-        <div className={styles.totalLine}>
+      <div className="r-ticket-summary">
+        <div className="r-ticket-total-line">
           <span>
             {count ? `${count} ${count === 1 ? "ticket" : "tickets"}` : "—"}
           </span>
@@ -375,7 +375,7 @@ export function TicketSelector({
             (type) =>
               ticketAvailability(type, startsAt, timezone, now).available,
           ) && (
-            <p className={styles.selectionHint} role="status">
+            <p className="r-ticket-selection-hint" role="status">
               Pick at least 1 ticket
             </p>
           )}
@@ -386,12 +386,12 @@ export function TicketSelector({
         disabled={reserving}
         aria-disabled={!count || reserving}
         onClick={continueToCheckout}
-        className={styles.continueButton}
+        className="r-ticket-continue-button"
       >
         {reserving ? (
           <>
             <LoaderCircle
-              className={styles.spinner}
+              className="r-ticket-spinner"
               size={18}
               aria-hidden="true"
             />{" "}
@@ -408,8 +408,8 @@ export function TicketSelector({
 
   return (
     <>
-      <div className={styles.desktopCard}>{card()}</div>
-      <div className={styles.mobileBar}>
+      <div className="r-ticket-desktop-card">{card()}</div>
+      <div className="r-ticket-mobile-bar">
         <div>
           <strong>
             {count
@@ -425,21 +425,21 @@ export function TicketSelector({
           type="button"
           disabled={!visible.length}
           onClick={() => setSheetOpen(true)}
-          className={styles.mobileBarButton}
+          className="r-ticket-mobile-bar-button"
         >
           Get tickets
         </button>
       </div>
       {sheetOpen && (
         <div
-          className={styles.backdrop}
+          className="r-ticket-backdrop"
           onClick={(event) => {
             if (event.target === event.currentTarget) setSheetOpen(false);
           }}
         >
           <section
             ref={sheetRef}
-            className={styles.sheet}
+            className="r-ticket-sheet"
             role="dialog"
             aria-modal="true"
             aria-label="Choose event tickets"

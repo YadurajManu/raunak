@@ -497,10 +497,6 @@ export default async function EventPage({
                         {event.address && (
                           <div className="venue-address-row">
                             <p>{event.address}</p>
-                            <VenueActions
-                              query={venueQuery}
-                              address={event.address}
-                            />
                           </div>
                         )}
                       </div>

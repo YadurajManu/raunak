@@ -31,7 +31,7 @@ export function VenueActions({ query, address }: { query: string; address: strin
   }
   return (
     <div className="venue-directions-actions">
-      <details className="venue-directions-menu" ref={menu}>
+      <details className="venue-directions-menu" name="raunak-directions" ref={menu}>
         <summary aria-label="Open venue directions options">
           <Navigation size={16} aria-hidden="true" />
           <span>Directions</span>
