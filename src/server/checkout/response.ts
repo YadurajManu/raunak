@@ -1,16 +1,27 @@
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db/client";
+import { mobileEvent, ticketInclude } from "@/server/mobile/tickets";
 
 export async function checkoutSnapshot(id: string, buyerId: string) {
   const order = await db.order.findFirst({
     where: { id: z.uuid().parse(id), buyerId },
-    include: { items: { orderBy: { ticketTypeId: "asc" }, include: { ticketType: true } } },
+    include: {
+      event: ticketInclude.event,
+      items: {
+        orderBy: { ticketTypeId: "asc" },
+        include: { ticketType: true },
+      },
+    },
   });
   if (!order) return null;
   return {
     id: order.id,
     status: order.status,
+    event: mobileEvent(order.event),
+    cashfreeOrderId: order.status === "PENDING" ? order.cashfreeOrderId : null,
+    cashfreeEnvironment:
+      process.env.CASHFREE_ENV === "production" ? "production" : "sandbox",
     expiresAt: order.expiresAt,
     paymentSessionId:
       order.status === "PENDING" && order.expiresAt > new Date()
