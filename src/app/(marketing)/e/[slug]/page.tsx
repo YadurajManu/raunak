@@ -1,4 +1,3 @@
-import { VenueMap } from "@/components/public/venue-map";
 import { db } from "@/server/db/client";
 import { EventCard } from "@/components/public/event-card";
 import { EventActionToolbar } from "@/components/public/event-action-toolbar";
@@ -28,8 +27,6 @@ import {
   EventViewerProvider,
 } from "@/components/public/event-viewer";
 import { VenueActions } from "@/components/public/venue-actions";
-import { VenueTransitChips } from "@/components/public/venue-transit-chips";
-import { VenueRideActions } from "@/components/public/venue-ride-actions";
 import { discoveryUrl } from "@/lib/discovery";
 import { formatEventDateRange } from "@/lib/event-date-range";
 import { CalendarDays, MapPin } from "lucide-react";
@@ -484,70 +481,6 @@ export default async function EventPage({
                     alt: image.alt || event.title,
                   }))}
                 />
-              )}
-              {event.mode !== "ONLINE" && (
-                <section className="mt-12 event-venue-section" id="venue">
-                  <h2 className="text-2xl font-semibold">Venue</h2>
-                  <div className="event-venue-grid">
-                    <div className="event-venue-copy">
-                      <div className="venue-address-heading">
-                        <p className="venue-name">
-                          {event.venueName || event.city}
-                        </p>
-                        {event.address && (
-                          <div className="venue-address-row">
-                            <p>{event.address}</p>
-                          </div>
-                        )}
-                      </div>
-                      <VenueTransitChips
-                        venueName={event.venueName}
-                        address={event.address}
-                        lat={event.lat == null ? null : Number(event.lat)}
-                        lng={event.lng == null ? null : Number(event.lng)}
-                        transitStationName={event.transitStationName}
-                        transitLineName={event.transitLineName}
-                        transitLineColor={event.transitLineColor}
-                        transitDistanceM={event.transitDistanceM}
-                        transitWalkMin={event.transitWalkMin}
-                        parkingType={event.parkingType}
-                        parkingNote={event.parkingNote}
-                        entryNote={event.venueNotes}
-                      />
-                      {event.mapUrl && (
-                        <a
-                          className="event-map-link"
-                          href={event.mapUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Venue map shared by the organizer
-                        </a>
-                      )}
-                    </div>
-                    {event.lat != null && event.lng != null && (
-                      <div className="event-venue-map-actions">
-                        <VenueMap
-                          latitude={Number(event.lat)}
-                          longitude={Number(event.lng)}
-                          venueName={
-                            event.venueName || event.city || "Event venue"
-                          }
-                          area={event.city || undefined}
-                          address={event.address || undefined}
-                        />
-                        <VenueRideActions
-                          lat={Number(event.lat)}
-                          lng={Number(event.lng)}
-                          venueName={event.venueName}
-                          address={event.address}
-                          eventTitle={event.title}
-                          eventUrl={`${base}/e/${event.slug}`}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </section>
               )}
               {event.mode !== "IN_PERSON" && (
                 <section className="mt-12 event-online-info" id="online">
