@@ -126,7 +126,7 @@ export default async function CheckoutPage({
             <h1>Your tickets are one step away</h1>
             <p>Sign in to continue. Your ticket selection stays saved on this device.</p>
             <Link
-              href={`/login?next=${encodeURIComponent(`/checkout/${slug}`)}`}
+              href={`/login?next=${encodeURIComponent(`/checkout/${slug}${search?.tickets ? `?${new URLSearchParams({ tickets: search.tickets }).toString()}` : ""}`)}`}
               className="co-primary"
             >
               Sign in
