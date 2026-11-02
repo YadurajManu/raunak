@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Raunak · device",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": ["--dart-define-from-file=config/local.json"]
+    },
+    {
+      "name": "Raunak · visual preview",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome"
+    }
+  ]
+}

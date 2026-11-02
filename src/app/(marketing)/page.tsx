@@ -23,6 +23,11 @@ const MessageCustomizer = dynamic(() =>
 const Story = dynamic(() =>
   import("@/components/marketing/story").then((module) => module.Story),
 );
+const AppDownload = dynamic(() =>
+  import("@/components/marketing/app-download").then(
+    (module) => module.AppDownload,
+  ),
+);
 import { Hero } from "@/components/marketing/hero";
 
 export const metadata: Metadata = {
@@ -79,6 +84,7 @@ export default async function MarketingPage() {
         <Story />
         <Features />
         <MessageCustomizer />
+        <AppDownload />
         <PricingAndFaq />
       </main>
       <RouteFooter pathname="/" landing />

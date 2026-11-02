@@ -22,7 +22,30 @@
   <img alt="India first" src="https://img.shields.io/badge/BUILT_FOR-INDIA-EA4F36?style=flat-square" />
   <img alt="Next.js 16" src="https://img.shields.io/badge/NEXT.JS-16-171512?style=flat-square" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TYPESCRIPT-5-3178C6?style=flat-square" />
+  <img alt="Flutter" src="https://img.shields.io/badge/FLUTTER-3.44-02569B?style=flat-square" />
+  <img alt="Android APK" src="https://img.shields.io/badge/ANDROID_APK-v1.0.0-3DDC84?style=flat-square" />
 </p>
+
+<br />
+
+## 📱 Raunak Mobile App (v1.0.0 Released)
+
+The native **Raunak Attendee App** is officially released with our custom **iOS 26 Liquid Glass** design system:
+
+- 💎 **iOS 26 Liquid Glass UI:** Double-pass frosted optical blur, dynamic specular edge reflections, and tactile spring haptics.
+- ⚡ **UPI-First Checkout:** Instant one-tap reservations supporting Google Pay, PhonePe, and Paytm.
+- 🎟️ **Gate-Ready Admission Passes:** Offline QR tickets with high-contrast presentation for seamless entrance check-in.
+- 🖼️ **In-Memory Artwork Cache:** Zero-flicker photo caching with fixed aspect ratios and zero layout shift.
+
+### 📥 Download Android APK
+
+The production Android release APK is compiled and available directly in this repository:
+
+| Version | Download Link | File Size | Minimum OS |
+| :--- | :--- | :--- | :--- |
+| **v1.0.0 (Release)** | [**Download `raunak-v1.0.0.apk`**](public/downloads/raunak-v1.0.0.apk) | **58.1 MB** | Android 8.0 (API 26)+ |
+
+*(Or download via the web app at [raunak.yaduraj.me/downloads/raunak-v1.0.0.apk](https://raunak.yaduraj.me/downloads/raunak-v1.0.0.apk))*
 
 <br />
 

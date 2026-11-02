@@ -4873,3 +4873,278 @@
     display: none !important;
   }
 }
+
+
+/* App Download Section */
+.marketing .m-app-section {
+  padding: 80px 0;
+  position: relative;
+}
+
+.marketing .m-app-card {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 48px;
+  align-items: center;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  padding: 56px 48px;
+  box-shadow: 8px 8px 0 var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.marketing .m-app-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.marketing .m-app-features {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.marketing .m-app-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.marketing .m-app-feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--art-ink);
+  border: 1.5px solid var(--ink);
+  flex-shrink: 0;
+}
+
+.marketing .m-app-feature-item strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.marketing .m-app-feature-item p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.marketing .m-app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.marketing .m-app-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.marketing .m-app-version-badge {
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.7rem;
+  font-family: var(--font-mono), monospace;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.marketing .m-app-specs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.marketing .m-app-spec-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.marketing .m-app-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.marketing .m-phone-mockup {
+  width: 270px;
+  height: 480px;
+  background: #171612;
+  border: 3.5px solid var(--ink);
+  border-radius: 36px;
+  box-shadow: 10px 10px 0 var(--ink);
+  padding: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.marketing .m-phone-notch {
+  width: 80px;
+  height: 16px;
+  background: #000;
+  border-radius: 10px;
+  margin: 0 auto 10px;
+}
+
+.marketing .m-phone-screen {
+  flex: 1;
+  background: #171612;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #F5F0E6;
+}
+
+.marketing .m-mockup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.marketing .m-mockup-logo {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.marketing .m-mockup-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.marketing .m-mockup-body {
+  margin: 12px 0;
+}
+
+.marketing .m-mockup-eyebrow {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: #FF4F2B;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.marketing .m-mockup-body h4 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  margin: 0 0 10px;
+}
+
+.marketing .m-mockup-search {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+}
+
+.marketing .m-mockup-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.marketing .m-mockup-card-art {
+  height: 70px;
+  background: linear-gradient(135deg, #FF4F2B 0%, #AB2B13 100%);
+  opacity: 0.85;
+}
+
+.marketing .m-mockup-card-details {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.marketing .m-mockup-card-details strong {
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.marketing .m-mockup-card-details span {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.marketing .m-mockup-card-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.marketing .m-mockup-pill {
+  background: #FF4F2B;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.marketing .m-mockup-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 8px 16px;
+}
+
+.marketing .m-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.marketing .m-nav-dot.is-active {
+  background: #FF4F2B;
+  box-shadow: 0 0 6px #FF4F2B;
+}
+
+@media (max-width: 900px) {
+  .marketing .m-app-card {
+    grid-template-columns: 1fr;
+    padding: 36px 24px;
+  }
+  .marketing .m-app-visual {
+    order: -1;
+  }
+}
