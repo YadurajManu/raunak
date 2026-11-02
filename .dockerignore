@@ -12,3 +12,4 @@ src/generated
 *.pem
 garage.toml
 *.log
+mobile
