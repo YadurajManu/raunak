@@ -1,0 +1,18 @@
+# Raunak
+
+Raunak is an India-first event management and ticketing platform. Organizers publish events, offer free or paid tickets, manage teams and check guests in with signed QR tickets. Issued tickets are delivered by email and can be found in My tickets. WhatsApp delivery depends on organizer settings, provider availability and attendee consent.
+
+The first event has no Raunak platform fee. Cashfree processing charges apply to paid tickets. Later paid events use the published platform fee; free tickets skip payment. Current fees are displayed on the website.
+
+## Key pages
+
+- [Home](https://raunak.yaduraj.me/): product overview and current pricing.
+- [Discover](https://raunak.yaduraj.me/discover): published public events and available city filters.
+- [How it works](https://raunak.yaduraj.me/how-it-works): hosting, booking, delivery and check-in.
+- [About](https://raunak.yaduraj.me/about): product purpose and source repository.
+- [Organizer guide](https://raunak.yaduraj.me/docs/organizers): organizer workflow.
+- [Refunds](https://raunak.yaduraj.me/refunds): cancellation and refund information; event-specific policies are on event pages.
+- [Brand and press](https://raunak.yaduraj.me/brand): official description and logos.
+- [Contact](https://raunak.yaduraj.me/contact): support paths.
+
+Cities shown in Discover depend on currently published events. No fixed city coverage is claimed.

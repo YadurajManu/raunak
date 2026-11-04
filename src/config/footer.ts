@@ -1,7 +1,7 @@
 export type FooterAudience = "anon" | "attendee" | "organizer" | "staff";
 
 export const footerConfig = {
-  full: ["/", "/discover", "/e/", "/organizers/", "/account", "/saved", "/my-tickets", "/orders/", "/help", "/refunds", "/contact", "/privacy", "/terms", "/legal"],
+  full: ["/", "/discover", "/e/", "/cities/", "/organizers/", "/account", "/saved", "/my-tickets", "/orders/", "/help", "/refunds", "/contact", "/privacy", "/terms", "/legal", "/about", "/how-it-works", "/brand"],
   minimal: ["/login", "/signup", "/onboarding", "/accept-invite/", "/organizer/setup", "/checkout-preview", "/checkout/", "/t/"],
   none: ["/dashboard", "/admin", "/style-guide", "/checkin"],
   groups: [
@@ -18,6 +18,7 @@ export const footerConfig = {
       { label: "Host an event", href: "/dashboard", visibleTo: ["anon", "attendee", "staff"] },
       { label: "Create event", href: "/dashboard/events/new", visibleTo: ["organizer"] },
       { label: "How it works", href: "/#how-it-works", visibleTo: ["anon", "attendee", "organizer", "staff"] },
+      { label: "Hosting guide", href: "/how-it-works", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Features", href: "/#features", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Pricing", href: "/#pricing", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "FAQ", href: "/#faq", visibleTo: ["anon", "attendee", "organizer", "staff"] },
@@ -27,6 +28,8 @@ export const footerConfig = {
     { title: "Support & company", links: [
       { label: "Help", href: "/help", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Contact", href: "/contact", visibleTo: ["anon", "attendee", "organizer", "staff"] },
+      { label: "About Raunak", href: "/about", visibleTo: ["anon", "attendee", "organizer", "staff"] },
+      { label: "Brand and press", href: "/brand", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Privacy", href: "/privacy", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Terms", href: "/terms", visibleTo: ["anon", "attendee", "organizer", "staff"] },
       { label: "Docs", href: "/docs", visibleTo: ["anon", "attendee", "organizer", "staff"] },

@@ -21,7 +21,7 @@ const exploreLinks = unstable_cache(async () => {
     db.event.groupBy({ by: ["category"], where: { ...where, category: { not: null } }, _count: { category: true }, orderBy: { _count: { category: "desc" } }, take: 5 }),
   ]);
   return {
-    cities: cities.flatMap((row) => row.city?.trim() ? [{ label: row.city.trim(), href: `/discover?${new URLSearchParams({ city: row.city.trim() })}` }] : []),
+    cities: cities.flatMap((row) => row.city?.trim() ? [{ label: `Events in ${row.city.trim()}`, href: `/cities/${encodeURIComponent(row.city.trim())}` }] : []),
     categories: categories.flatMap((row) => row.category?.trim() ? [{ label: row.category.trim(), href: `/discover?${new URLSearchParams({ category: row.category.trim() })}` }] : []),
   };
 }, ["footer-explore-links"], { revalidate: 3600 });

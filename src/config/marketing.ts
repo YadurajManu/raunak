@@ -88,6 +88,14 @@ export const marketing = {
       question: "Can I run free events?",
       answer: "Yes. Free tickets skip payment entirely.",
     },
+    {
+      question: "How does check-in work?",
+      answer: "Assigned staff can scan a ticket's QR code or look up an attendee. A second scan is flagged so the same ticket cannot be used twice.",
+    },
+    {
+      question: "Where can attendees find their tickets again?",
+      answer: "Attendees can sign in to My tickets to view their issued tickets. Email is the delivery fallback when WhatsApp is unavailable.",
+    },
   ],
 } as const;
 

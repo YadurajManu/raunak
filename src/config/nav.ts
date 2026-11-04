@@ -66,7 +66,7 @@ export function navigationFor(input: {
           { label: "Discover", href: "/discover" },
           { label: "My plans", href: "/account" },
         ]
-      : [{ label: "Discover", href: "/discover" }],
+      : [{ label: "Discover", href: "/discover" }, { label: "How it works", href: "/how-it-works" }, { label: "About", href: "/about" }],
     action: input.signedIn
       ? { label: "Host an event", href: "/dashboard" }
       : { label: "Get started", href: "/signup" },

@@ -19,6 +19,7 @@ export function Hero() {
           <em className="m-serif"> door.</em>
         </h1>
         <p className="m-hero-subhead">{marketing.hero.subhead}</p>
+        <p className="m-hero-micro">Raunak helps organizers in India publish events, sell tickets and check guests in with QR codes. Attendees receive tickets by email, with WhatsApp delivery when enabled. Your first event has no Raunak platform fee; Cashfree processing charges still apply to paid tickets.</p>
         <div className="m-hero-actions">
           <Magnetic>
             <Link href={marketing.primaryCta.href} className="m-button">
