@@ -10,6 +10,7 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono", display: 
 export const metadata: Metadata = {
   title: { default: "Raunak documentation", template: "%s · Raunak docs" },
   description: "Discover events, sell tickets and scan guests in. Product guides and developer documentation for Raunak.",
+  alternates: { canonical: "/docs" },
   openGraph: { title: "Raunak documentation", description: "A field guide to discovering, hosting and showing up.", url: "https://raunak.yaduraj.me/docs", images: [{ url: "/docs-assets/discover.webp", width: 1440, height: 1316 }] },
 };
 

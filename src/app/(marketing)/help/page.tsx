@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal";
 import { marketing } from "@/config/marketing";
-export const metadata = { title: "Help | Raunak", description: "Help with Raunak tickets, events and hosting." };
+export const metadata = { title: "Help with event tickets and hosting | Raunak", description: "Find help with Raunak tickets, payments, event hosting and check-in. Learn where to retrieve a ticket, review refund policies and contact the organizer.", alternates: { canonical: "/help" } };
 export default function HelpPage() {
   return <LegalPage title="A hand with your plans?" footerPath="/help">
     <h2 id="attendees">For attendees</h2>

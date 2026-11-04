@@ -31,9 +31,9 @@ const AppDownload = dynamic(() =>
 import { Hero } from "@/components/marketing/hero";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — Throw the event. We'll handle the door.`,
+  title: `${APP_NAME} | Event ticketing, QR check-in and WhatsApp`,
   description:
-    "Ticketing, UPI payments, WhatsApp reminders and QR check-in, in one calm dashboard. Your first event is free to host.",
+    "Create events, sell tickets and check guests in with Raunak. QR tickets arrive by email; WhatsApp delivery is available when enabled. First event free to host.",
   alternates: { canonical: "/" },
   openGraph: {
     title: `${APP_NAME} — Throw the event. We’ll handle the door.`,
@@ -47,14 +47,7 @@ export const metadata: Metadata = {
 export default async function MarketingPage() {
   const user = await currentUser();
   if (user) redirect(postLoginPath(user));
-  const base = process.env.APP_URL || "http://localhost:3000";
   const schema = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: APP_NAME,
-      url: base,
-    },
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",

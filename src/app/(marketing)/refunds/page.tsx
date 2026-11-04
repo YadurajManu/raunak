@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal";
-export const metadata = { title: "Refunds and cancellations | Raunak" };
+export const metadata = { title: "Event refunds and cancellations explained | Raunak", description: "Read how event-specific refund policies work on Raunak, where to find an organizer's policy and how to ask about a paid booking or cancellation.", alternates: { canonical: "/refunds" } };
 export default function RefundsPage() {
   return <LegalPage title="Refunds, clearly explained." footerPath="/refunds">
     <h2>Start with the event policy</h2>

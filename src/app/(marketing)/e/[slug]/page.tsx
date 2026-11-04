@@ -31,7 +31,7 @@ import { discoveryUrl } from "@/lib/discovery";
 import { formatEventDateRange } from "@/lib/event-date-range";
 import { CalendarDays, MapPin } from "lucide-react";
 
-const base = process.env.APP_URL || "http://localhost:3000";
+const base = "https://raunak.yaduraj.me";
 
 async function eventForPage(slug: string) {
   const visibleEvent = await publicEvent(slug);
@@ -111,7 +111,7 @@ export async function generateMetadata({
     robots:
       event.visibility !== "PUBLIC" ||
       !["PUBLISHED", "ENDED"].includes(event.status) ||
-      event.isTest
+      event.isTest || event.status === "CANCELLED"
         ? { index: false, follow: false }
         : undefined,
     openGraph: {
@@ -119,6 +119,7 @@ export async function generateMetadata({
       title: event.title,
       description,
       url,
+      images: [shareImage ? new URL(shareImage, base).href : `${base}/e/${event.slug}/opengraph-image`],
     },
     twitter: {
       card: "summary_large_image",
@@ -180,7 +181,7 @@ export default async function EventPage({
   const location =
     [event.venueName, event.city].filter(Boolean).join(", ") || "Online";
   const cityHref = event.city
-    ? discoveryUrl({ city: event.city })
+    ? `/cities/${encodeURIComponent(event.city)}`
     : "/discover";
   const categoryHref = event.category
     ? discoveryUrl({ category: event.category })
@@ -238,10 +239,12 @@ export default async function EventPage({
               addressLocality: event.city,
               addressCountry: "IN",
             },
+            ...(event.lat !== null && event.lng !== null ? { geo: { "@type": "GeoCoordinates", latitude: event.lat, longitude: event.lng } } : {}),
           },
-    image: variantUrl(poster?.variants, "og"),
-    organizer: { "@type": "Organization", name: event.org.name },
+    image: variantUrl(poster?.variants, "og") || `${base}/e/${event.slug}/opengraph-image`,
+    organizer: { "@type": "Organization", name: event.org.name, url: `${base}/organizers/${event.org.slug}` },
     offers: offer,
+    url: `${base}/e/${event.slug}`,
   };
   const breadcrumbData = {
     "@context": "https://schema.org",

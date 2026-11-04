@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal";
 import { site } from "@/config/site";
+export const metadata = { title: "Contact Raunak | Event and ticket support in India", description: "Get help with a Raunak booking or event. Find the right organizer contact on an event page, visit ticket help or reach Raunak through the available support route.", alternates: { canonical: "/contact" } };
 export default function ContactPage() {
   return (
     <LegalPage title="Let’s find the right door." footerPath="/contact">

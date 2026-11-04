@@ -15,8 +15,9 @@ import {
 import { ArrowRight, CalendarDays, SearchX } from "lucide-react";
 import { discoverySections } from "@/lib/discovery-sections";
 export const metadata: Metadata = {
-  title: "Discover events | Raunak",
-  description: "Good people. Great events. Find your next plan on Raunak.",
+  title: "Discover events and book tickets in India | Raunak",
+  description: "Browse public events on Raunak by city, category and date. See event details, choose free or paid tickets, and get a QR ticket for check-in after booking.",
+  alternates: { canonical: "/discover" },
 };
 export default async function DiscoverPage({
   searchParams,
