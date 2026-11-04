@@ -203,10 +203,11 @@ export default async function EventPage({
       price: (type.pricePaise / 100).toFixed(2),
       priceCurrency: "INR",
       availability:
-        type.quantitySold + type.quantityHeld >= type.quantityTotal
+        eventHasEnded || event.status === "CANCELLED" || type.quantitySold + type.quantityHeld >= type.quantityTotal
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
       url: `${base}/e/${event.slug}`,
+      ...(type.saleStartsAt ? { validFrom: type.saleStartsAt.toISOString() } : {}),
     }));
   const structuredData = {
     "@context": "https://schema.org",
