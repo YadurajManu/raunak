@@ -111,7 +111,8 @@ export async function generateMetadata({
     robots:
       event.visibility !== "PUBLIC" ||
       !["PUBLISHED", "ENDED"].includes(event.status) ||
-      event.isTest || event.status === "CANCELLED"
+      event.isTest ||
+      event.status === "CANCELLED"
         ? { index: false, follow: false }
         : undefined,
     openGraph: {
@@ -119,7 +120,11 @@ export async function generateMetadata({
       title: event.title,
       description,
       url,
-      images: [shareImage ? new URL(shareImage, base).href : `${base}/e/${event.slug}/opengraph-image`],
+      images: [
+        shareImage
+          ? new URL(shareImage, base).href
+          : `${base}/e/${event.slug}/opengraph-image`,
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -203,11 +208,15 @@ export default async function EventPage({
       price: (type.pricePaise / 100).toFixed(2),
       priceCurrency: "INR",
       availability:
-        eventHasEnded || event.status === "CANCELLED" || type.quantitySold + type.quantityHeld >= type.quantityTotal
+        eventHasEnded ||
+        event.status === "CANCELLED" ||
+        type.quantitySold + type.quantityHeld >= type.quantityTotal
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
       url: `${base}/e/${event.slug}`,
-      ...(type.saleStartsAt ? { validFrom: type.saleStartsAt.toISOString() } : {}),
+      ...(type.saleStartsAt
+        ? { validFrom: type.saleStartsAt.toISOString() }
+        : {}),
     }));
   const structuredData = {
     "@context": "https://schema.org",
@@ -240,10 +249,24 @@ export default async function EventPage({
               addressLocality: event.city,
               addressCountry: "IN",
             },
-            ...(event.lat !== null && event.lng !== null ? { geo: { "@type": "GeoCoordinates", latitude: event.lat, longitude: event.lng } } : {}),
+            ...(event.lat !== null && event.lng !== null
+              ? {
+                  geo: {
+                    "@type": "GeoCoordinates",
+                    latitude: event.lat,
+                    longitude: event.lng,
+                  },
+                }
+              : {}),
           },
-    image: variantUrl(poster?.variants, "og") || `${base}/e/${event.slug}/opengraph-image`,
-    organizer: { "@type": "Organization", name: event.org.name, url: `${base}/organizers/${event.org.slug}` },
+    image:
+      variantUrl(poster?.variants, "og") ||
+      `${base}/e/${event.slug}/opengraph-image`,
+    organizer: {
+      "@type": "Organization",
+      name: event.org.name,
+      url: `${base}/organizers/${event.org.slug}`,
+    },
     offers: offer,
     url: `${base}/e/${event.slug}`,
   };
@@ -606,6 +629,16 @@ export default async function EventPage({
                   <h2 className="text-xl font-semibold">Private preview</h2>
                   <p className="mt-2 text-sm text-[var(--muted)]">
                     Tickets are available after this event is published.
+                  </p>
+                </div>
+              ) : event.salesPaused && event.status !== "CANCELLED" ? (
+                <div className="rounded-2xl border border-[var(--line)] p-5">
+                  <h2 className="text-xl font-semibold">
+                    Ticket sales are paused
+                  </h2>
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    Bookings are unavailable right now. Check back for an update
+                    from the organizer.
                   </p>
                 </div>
               ) : event.status === "CANCELLED" ? (

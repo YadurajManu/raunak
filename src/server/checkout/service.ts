@@ -70,9 +70,13 @@ export async function createCheckout(
     throw new Error("Duplicate ticket type in cart.");
   const existing = await db.order.findUnique({
     where: { idempotencyKey: data.idempotencyKey },
-    include: { items: true, event: { select: { slug: true } } },
+    include: {
+      items: true,
+      event: { select: { slug: true, salesPaused: true } },
+    },
   });
   if (existing) {
+    if (existing.event.salesPaused) throw new Error("Ticket sales are paused.");
     requireDemoSandbox(existing.event.slug);
     if (
       existing.buyerId !== buyer.id ||
@@ -113,6 +117,7 @@ export async function createCheckout(
           include: { org: true },
         });
         if (!event) throw new Error("Event is unavailable.");
+        if (event.salesPaused) throw new Error("Ticket sales are paused.");
         requireDemoSandbox(event.slug);
         const types = await tx.ticketType.findMany({
           where: { eventId: data.eventId, id: { in: [...unique] } },
@@ -364,6 +369,7 @@ export async function applyPayment(
     if (
       order.status === "PENDING" &&
       (currentEvent.status !== "PUBLISHED" ||
+        currentEvent.salesPaused ||
         currentEvent.isTest ||
         currentEvent.deletedAt ||
         currentEvent.startsAt <= new Date())
@@ -412,6 +418,7 @@ export async function applyPayment(
         (inventory._sum.quantitySold || 0) + (inventory._sum.quantityHeld || 0);
       const available =
         event.status === "PUBLISHED" &&
+        !event.salesPaused &&
         !event.isTest &&
         !event.deletedAt &&
         event.startsAt > new Date() &&

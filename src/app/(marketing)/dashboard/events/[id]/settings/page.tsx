@@ -5,6 +5,7 @@ import { db } from "@/server/db/client";
 import { DeleteEventButton } from "@/components/dashboard/delete-event-button";
 import { EventShare } from "@/components/dashboard/event-share";
 import { TestEventToggle } from "@/components/dashboard/test-event-toggle";
+import { EventSalesToggle } from "@/components/dashboard/event-sales-toggle";
 import { variantUrl } from "@/lib/images";
 import { PageHeader } from "@/components/ui";
 
@@ -35,8 +36,12 @@ export default async function EventSettings({
   });
   return (
     <main className="max-w-3xl py-10">
-      <PageHeader title="Settings" description="Manage this event’s link, visibility and draft." />
+      <PageHeader
+        title="Settings"
+        description="Manage this event’s link, visibility and draft."
+      />
       <TestEventToggle eventId={id} isTest={event.isTest} />
+      <EventSalesToggle eventId={id} paused={event.salesPaused} />
       <EventShare
         eventId={id}
         slug={event.slug}

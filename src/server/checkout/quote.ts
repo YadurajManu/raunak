@@ -16,6 +16,7 @@ export async function quoteCheckout(input: unknown) {
     include: { org: true, ticketTypes: true },
   });
   if (!event) throw new Error("Event is unavailable.");
+  if (event.salesPaused) throw new Error("Ticket sales are paused.");
   const quantity = data.items.reduce((sum, line) => sum + line.quantity, 0);
   const used = event.ticketTypes.reduce(
     (sum, type) => sum + type.quantitySold + type.quantityHeld,

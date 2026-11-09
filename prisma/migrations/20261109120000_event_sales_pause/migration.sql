@@ -1,0 +1,1 @@
+ALTER TABLE "Event" ADD COLUMN "salesPaused" BOOLEAN NOT NULL DEFAULT false;

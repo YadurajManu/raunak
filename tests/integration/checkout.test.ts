@@ -10,6 +10,7 @@ import {
 } from "@/server/checkout/service";
 import { processCashfreeWebhook } from "@/server/checkout/webhook";
 import { MockPaymentProvider } from "@/server/providers/payments/mock";
+import { quoteCheckout } from "@/server/checkout/quote";
 vi.mock("@/server/tickets/delivery", () => ({ queueTicketDelivery: vi.fn() }));
 const key = randomUUID();
 const provider = new MockPaymentProvider();
@@ -72,11 +73,29 @@ async function setup(price = 10000, capacity = 5) {
 it("gives Cashfree and inventory the same expiry above its 15-minute minimum", async () => {
   const { cart } = await setup();
   const createOrder = vi.fn(async (input: { expiresAt: Date }) => {
-    expect(input.expiresAt.getTime() - Date.now()).toBeGreaterThan(15 * 60 * 1000);
+    expect(input.expiresAt.getTime() - Date.now()).toBeGreaterThan(
+      15 * 60 * 1000,
+    );
     return { paymentSessionId: "expiry-check" };
   });
-  const order = await createCheckout(buyer, cart(), { ...provider, createOrder } as unknown as typeof provider);
+  const order = await createCheckout(buyer, cart(), {
+    ...provider,
+    createOrder,
+  } as unknown as typeof provider);
   expect(createOrder.mock.calls[0][0].expiresAt).toEqual(order.expiresAt);
+});
+it("blocks quotes and new checkout as soon as ticket sales are paused", async () => {
+  const { event, cart } = await setup();
+  await db.event.update({
+    where: { id: event.id },
+    data: { salesPaused: true },
+  });
+  await expect(quoteCheckout(cart())).rejects.toThrow(
+    "Ticket sales are paused",
+  );
+  await expect(createCheckout(buyer, cart(), provider)).rejects.toThrow(
+    "Ticket sales are paused",
+  );
 });
 it("never oversells under concurrent checkouts and safely expires holds", async () => {
   const { type, cart } = await setup();
@@ -149,10 +168,23 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
   failedPayload.type = "PAYMENT_FAILED_WEBHOOK";
   failedPayload.data.payment.payment_status = "FAILED";
   const failed = JSON.stringify(failedPayload);
-  const failedSignature = createHmac("sha256", "test-secret").update(timestamp + failed).digest("base64");
-  await processCashfreeWebhook(failed, timestamp, failedSignature, provider, "test-secret");
-  expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING");
-  expect((await db.ticketType.findUniqueOrThrow({ where: { id: type.id } })).quantityHeld).toBe(1);
+  const failedSignature = createHmac("sha256", "test-secret")
+    .update(timestamp + failed)
+    .digest("base64");
+  await processCashfreeWebhook(
+    failed,
+    timestamp,
+    failedSignature,
+    provider,
+    "test-secret",
+  );
+  expect(
+    (await db.order.findUniqueOrThrow({ where: { id: order.id } })).status,
+  ).toBe("PENDING");
+  expect(
+    (await db.ticketType.findUniqueOrThrow({ where: { id: type.id } }))
+      .quantityHeld,
+  ).toBe(1);
   await processCashfreeWebhook(
     raw,
     timestamp,
@@ -175,19 +207,44 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
   const unrelated = JSON.parse(raw);
   unrelated.data.order.order_id = randomUUID();
   const unrelatedRaw = JSON.stringify(unrelated);
-  const unrelatedSignature = createHmac("sha256", "test-secret").update(timestamp + unrelatedRaw).digest("base64");
-  expect(await processCashfreeWebhook(unrelatedRaw, timestamp, unrelatedSignature, provider, "test-secret")).toBeNull();
+  const unrelatedSignature = createHmac("sha256", "test-secret")
+    .update(timestamp + unrelatedRaw)
+    .digest("base64");
+  expect(
+    await processCashfreeWebhook(
+      unrelatedRaw,
+      timestamp,
+      unrelatedSignature,
+      provider,
+      "test-secret",
+    ),
+  ).toBeNull();
 });
 it("does not issue entry tickets when an event is cancelled during checkout", async () => {
   const { event, type, cart } = await setup();
   const order = await createCheckout(buyer, cart(), provider);
-  await db.event.update({ where: { id: event.id }, data: { status: "CANCELLED" } });
-  await applyPayment(order.id, {
-    id: randomUUID(), status: "SUCCESS", amountPaise: order.totalPaise, raw: {},
-  }, provider);
+  await db.event.update({
+    where: { id: event.id },
+    data: { status: "CANCELLED" },
+  });
+  await applyPayment(
+    order.id,
+    {
+      id: randomUUID(),
+      status: "SUCCESS",
+      amountPaise: order.totalPaise,
+      raw: {},
+    },
+    provider,
+  );
   expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(0);
-  expect((await db.ticketType.findUniqueOrThrow({ where: { id: type.id } })).quantityHeld).toBe(0);
-  expect(await db.refund.count({ where: { payment: { orderId: order.id } } })).toBe(1);
+  expect(
+    (await db.ticketType.findUniqueOrThrow({ where: { id: type.id } }))
+      .quantityHeld,
+  ).toBe(0);
+  expect(
+    await db.refund.count({ where: { payment: { orderId: order.id } } }),
+  ).toBe(1);
 });
 
 it("refunds late payments without issuing unavailable tickets and reconciles pending refunds", async () => {
