@@ -9,11 +9,24 @@ import { Prisma } from "../../src/generated/prisma/client";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const allowed = new Set(["jpg", "png", "webp", "avif", "gif", "heic", "heif"]);
-const sizes = { thumb: 320, card: 640, hero: 1280, og: 1200 } as const;
+const sizes = { card: 640, hero: 1280, thumb: 320, og: 1200 } as const;
 
-export async function processMedia(imageId: string, progress: (value:number) => Promise<unknown> = async () => {}) {
+export async function processMedia(
+  imageId: string,
+  progress: (value: number) => Promise<unknown> = async () => {},
+) {
   const image = await db.eventImage.findUnique({ where: { id: imageId } });
-  if (!image || image.variants) return;
+  if (!image) return;
+  const existing = image.variants as Record<
+    string,
+    Record<string, string>
+  > | null;
+  if (
+    Object.keys(sizes).every((size) =>
+      ["jpeg", "webp", "avif"].every((format) => existing?.[size]?.[format]),
+    )
+  )
+    return;
   try {
     const original = await storage.read(image.storageKey, MAX_IMAGE_BYTES);
     const detected = await fileTypeFromBuffer(original);
@@ -37,8 +50,18 @@ export async function processMedia(imageId: string, progress: (value:number) => 
     )
       throw new Error("Image dimensions are invalid or too large.");
     if (image.crop) {
-      const rotated = await sharp(input).rotate().toBuffer({resolveWithObject:true});
-      input = await sharp(rotated.data).extract(cropRegion(rotated.info.width,rotated.info.height,cropSchema.parse(image.crop))).toBuffer();
+      const rotated = await sharp(input)
+        .rotate()
+        .toBuffer({ resolveWithObject: true });
+      input = await sharp(rotated.data)
+        .extract(
+          cropRegion(
+            rotated.info.width,
+            rotated.info.height,
+            cropSchema.parse(image.crop),
+          ),
+        )
+        .toBuffer();
     }
     const { data: raw, info } = await sharp(input)
       .rotate()
@@ -54,12 +77,14 @@ export async function processMedia(imageId: string, progress: (value:number) => 
       3,
     );
     const variants: Record<string, Record<string, string>> = {};
-    const revision = (image.crop as {revision?:string} | null)?.revision;
-    const base = image.storageKey.replace("/original/", "/variants/") + (revision ? `/${revision}` : "");
+    const revision = (image.crop as { revision?: string } | null)?.revision;
+    const base =
+      image.storageKey.replace("/original/", "/variants/") +
+      (revision ? `/${revision}` : "");
     let completed = 0;
-    for (const [size, width] of Object.entries(sizes)) {
-      variants[size] = {};
-      for (const format of ["avif", "webp", "jpeg"] as const) {
+    for (const format of ["jpeg", "webp", "avif"] as const) {
+      for (const [size, width] of Object.entries(sizes)) {
+        variants[size] ??= {};
         const transform = sharp(input)
           .rotate()
           .resize(width, size === "og" ? 630 : undefined, {
@@ -72,23 +97,25 @@ export async function processMedia(imageId: string, progress: (value:number) => 
         const key = `${base}/${size}.${format === "jpeg" ? "jpg" : format}`;
         await storage.write(key, output, `image/${format}`);
         variants[size][format] = storage.publicUrl(key);
-        await progress(Math.round(++completed / 12 * 100));
+        await progress(Math.round((++completed / 12) * 100));
       }
+      // Publish usable JPEG previews before encoding the more expensive formats.
+      const saved = await db.eventImage.updateMany({
+        where: { id: imageId, crop: { equals: image.crop ?? Prisma.DbNull } },
+        data: {
+          variants,
+          width: metadata.width,
+          height: metadata.height,
+          blurhash,
+          mime: detected.mime,
+          processingError: null,
+        },
+      });
+      if (!saved.count) return;
     }
-    await db.eventImage.updateMany({
-      where: { id: imageId, crop:{equals:image.crop ?? Prisma.DbNull} },
-      data: {
-        variants,
-        width: metadata.width,
-        height: metadata.height,
-        blurhash,
-        mime: detected.mime,
-        processingError: null,
-      },
-    });
   } catch (error) {
     await db.eventImage.updateMany({
-      where: { id: imageId, crop:{equals:image.crop ?? Prisma.DbNull} },
+      where: { id: imageId, crop: { equals: image.crop ?? Prisma.DbNull } },
       data: {
         processingError:
           error instanceof Error ? error.message : "Image processing failed.",

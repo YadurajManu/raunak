@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import styles from "./event-image.module.css";
 import { variantUrl } from "@/lib/images";
 
 export function EventImage({
@@ -13,6 +17,7 @@ export function EventImage({
   className?: string;
   backdrop?: boolean;
 }) {
+  const [settledSrc, setSettledSrc] = useState<string | null>(null);
   const jpeg = variantUrl(variants, size, "jpeg");
   const widths = { thumb: 320, card: 640, hero: 1280 } as const;
   const srcSet = (format: "jpeg" | "webp" | "avif") =>
@@ -31,11 +36,9 @@ export function EventImage({
   if (!jpeg)
     return (
       <div
-        className={`flex items-center justify-center r-image-placeholder text-5xl ${className}`}
+        className={`${styles.placeholder} ${styles.loading} r-image-placeholder ${className}`}
         aria-hidden="true"
-      >
-        ✦
-      </div>
+      />
     );
   const picture = (
     <picture>
@@ -48,9 +51,27 @@ export function EventImage({
         decoding="async"
         alt={alt}
         loading={size === "hero" ? "eager" : "lazy"}
-        className={className}
+        className={`${className} ${settledSrc === jpeg ? "" : styles.loading}`}
+        ref={(node) => {
+          if (node?.complete) setSettledSrc(jpeg);
+        }}
+        onLoad={() => setSettledSrc(jpeg)}
+        onError={() => setSettledSrc(jpeg)}
       />
     </picture>
   );
-  return backdrop ? <span className="event-image-fit"><img className="event-image-backdrop" src={jpeg} alt="" aria-hidden="true" loading="lazy" />{picture}</span> : picture;
+  return backdrop ? (
+    <span className="event-image-fit">
+      <img
+        className="event-image-backdrop"
+        src={jpeg}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+      />
+      {picture}
+    </span>
+  ) : (
+    picture
+  );
 }

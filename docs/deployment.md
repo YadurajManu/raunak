@@ -43,7 +43,7 @@ Upload the committed source, then build and migrate before restarting services:
 git archive HEAD | ssh fleet-cp 'tar -x -C /opt/raunak'
 ssh fleet-cp 'cd /opt/raunak && docker compose --env-file .env -f deploy/compose.yml build web'
 ssh fleet-cp 'cd /opt/raunak && docker compose --env-file .env -f deploy/compose.yml run --rm web pnpm db:migrate'
-ssh fleet-cp 'cd /opt/raunak && docker compose --env-file .env -f deploy/compose.yml up -d web worker'
+ssh fleet-cp 'cd /opt/raunak && docker compose --env-file .env -f deploy/compose.yml up -d web worker media-worker'
 ```
 
 Inspect status using `docker compose --env-file .env -f deploy/compose.yml ps`.
@@ -109,3 +109,7 @@ public discovery on desktop/mobile. It uses the local database and storage and
 must run against the matching local application, not the production server.
 The production authentication smoke script also checks remembered and browser-only
 cookie modes and redirects. No live customer or organizer records are used.
+
+### Media worker
+
+`worker` handles tickets, notifications and order maintenance. `media-worker` runs image conversion in a separate container with its own memory and CPU limit. Start both services after deploying; `pnpm worker` alone no longer processes images. The media worker publishes JPEG previews first and resumes incomplete variants after a restart.

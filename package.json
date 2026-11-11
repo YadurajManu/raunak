@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node seed-raunak-events.js",
     "worker": "tsx worker/index.ts",
+    "worker:media": "tsx worker/media.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

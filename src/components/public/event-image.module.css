@@ -1,0 +1,24 @@
+.placeholder {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+.loading {
+  background: linear-gradient(
+    100deg,
+    var(--surface, #eee) 25%,
+    var(--line, #ddd) 45%,
+    var(--surface, #eee) 65%
+  );
+  background-size: 200% 100%;
+  animation: image-loading 1.5s ease-in-out infinite;
+}
+@keyframes image-loading {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation: none;
+  }
+}

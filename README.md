@@ -197,6 +197,8 @@ pnpm dev
 
 ```bash
 pnpm worker
+# In another terminal, process uploaded images
+pnpm worker:media
 ```
 
 Open [localhost:3000](http://localhost:3000). The local docs live at [localhost:3000/docs](http://localhost:3000/docs). `/api/health` checks web reachability only; it does not prove that the database, worker, or providers are ready.

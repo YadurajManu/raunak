@@ -2,10 +2,7 @@ import "dotenv/config";
 import { APP_NAME } from "../src/lib/constants";
 import { Worker, DelayedError } from "bullmq";
 import { WaError } from "@raunak/wa-contracts";
-import { db } from "../src/server/db/client";
-import { Prisma } from "../src/generated/prisma/client";
-import { mediaConnection, mediaQueue, orderQueue } from "./queues";
-import { processMedia } from "./jobs/process-media";
+import { mediaConnection, orderQueue } from "./queues";
 import {
   fulfilOrder,
   maintainNotifications,
@@ -14,29 +11,6 @@ import { processNotification } from "../src/server/notifications/service";
 import { expireOrders } from "../src/server/checkout/service";
 
 async function main() {
-  const pending = await db.eventImage.findMany({
-    where: { variants: { equals: Prisma.DbNull }, processingError: null },
-    select: { id: true, crop: true },
-  });
-  for (const image of pending)
-    await mediaQueue.add(
-      "process",
-      { imageId: image.id },
-      {
-        jobId: (image.crop as { revision?: string } | null)?.revision
-          ? `${image.id}-${(image.crop as { revision: string }).revision}`
-          : image.id,
-        attempts: 5,
-        backoff: { type: "exponential", delay: 1000 },
-        removeOnComplete: true,
-      },
-    );
-  const worker = new Worker<{ imageId: string }>(
-    "media",
-    (job) =>
-      processMedia(job.data.imageId, (value) => job.updateProgress(value)),
-    { connection: mediaConnection, concurrency: 2 },
-  );
   await orderQueue.upsertJobScheduler(
     "expire-orders",
     { every: 60_000 },
@@ -87,9 +61,6 @@ async function main() {
   );
   orderWorker.on("failed", (job, error) =>
     console.error(`Order job ${job?.id} failed: ${error.message}`),
-  );
-  worker.on("failed", (job, error) =>
-    console.error(`Media job ${job?.id} failed: ${error.message}`),
   );
   console.log(`${APP_NAME} workers ready`);
 }

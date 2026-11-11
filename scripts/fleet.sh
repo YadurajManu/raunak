@@ -18,7 +18,7 @@ echo "==> 3. Running database migrations..."
 ssh "${HOST}" "cd ${REMOTE_DIR} && docker compose --env-file .env -f deploy/compose.yml run --rm web pnpm db:migrate"
 
 echo "==> 4. Restarting web and worker services..."
-ssh "${HOST}" "cd ${REMOTE_DIR} && docker compose --env-file .env -f deploy/compose.yml up -d web worker"
+ssh "${HOST}" "cd ${REMOTE_DIR} && docker compose --env-file .env -f deploy/compose.yml up -d web worker media-worker"
 
 echo "==> 5. Verifying container health..."
 ssh "${HOST}" "cd ${REMOTE_DIR} && docker compose --env-file .env -f deploy/compose.yml ps"

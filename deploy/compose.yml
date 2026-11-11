@@ -54,6 +54,19 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+  media-worker:
+    image: raunak:latest
+    command: [pnpm, worker:media]
+    env_file: ../.env
+    environment:
+      NODE_OPTIONS: --max-old-space-size=256
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
   wa-gateway:
     profiles: [whatsapp]
     image: raunak-wa-gateway:latest

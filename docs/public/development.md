@@ -4,7 +4,7 @@ Use the pinned pnpm workspace and the installed framework documentation. The rep
 
 ## Daily workflow
 
-Start local services with `docker compose up -d`, generate the Prisma client after schema changes, and run `pnpm dev` plus `pnpm worker` in separate terminals. Keep `.env` local and use development Firebase/provider accounts.
+Start local services with `docker compose up -d`, generate the Prisma client after schema changes, and run `pnpm dev`, `pnpm worker`, and `pnpm worker:media` in separate terminals. Keep `.env` local and use development Firebase/provider accounts.
 
 The installed Next.js version is 16.4.0. Read the relevant guide under `node_modules/next/dist/docs/` before changing routes, layouts, caching or framework APIs; repository `AGENTS.md` explicitly requires this.
 
