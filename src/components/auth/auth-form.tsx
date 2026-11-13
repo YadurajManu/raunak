@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -216,6 +217,7 @@ export function AuthForm({
   const router = useRouter();
   const [banner, setBanner] = useState<AuthBanner | null>(null);
   const [busy, setBusy] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const {
@@ -260,6 +262,7 @@ export function AuthForm({
           values.email,
           values.password,
         );
+        setAccountCreated(true);
         await openSession(result.user);
       } else {
         const result = await signInWithEmailAndPassword(
@@ -294,6 +297,8 @@ export function AuthForm({
     try {
       const auth = await getClientAuth();
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      if (mode === "signup" && getAdditionalUserInfo(result)?.isNewUser)
+        setAccountCreated(true);
       await openSession(result.user);
     } catch (error) {
       const { banner: errBanner } = normalizeAuthError(
@@ -428,6 +433,12 @@ export function AuthForm({
               ? "Sign in to your events, your crew, and your tickets."
               : "Your first event is free to host. No card needed."}
           </p>
+          {accountCreated && (
+            <p className="m-auth-created" role="status" aria-live="polite">
+              <span aria-hidden="true">✓</span> Your account is ready. Let’s
+              find your next great plan.
+            </p>
+          )}
           <label className="m-auth-consent">
             <input
               type="checkbox"
@@ -513,6 +524,7 @@ export function AuthForm({
                 />
                 <button
                   type="button"
+                  className={showPassword ? "is-visible" : ""}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
                   onClick={() => setShowPassword(!showPassword)}

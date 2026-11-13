@@ -4922,3 +4922,138 @@
 @media (prefers-reduced-motion: reduce) {
   .marketing .m-app-pop { animation: none; }
 }
+
+/* Auth and onboarding motion stays short and disappears for reduced motion. */
+.marketing .m-auth-art {
+  animation: auth-panel-enter 480ms var(--ease) both;
+}
+.marketing .m-auth-form-wrap {
+  animation: auth-panel-enter 420ms 70ms var(--ease) both;
+}
+.marketing .m-auth-form input:not([type="checkbox"]) {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.marketing .r-profile-fields input,
+.marketing .r-manual-place input,
+.marketing .r-location-search input {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.marketing .m-auth-form input:not([type="checkbox"]):focus-visible,
+.marketing .r-profile-fields input:focus-visible,
+.marketing .r-manual-place input:focus-visible,
+.marketing .r-location-search input:focus-visible {
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  outline: none;
+}
+.marketing .m-auth-form .m-field-error,
+.marketing .m-auth-alert,
+.marketing .r-form-error,
+.marketing .r-location-error {
+  animation: auth-error-enter 180ms ease-out both;
+}
+.marketing .m-password-input button {
+  transition: color 150ms ease, opacity 150ms ease;
+}
+.marketing .m-password-input button.is-visible {
+  animation: auth-password-toggle 160ms ease-out both;
+}
+.marketing .m-auth-switch a {
+  display: inline-block;
+  transition: transform 160ms ease, color 160ms ease;
+}
+.marketing .m-auth-switch a:hover {
+  transform: translateX(2px);
+}
+.marketing .m-auth-created {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px dashed var(--ok);
+  border-radius: 9px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ok) 8%, var(--paper));
+  font-size: 0.8rem;
+  line-height: 1.5;
+  animation: auth-ticket-ready 260ms var(--ease) both;
+}
+.marketing .m-auth-created > span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 50%;
+  color: var(--paper);
+  background: var(--ok);
+}
+.marketing .r-progress li > span {
+  transition: transform 180ms var(--ease), background-color 180ms ease;
+}
+.marketing .r-progress .is-active > span {
+  transform: scale(1.06);
+}
+.marketing .r-onboarding-card > h2,
+.marketing .r-step-intro,
+.marketing .r-onboarding-card form {
+  animation: auth-panel-enter 220ms var(--ease) both;
+}
+.marketing .r-onboarding-card form {
+  animation-delay: 35ms;
+}
+.marketing .r-selected-place {
+  animation: auth-panel-enter 260ms var(--ease) both;
+}
+.marketing .r-selected-place > span {
+  transform-origin: 50% 100%;
+  animation: auth-pin-drop 360ms cubic-bezier(.2, 1.4, .35, 1) both;
+}
+@keyframes auth-panel-enter {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes auth-error-enter {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes auth-password-toggle {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
+@keyframes auth-ticket-ready {
+  from { opacity: 0; transform: translateY(5px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes auth-pin-drop {
+  from { opacity: .5; transform: translateY(-8px) scale(.86); }
+  70% { transform: translateY(2px) scale(1.08); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing .m-auth-art,
+  .marketing .m-auth-form-wrap,
+  .marketing .m-auth-form .m-field-error,
+  .marketing .m-auth-alert,
+  .marketing .m-password-input button.is-visible,
+  .marketing .m-auth-created,
+  .marketing .r-onboarding-card > h2,
+  .marketing .r-step-intro,
+  .marketing .r-onboarding-card form,
+  .marketing .r-selected-place,
+  .marketing .r-selected-place > span,
+  .marketing .r-form-error,
+  .marketing .r-location-error {
+    animation: none;
+  }
+  .marketing .m-auth-form input:not([type="checkbox"]),
+  .marketing .r-profile-fields input,
+  .marketing .r-manual-place input,
+  .marketing .r-location-search input,
+  .marketing .m-password-input button,
+  .marketing .m-auth-switch a,
+  .marketing .r-progress li > span {
+    transition: none;
+  }
+}
