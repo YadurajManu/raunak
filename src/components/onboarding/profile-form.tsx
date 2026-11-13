@@ -288,7 +288,7 @@ export function ProfileForm({
                 ? "Choose a city for nearby events. Your exact location is optional."
                 : "A quick look before you head in."}
           </p>
-          <form onSubmit={submit}>
+          <form key={step} onSubmit={submit}>
             {step === 0 && (
               <div className="r-profile-fields">
                 <label>
