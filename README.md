@@ -250,8 +250,8 @@ pnpm build
 
 Integration and browser checks need their documented local services and disposable data. Mocked payment or messaging tests verify application behavior only; they do not prove a live charge, merchant settlement, message delivery, or physical scanner acceptance. See the [development guide](docs/public/development.md) before running the wider suite.
 
-## Private project notice
+## License
 
-**Raunak is proprietary software maintained by Yaduraj Singh.** Repository access is limited to the project owner and people explicitly invited to work on it. No license or permission to use, copy, modify, distribute, or reuse this source or its brand assets is granted by viewing this repository. Third-party packages and assets remain subject to their own licenses.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE). Third-party software, fonts, and assets may be subject to separate license terms; their notices and attributions remain in place.
 
 <p align="center"><strong>Good people. Great plans.</strong><br />Built with care by Yaduraj Singh.</p>
