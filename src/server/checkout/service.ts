@@ -68,197 +68,179 @@ export async function createCheckout(
   const unique = new Set(data.items.map((item) => item.ticketTypeId));
   if (unique.size !== data.items.length)
     throw new Error("Duplicate ticket type in cart.");
-  const existing = await db.order.findUnique({
-    where: { idempotencyKey: data.idempotencyKey },
-    include: {
-      items: true,
-      event: { select: { slug: true, salesPaused: true } },
-    },
-  });
-  if (existing) {
-    if (existing.event.salesPaused) throw new Error("Ticket sales are paused.");
-    requireDemoSandbox(existing.event.slug);
-    if (
-      existing.buyerId !== buyer.id ||
-      existing.eventId !== data.eventId ||
-      existing.buyerName !== data.buyerName ||
-      (existing.buyerPhone
-        ? parsePhoneNumberFromString(existing.buyerPhone, "IN")?.number
-        : null) !== data.buyerPhone ||
-      JSON.stringify(existing.attendeeNames ?? null) !==
-        JSON.stringify(attendeeNames ?? null) ||
-      existing.whatsappOptIn !== data.whatsappOptIn ||
-      existing.items.length !== data.items.length ||
-      existing.items.some(
-        (item) =>
-          data.items.find((line) => line.ticketTypeId === item.ticketTypeId)
-            ?.quantity !== item.quantity,
-      )
-    )
-      throw new Error("Idempotency key was used for another cart.");
-    if (existing.status !== "PENDING" || existing.paymentSessionId)
-      return existing;
-  }
-  const order =
-    existing ||
-    (await db
-      .$transaction(async (tx) => {
-        const now = new Date();
-        await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${data.eventId}::uuid FOR UPDATE`;
-        const event = await tx.event.findFirst({
-          where: {
-            id: data.eventId,
-            status: "PUBLISHED",
-            isTest: false,
-            deletedAt: null,
-            startsAt: { gt: now },
-            org: { status: "ACTIVE" },
-          },
-          include: { org: true },
-        });
-        if (!event) throw new Error("Event is unavailable.");
-        if (event.salesPaused) throw new Error("Ticket sales are paused.");
-        requireDemoSandbox(event.slug);
-        const types = await tx.ticketType.findMany({
-          where: { eventId: data.eventId, id: { in: [...unique] } },
-        });
-        if (types.length !== unique.size)
-          throw new Error("Ticket type not found.");
-        if (event.capacity !== null) {
-          const inventory = await tx.ticketType.aggregate({
-            where: { eventId: event.id },
-            _sum: { quantitySold: true, quantityHeld: true },
-          });
-          if (
-            (inventory._sum.quantitySold || 0) +
-              (inventory._sum.quantityHeld || 0) +
-              data.items.reduce((n, item) => n + item.quantity, 0) >
-            event.capacity
-          )
-            throw new Error("Event capacity reached.");
-        }
-        let subtotalPaise = 0;
-        let quantity = 0;
-        for (const line of data.items) {
-          const type = types.find((item) => item.id === line.ticketTypeId)!;
-          if (
-            (type.saleStartsAt && type.saleStartsAt > now) ||
-            (type.saleEndsAt && type.saleEndsAt < now)
-          )
-            throw new Error(`${type.name} is not on sale.`);
-          if (
-            line.quantity < type.minPerOrder ||
-            line.quantity > type.maxPerOrder
-          )
-            throw new Error(
-              `Quantity for ${type.name} is outside the allowed range.`,
-            );
-          if (type.isHidden) throw new Error("Ticket type is unavailable.");
-          const held =
-            await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${line.quantity}, "updatedAt" = NOW() WHERE id = ${type.id}::uuid AND "eventId" = ${data.eventId}::uuid AND "quantityTotal" - "quantitySold" - "quantityHeld" >= ${line.quantity}`;
-          if (!held) throw new Error(`${type.name} is sold out.`);
-          subtotalPaise += type.pricePaise * line.quantity;
-          quantity += line.quantity;
-        }
-        const feePaise = subtotalPaise
-          ? Math.round((subtotalPaise * event.org.platformFeeBps) / 10000) +
-            event.org.platformFeeFixedPaise * quantity
-          : 0;
-        const totalPaise =
-          subtotalPaise +
-          (event.org.feeMode === "PASS_TO_BUYER" ? feePaise : 0);
-        if (totalPaise > 0 && totalPaise < 100)
-          throw new Error("Paid bookings must total at least ₹1.");
-        if (
-          totalPaise &&
-          (!data.buyerPhone ||
-            parsePhoneNumberFromString(data.buyerPhone)?.country !== "IN" ||
-            !/^[6-9]\d{9}$/.test(
-              parsePhoneNumberFromString(data.buyerPhone)!.nationalNumber,
-            ))
+  const order = await db.$transaction(async (tx) => {
+    // Serialize new orders per buyer across app instances, including across events.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(7241, hashtext(${buyer.id}))`;
+    const existing = await tx.order.findUnique({
+      where: { idempotencyKey: data.idempotencyKey },
+      include: {
+        items: true,
+        event: { select: { slug: true, salesPaused: true } },
+      },
+    });
+    if (existing) {
+      if (existing.event.salesPaused) throw new Error("Ticket sales are paused.");
+      requireDemoSandbox(existing.event.slug);
+      if (
+        existing.buyerId !== buyer.id ||
+        existing.eventId !== data.eventId ||
+        existing.buyerName !== data.buyerName ||
+        (existing.buyerPhone
+          ? parsePhoneNumberFromString(existing.buyerPhone, "IN")?.number
+          : null) !== data.buyerPhone ||
+        JSON.stringify(existing.attendeeNames ?? null) !==
+          JSON.stringify(attendeeNames ?? null) ||
+        existing.whatsappOptIn !== data.whatsappOptIn ||
+        existing.items.length !== data.items.length ||
+        existing.items.some(
+          (item) =>
+            data.items.find((line) => line.ticketTypeId === item.ticketTypeId)
+              ?.quantity !== item.quantity,
         )
-          throw new Error(
-            "Cashfree requires a valid Indian mobile number for paid bookings.",
-          );
-        const expiresAt = new Date(now.getTime() + ORDER_MS);
-        const result = await tx.order.create({
+      )
+        throw new Error("Idempotency key was used for another cart.");
+      return existing;
+    }
+    const recentOrders = await tx.order.count({
+      where: { buyerId: buyer.id, createdAt: { gt: new Date(Date.now() - 60_000) } },
+    });
+    if (recentOrders >= 20)
+      throw new Error("Too many new orders. Try again in a minute.");
+
+    await tx.$queryRaw`SELECT id FROM "Event" WHERE id = ${data.eventId}::uuid FOR UPDATE`;
+    const now = new Date();
+    const event = await tx.event.findFirst({
+      where: {
+        id: data.eventId,
+        status: "PUBLISHED",
+        isTest: false,
+        deletedAt: null,
+        startsAt: { gt: now },
+        org: { status: "ACTIVE" },
+      },
+      include: { org: true },
+    });
+    if (!event) throw new Error("Event is unavailable.");
+    if (event.salesPaused) throw new Error("Ticket sales are paused.");
+    requireDemoSandbox(event.slug);
+    const types = await tx.ticketType.findMany({
+      where: { eventId: data.eventId, id: { in: [...unique] } },
+    });
+    if (types.length !== unique.size)
+      throw new Error("Ticket type not found.");
+    const quantity = data.items.reduce((total, item) => total + item.quantity, 0);
+    const subtotalPaise = data.items.reduce(
+      (total, item) =>
+        total + types.find((type) => type.id === item.ticketTypeId)!.pricePaise * item.quantity,
+      0,
+    );
+    if (subtotalPaise > 0) {
+      const held = await tx.orderItem.aggregate({
+        where: { order: { buyerId: buyer.id, eventId: event.id, status: "PENDING" } },
+        _sum: { quantity: true },
+      });
+      if ((held._sum.quantity ?? 0) + quantity > 10)
+        throw new Error("You can hold up to 10 unpaid tickets for this event.");
+    }
+    if (event.capacity !== null) {
+      const inventory = await tx.ticketType.aggregate({
+        where: { eventId: event.id },
+        _sum: { quantitySold: true, quantityHeld: true },
+      });
+      if (
+        (inventory._sum.quantitySold || 0) +
+          (inventory._sum.quantityHeld || 0) +
+          quantity >
+        event.capacity
+      )
+        throw new Error("Event capacity reached.");
+    }
+    for (const line of data.items) {
+      const type = types.find((item) => item.id === line.ticketTypeId)!;
+      if (
+        (type.saleStartsAt && type.saleStartsAt > now) ||
+        (type.saleEndsAt && type.saleEndsAt < now)
+      )
+        throw new Error(`${type.name} is not on sale.`);
+      if (
+        line.quantity < type.minPerOrder ||
+        line.quantity > type.maxPerOrder
+      )
+        throw new Error(
+          `Quantity for ${type.name} is outside the allowed range.`,
+        );
+      if (type.isHidden) throw new Error("Ticket type is unavailable.");
+      const held =
+        await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${line.quantity}, "updatedAt" = NOW() WHERE id = ${type.id}::uuid AND "eventId" = ${data.eventId}::uuid AND "quantityTotal" - "quantitySold" - "quantityHeld" >= ${line.quantity}`;
+      if (!held) throw new Error(`${type.name} is sold out.`);
+    }
+    const feePaise = subtotalPaise
+      ? Math.round((subtotalPaise * event.org.platformFeeBps) / 10000) +
+        event.org.platformFeeFixedPaise * quantity
+      : 0;
+    const totalPaise =
+      subtotalPaise +
+      (event.org.feeMode === "PASS_TO_BUYER" ? feePaise : 0);
+    if (totalPaise > 0 && totalPaise < 100)
+      throw new Error("Paid bookings must total at least ₹1.");
+    if (
+      totalPaise &&
+      (!data.buyerPhone ||
+        parsePhoneNumberFromString(data.buyerPhone)?.country !== "IN" ||
+        !/^[6-9]\d{9}$/.test(
+          parsePhoneNumberFromString(data.buyerPhone)!.nationalNumber,
+        ))
+    )
+      throw new Error(
+        "Cashfree requires a valid Indian mobile number for paid bookings.",
+      );
+    const expiresAt = new Date(now.getTime() + ORDER_MS);
+    const result = await tx.order.create({
+      data: {
+        eventId: event.id,
+        buyerId: buyer.id,
+        buyerName: data.buyerName,
+        buyerEmail: buyer.email,
+        buyerPhone: data.buyerPhone,
+        attendeeNames,
+        whatsappOptIn: data.whatsappOptIn,
+        whatsappOptInAt: data.whatsappOptIn ? now : null,
+        idempotencyKey: data.idempotencyKey,
+        subtotalPaise,
+        feePaise,
+        totalPaise,
+        expiresAt,
+        cashfreeOrderId: totalPaise ? randomUUID() : null,
+        items: {
+          create: data.items.map((line) => ({
+            ticketTypeId: line.ticketTypeId,
+            quantity: line.quantity,
+            unitPricePaise: types.find(
+              (type) => type.id === line.ticketTypeId,
+            )!.pricePaise,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+    if (!totalPaise) {
+      for (const line of data.items)
+        await tx.ticketType.update({
+          where: { id: line.ticketTypeId },
           data: {
-            eventId: event.id,
-            buyerId: buyer.id,
-            buyerName: data.buyerName,
-            buyerEmail: buyer.email,
-            buyerPhone: data.buyerPhone,
-            attendeeNames,
-            whatsappOptIn: data.whatsappOptIn,
-            whatsappOptInAt: data.whatsappOptIn ? now : null,
-            idempotencyKey: data.idempotencyKey,
-            subtotalPaise,
-            feePaise,
-            totalPaise,
-            expiresAt,
-            cashfreeOrderId: totalPaise ? randomUUID() : null,
-            items: {
-              create: data.items.map((line) => ({
-                ticketTypeId: line.ticketTypeId,
-                quantity: line.quantity,
-                unitPricePaise: types.find(
-                  (type) => type.id === line.ticketTypeId,
-                )!.pricePaise,
-              })),
-            },
+            quantityHeld: { decrement: line.quantity },
+            quantitySold: { increment: line.quantity },
           },
-          include: { items: true },
         });
-        if (!totalPaise) {
-          for (const line of data.items)
-            await tx.ticketType.update({
-              where: { id: line.ticketTypeId },
-              data: {
-                quantityHeld: { decrement: line.quantity },
-                quantitySold: { increment: line.quantity },
-              },
-            });
-          await tx.order.update({
-            where: { id: result.id },
-            data: { status: "PAID" },
-          });
-          await issueTickets(tx, result);
-          return { ...result, status: "PAID" as const };
-        }
-        return result;
-      })
-      .catch(async (error) => {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002"
-        ) {
-          const replay = await db.order.findUnique({
-            where: { idempotencyKey: data.idempotencyKey },
-            include: { items: true },
-          });
-          if (
-            replay &&
-            replay.buyerId === buyer.id &&
-            replay.eventId === data.eventId &&
-            replay.whatsappOptIn === data.whatsappOptIn &&
-            replay.buyerName === data.buyerName &&
-            (replay.buyerPhone
-              ? parsePhoneNumberFromString(replay.buyerPhone, "IN")?.number
-              : null) === data.buyerPhone &&
-            JSON.stringify(replay.attendeeNames ?? null) ===
-              JSON.stringify(attendeeNames ?? null) &&
-            replay.items.length === data.items.length &&
-            replay.items.every(
-              (item) =>
-                data.items.find(
-                  (line) => line.ticketTypeId === item.ticketTypeId,
-                )?.quantity === item.quantity,
-            )
-          )
-            return replay;
-        }
-        throw error;
-      }));
+      await tx.order.update({
+        where: { id: result.id },
+        data: { status: "PAID" },
+      });
+      await issueTickets(tx, result);
+      return { ...result, status: "PAID" as const };
+    }
+    return result;
+  });
   if (order.status === "PAID") {
     try {
       await queueTicketDelivery(order.id);
@@ -267,7 +249,7 @@ export async function createCheckout(
     }
   }
   if (
-    order.status === "PAID" ||
+    order.status !== "PENDING" ||
     !order.cashfreeOrderId ||
     order.paymentSessionId
   )

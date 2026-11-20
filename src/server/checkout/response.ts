@@ -47,16 +47,17 @@ export async function checkoutSnapshot(id: string, buyerId: string) {
 
 export function checkoutError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
+  const limited = message === "Too many new orders. Try again in a minute.";
   const status =
-    message === "Authentication required."
+    limited ? 429 : message === "Authentication required."
       ? 401
       : message === "Request origin is not allowed."
         ? 403
         : error instanceof Prisma.PrismaClientKnownRequestError
           ? 503
           : 400;
-  const expected =
-    /^(Authentication required\.|Request origin is not allowed\.|Event is unavailable\.|Event capacity reached\.|Ticket type (is unavailable|not found)\.|Duplicate ticket type|Idempotency key|Cashfree (requires|request failed|credentials)|Paid bookings|Demo events|Quantity for )/.test(
+  const expected = limited ||
+    /^(Authentication required\.|Request origin is not allowed\.|Event is unavailable\.|Event capacity reached\.|Ticket type (is unavailable|not found)\.|Duplicate ticket type|Idempotency key|Cashfree (requires|request failed|credentials)|Paid bookings|Demo events|You can hold up to 10 unpaid tickets for this event\.|Quantity for )/.test(
       message,
     ) ||
     /^.{1,100} (is not on sale\.|is sold out\.|has only \d+ tickets left\.)$/.test(
@@ -70,6 +71,6 @@ export function checkoutError(error: unknown) {
         : "We couldn't complete your booking. Please try again.";
   return Response.json(
     { error: safe },
-    { status, headers: { "Cache-Control": "no-store" } },
+    { status, headers: { "Cache-Control": "no-store", ...(limited ? { "Retry-After": "60" } : {}) } },
   );
 }

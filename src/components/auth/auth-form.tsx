@@ -333,8 +333,8 @@ export function AuthForm({
       await sendPasswordResetEmail(await getClientAuth(), email);
       setBanner({
         type: "success",
-        title: "Password Reset Link Sent",
-        message: `We've sent a password reset link to ${email}. Check your inbox and spam folder.`,
+        title: "Check your email",
+        message: "If an account uses this email, you’ll receive a password reset link. Check your inbox and spam folder.",
       });
     } catch (error) {
       const { banner: errBanner, fieldError } = normalizeAuthError(
