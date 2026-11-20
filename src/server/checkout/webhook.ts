@@ -81,22 +81,15 @@ export async function processCashfreeWebhook(
   }
   try {
     const payment = payload.data.payment;
-    const result =
-      payment.payment_status === "SUCCESS"
-        ? await applyPayment(
-            order.id,
-            {
-              id: String(payment.cf_payment_id),
-              status: "SUCCESS",
-              amountPaise: Math.round(payment.payment_amount * 100),
-              method: payment.payment_group,
-              paidAt: payment.payment_time,
-              raw: payload,
-            },
-            provider,
-          )
-        // Failed attempts can be retried in the same Cashfree checkout session.
-        : order;
+    let result = order;
+    if (payment.payment_status === "SUCCESS") {
+      const verified = (await provider.getPayments(payload.data.order.order_id)).find(
+        (attempt) => attempt.id === String(payment.cf_payment_id) && attempt.status === "SUCCESS",
+      );
+      if (!verified || verified.amountPaise !== Math.round(payment.payment_amount * 100))
+        throw new Error("Cashfree has not confirmed the reported payment.");
+      result = await applyPayment(order.id, verified, provider);
+    }
     await db.webhookEvent.update({
       where: {
         provider_idempotencyKey: { provider: "cashfree", idempotencyKey: id },
@@ -105,10 +98,8 @@ export async function processCashfreeWebhook(
     });
     return result;
   } catch (error) {
-    await db.webhookEvent.update({
-      where: {
-        provider_idempotencyKey: { provider: "cashfree", idempotencyKey: id },
-      },
+    await db.webhookEvent.updateMany({
+      where: { provider: "cashfree", idempotencyKey: id, status: { not: "PROCESSED" } },
       data: { status: "FAILED" },
     });
     throw error;

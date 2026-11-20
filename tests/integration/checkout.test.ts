@@ -120,6 +120,14 @@ it("never oversells under concurrent checkouts and safely expires holds", async 
       .quantityHeld,
   ).toBe(0);
 });
+it("caps unpaid tickets per buyer and event without blocking retries", async () => {
+  const { type, cart } = await setup(10000, 30);
+  const first = { ...cart(), items: [{ ticketTypeId: type.id, quantity: 10 }] };
+  const order = await createCheckout(buyer, first, provider);
+  await expect(createCheckout(buyer, cart(), provider)).rejects.toThrow("10 unpaid tickets");
+  expect((await createCheckout(buyer, first, provider)).id).toBe(order.id);
+});
+
 it("issues free tickets once and rejects idempotency keys reused for another cart", async () => {
   const { type, cart } = await setup(0);
   const input = cart();
@@ -157,7 +165,7 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
       },
     },
   });
-  const timestamp = String(Date.now());
+  const timestamp = String(Date.now() - 60 * 60 * 1000);
   const signature = createHmac("sha256", "test-secret")
     .update(timestamp + raw)
     .digest("base64");
@@ -185,6 +193,13 @@ it("verifies payment signatures, rejects wrong amounts, and deduplicates success
     (await db.ticketType.findUniqueOrThrow({ where: { id: type.id } }))
       .quantityHeld,
   ).toBe(1);
+  await expect(
+    processCashfreeWebhook(raw, timestamp, signature, provider, "test-secret"),
+  ).rejects.toThrow("has not confirmed");
+  expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(0);
+  provider.payments.set(order.cashfreeOrderId!, [
+    { id: key, status: "SUCCESS", amountPaise: order.totalPaise, raw: {} },
+  ]);
   await processCashfreeWebhook(
     raw,
     timestamp,

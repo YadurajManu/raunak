@@ -117,7 +117,9 @@ export const cashfree: PaymentProvider = {
           .object({
             cf_payment_id: z.union([z.string(), z.number()]),
             payment_status: z.string(),
-            payment_amount: z.number(),
+            order_id: z.literal(orderId),
+            payment_currency: z.literal("INR"),
+            payment_amount: z.number().nonnegative(),
             payment_group: z.string().optional(),
             payment_time: z.string().optional(),
           })
@@ -185,6 +187,10 @@ export function verifyCashfreeSignature(
   secret = process.env.CASHFREE_SECRET_KEY || "",
 ) {
   if (!timestamp || !signature || !secret || !/^\d+$/.test(timestamp))
+    return false;
+  // Keep delayed retries eligible for provider verification and deduplication.
+  const sentAt = Number(timestamp);
+  if (!Number.isSafeInteger(sentAt) || sentAt <= 0 || sentAt > Date.now() + 300_000)
     return false;
   const expected = createHmac("sha256", secret)
     .update(timestamp + raw)
