@@ -38,7 +38,7 @@ export async function messageActionResponse(
     const status =
       message === "Authentication required."
         ? 401
-        : message === "Access denied."
+        : message === "Access denied." || message === "Request origin is not allowed."
           ? 403
           : 400;
     return Response.json(

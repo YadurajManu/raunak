@@ -16,6 +16,12 @@ Raunak Caddy container. Caddy sends `/raunak-media/*` to Garage and other paths 
 the Next.js service. S3 signatures keep the public hostname and original path.
 Original uploads are private; `/api/media/*` signs only processed artwork URLs.
 
+Use the `fleet-cp` SSH alias, which connects through Cloudflare Access. On Fleet,
+`raunak-ssh-guard.service` loads `/etc/raunak/ssh-guard.nft` at boot. The rule
+permits port 22 on loopback and the `fleet-os_default` Docker bridge. If that
+network is replaced, update the bridge name in the rule while console access
+is available, then verify a fresh tunnel SSH connection.
+
 Server code lives in `/opt/raunak`. The mode-600 `.env` and `garage.toml` contain
 credentials and must never be committed or copied into an image. The Dockerfile
 accepts public Firebase configuration and the public map tile URL/attribution as
